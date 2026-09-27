@@ -31,6 +31,8 @@ Se comprueban duración positiva, ausencia de solapamientos, retención y estado
 permitidos, además de `PRAGMA quick_check`. No se exportan títulos, procesos,
 rutas, tokens ni mensajes de excepciones. El SQLite contiene solo las etiquetas
 sintéticas fijas del escenario.
+La comprobación de retención usa el último corte aplicado por `maintain` al
+arrancar, cambiar de día o cambiar ajustes; no presupone una purga cada segundo.
 
 Se miden heap de Python con `tracemalloc` y handles del propio proceso en Windows
 mediante [GetProcessHandleCount](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-getprocesshandlecount).

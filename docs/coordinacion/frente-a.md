@@ -25,9 +25,20 @@
   `wall_48h_completed=true`. El estado inicial fue verificado junto con el proceso vivo.
   Para detener: crear `build/phase5-realtime-20260927/stop.request`.
 - Carga acelerada de 48 h lógicas: `build/phase5-accelerated-20260927/status.json`.
-  La evidencia final se registrará al terminar; no equivale a 48 h transcurridas.
+  **Completada y aprobada**, exit 0: 172.800 segundos lógicos, **172.320 muestras**,
+  480 ticks sin observación previstos y siete reaperturas. Duración real **1660.672 s**
+  (27 min 41 s), fin 2026-09-27 18:03:40 UTC. Integridad correcta; cero tramos
+  inválidos, solapados, anteriores al último corte de retención o con estados ajenos
+  al escenario. 49 reportes: aumento máximo de heap 203.478 bytes, de handles **0**;
+  SQLite/WAL/SHM alcanzaron 4.492.792 bytes y quedaron en 368.640 bytes al cerrar.
+  El SQLite final contiene 3.576 tramos. No equivale a 48 h transcurridas:
+  `checks_passed=true`, **`wall_48h_completed=false`**.
   Una suspensión o cierre forzado no se convierte en aprobación ni se rellena con
   observaciones inventadas. Los directorios de ensayo y binarios están ignorados.
+- Última comprobación de la corrida realtime al cerrar esta entrega: proceso vivo,
+  1.200 muestras, unos 20 minutos transcurridos, cero ticks perdidos, cero problemas
+  reportados y stderr vacío. Sigue pendiente; no se instaló monitor ni tarea de inicio.
+  Consultar el estado vivo antes de declarar F5 aprobada; una fecha prevista no es evidencia.
 - Sidecar reconstruido desde un workpath nuevo `build/phase5-sidecar-20260927`:
   consumir **TODO `dist/nde1-core/`**, incluido `_internal/`. Smoke sobre el EXE:
   **1 passed** (25.03 s), con HTTP real, rutas de A rechazando solicitudes sin token,
@@ -57,6 +68,8 @@
   El scanner lee todas las referencias Git, también entregas de otros frentes
   aún no integradas en A. Los avisos incluyen rutas documentales y cinco imágenes
   cuya información visual no fue auditada por el scanner. Revisión pendiente de 0.
+  La comprobación adicional de la copia actual, sin historial, dio **256 archivos,
+  1 error y 15 avisos**: el único error es el email del lockfile ya indicado.
 
 ### Revisión de seguridad del ámbito de A
 - Revisión manual de `core/sensing`, herramientas de captura y frontera HTTP del
