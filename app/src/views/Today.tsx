@@ -93,7 +93,8 @@ function ActiveCard({ block, now, onChange }: { block: BlockView; now: number; o
   return (
     <Card className="hero">
       <p className="muted small">
-        Bloque de {TASK_LABEL[block.task_kind].toLowerCase()} · {clock(block.planned_start_ms)} ·{" "}
+        {block.task_kind === "otro" ? "Bloque" : `Bloque de ${TASK_LABEL[block.task_kind].toLowerCase()}`} ·{" "}
+        {clock(block.planned_start_ms)} ·{" "}
         {elapsed >= 0 ? `hace ${duration(elapsed)}` : untilText(block.planned_start_ms, now)}
       </p>
       <p className="big-text">{block.task_label}</p>
