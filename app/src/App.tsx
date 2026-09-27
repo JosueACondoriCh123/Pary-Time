@@ -39,6 +39,7 @@ export function App() {
   const [view, setView] = useState<NavTarget>(defaultView);
 
   useEffect(() => window.nde1?.onNavigate(setView), []);
+  const [projector, toggleProjector] = useProjector();
   const synthetic = useDataLabel() === "sintetico";
 
   return (
@@ -67,6 +68,17 @@ export function App() {
             {n.label}
           </button>
         ))}
+        <div className="nav-foot">
+          <button
+            type="button"
+            className={projector ? "nav-item on" : "nav-item"}
+            aria-pressed={projector}
+            onClick={toggleProjector}
+            title="Letra más grande y más contraste para mostrar en pantalla grande"
+          >
+            Modo proyector <kbd>Ctrl+Shift+P</kbd>
+          </button>
+        </div>
       </nav>
       <main className="content">
         <SidecarBanner />
@@ -74,6 +86,38 @@ export function App() {
       </main>
     </div>
   );
+}
+
+const PROJECTOR_KEY = "nde1.projector";
+
+/** Modo proyector: letra y contraste más grandes. Es una preferencia de esta pantalla (localStorage). */
+function useProjector(): [boolean, () => void] {
+  const [on, setOn] = useState(() => {
+    try {
+      return localStorage.getItem(PROJECTOR_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
+  useEffect(() => {
+    document.documentElement.classList.toggle("projector", on);
+    try {
+      localStorage.setItem(PROJECTOR_KEY, on ? "1" : "0");
+    } catch {
+      /* sin almacenamiento: vale solo para esta sesión */
+    }
+  }, [on]);
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "p") {
+        e.preventDefault();
+        setOn((v) => !v);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, []);
+  return [on, () => setOn((v) => !v)];
 }
 
 /** `real` o `sintetico`, según el marcador DATA_LABEL del data-dir. Se vuelve a leer si el núcleo se reinicia. */

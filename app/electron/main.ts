@@ -18,6 +18,9 @@ let overlayWin: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let quitting = false;
 
+// Tests, capturas y GIF usan su propia carpeta de usuario: conviven con la app abierta y no tocan sus preferencias.
+if (process.env.NDE1_USER_DATA) app.setPath("userData", process.env.NDE1_USER_DATA);
+
 // Dos núcleos no pueden compartir el data-dir: la segunda instancia solo le pasa el foco a la primera.
 const primary = app.requestSingleInstanceLock();
 if (!primary) app.exit(0);

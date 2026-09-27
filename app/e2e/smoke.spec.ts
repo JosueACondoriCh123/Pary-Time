@@ -11,7 +11,7 @@ let dataDir: string;
 
 test.beforeAll(async () => {
   dataDir = mkdtempSync(join(tmpdir(), "nde1-e2e-"));
-  const env = { ...process.env, NDE1_DATA_DIR: dataDir } as Record<string, string>;
+  const env = { ...process.env, NDE1_DATA_DIR: dataDir, NDE1_USER_DATA: join(dataDir, "_userdata") } as Record<string, string>;
   delete env.VITE_DEV_SERVER_URL;
   delete env.VITE_FIXTURES;
   app = await electron.launch({ args: ["."], cwd: join(import.meta.dirname, ".."), env });
