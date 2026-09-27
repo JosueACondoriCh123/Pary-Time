@@ -28,7 +28,8 @@ def factory(mode):
 
 
 def run_council(journal, tmp_path, mode):
-    return Council(journal, Settings, SeedStore(tmp_path), factory(mode)).run()
+    ids = iter(["0000000000a1", "0000000000b2"])            # run_id fijo: la exploración es reproducible
+    return Council(journal, Settings, SeedStore(tmp_path), factory(mode), new_id=lambda: next(ids)).run()
 
 
 def check_auditable(run, journal):
@@ -56,7 +57,8 @@ def test_replayed_council_is_identical_and_auditable(baseline, tmp_path):
         pytest.skip("sin cassettes: grabalas con NDE1_LIVE_TESTS=1 pytest tests/council/test_ollama_council.py")
     a = run_council(baseline, tmp_path / "a", "replay")
     check_auditable(a, baseline)
-    hyps = [p.hypothesis for p in a.proposals]
-    assert all(p.source == "scout" for p in a.proposals)
-    assert any(p.red_team.premortem for p in a.proposals)               # el Red Team LLM respondió
-    assert hyps and all(0 < h.expected_ratio <= 1.5 for h in hyps)
+    assert a.proposals[0].source == "scout"
+    chosen = [p for p in a.proposals if p.red_team.premortem]
+    if a.chosen_experiment_id:                                   # el Red Team LLM opinó sobre lo elegido
+        assert len(chosen) == 1 and chosen[0].red_team.verdict in ("pass", "veto")
+    assert all(0 < p.hypothesis.expected_ratio <= 1.5 for p in a.proposals)

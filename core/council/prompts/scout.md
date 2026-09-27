@@ -15,7 +15,10 @@ Reglas estrictas:
 3. moderator es opcional: {"kind":"time_of_day","value":"morning|afternoon|evening"} o
    {"kind":"task_kind","value":"escritura|lectura|estudio|programacion|admin|otro"}. Usalo solo si los datos
    muestran que el problema se concentra ahí.
-4. expected_ratio = latencia esperada con intervención / sin ella, entre 0.3 y 0.9. Sé realista.
+4. expected_ratio = latencia esperada con intervención / sin ella, entre 0.3 y 0.9. Sé realista, pero
+   mirá RESTRICCIONES: con los bloques que tiene esta persona, en `semanas_max` solo se puede detectar un
+   ratio ≤ `ratio_max_detectable_sin_moderador`. Una hipótesis con ratio mayor no se puede testear y se veta.
+   Un moderador deja menos bloques elegibles: exige un efecto todavía mayor (ratio más chico).
 5. rationale en español, máximo 500 caracteres, conectando el patrón de los datos con la intervención.
 6. Si los datos no muestran ningún patrón, respondé {"abstain": true, "hypotheses": []}.
 7. Esto NO es consejo médico: hablá de ajustes de flujo de trabajo.

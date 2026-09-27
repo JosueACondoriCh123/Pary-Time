@@ -11,7 +11,7 @@ import random
 import secrets
 import time
 import uuid
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Callable
 
@@ -20,7 +20,7 @@ from core.contracts import (Arm, CouncilRun, OUTCOME_RULES, Preregistration, Pro
 from core.council import llm_roles
 from core.council.allocator import Candidate, choose, fallback_hypotheses
 from core.council.journal_view import JournalView
-from core.council.red_team import MIN_BASELINE_BLOCKS, fallback_ratio, report, run_tools
+from core.council.red_team import MAX_WEEKS, MIN_BASELINE_BLOCKS, fallback_ratio, report, run_tools
 from core.council.snapshot import build_snapshot
 from core.journal import Journal, append_typed
 from core.llm import LLMError, OpenAICompatClient
@@ -66,12 +66,13 @@ class Council:
     seeds: SeedStore
     client_factory: ClientFactory
     now_ms: Callable[[], int] = lambda: int(time.time() * 1000)
+    new_id: Callable[[], str] = _hex12       # inyectable: la exploración se siembra con el run_id
 
     def run(self) -> CouncilRun:
         s = self.settings()
         view = JournalView.load(self.journal)
         snap = build_snapshot(view)
-        run_id, ran = f"run_{_hex12()}", self.now_ms()
+        run_id, ran = f"run_{self.new_id()}", self.now_ms()
         models = {"scout": s.scout_model, "red_team": s.red_team_model}
 
         def record(proposals, chosen=None, llm_used=False, reason=None) -> CouncilRun:
@@ -86,44 +87,59 @@ class Council:
         if len(snap.rows) < MIN_BASELINE_BLOCKS:
             return record([], reason=f"línea base insuficiente: {len(snap.rows)} bloques < {MIN_BASELINE_BLOCKS}")
 
-        # 1. Scout (familia A). Si falla o se abstiene, respaldo determinista.
-        hyps, source, reason, llm_used = [], "scout", None, False
+        # Efecto mínimo detectable en el tope de semanas: restricción para el Scout y ratio del respaldo.
+        mde = fallback_ratio(snap, view, next_alpha(view.alpha_history(), s.family_alpha))
+
+        # 1. Scout (familia A).
+        hyps, reason, llm_used = [], None, False
         try:
-            hyps, _call, dropped = llm_roles.scout(self.client_factory("scout", s.scout_model), snap)
+            constraints = {"ratio_max_detectable_sin_moderador": mde, "semanas_max": MAX_WEEKS}
+            hyps, _call, dropped = llm_roles.scout(self.client_factory("scout", s.scout_model), snap, constraints)
             llm_used = True
             if not hyps:
                 reason = "el Scout se abstuvo" + (f" (descartadas por formato: {len(dropped)})" if dropped else "")
         except LLMError as e:
             reason = f"Scout no disponible: {e}"[:300]
-        if not hyps:
-            ratio = fallback_ratio(snap, view, next_alpha(view.alpha_history(), s.family_alpha))
-            if ratio is None:
-                return record([], llm_used=llm_used,
-                              reason=(reason + "; " if reason else "") + "ni el respaldo entra en el tope de semanas")
-            hyps, source = fallback_hypotheses(ratio), "allocator_fallback"
 
-        # 2. Red Team: herramientas con veto (deterministas) + pre-mortem del LLM (familia B, sin veto).
-        red_client = None
-        try:
-            red_client = self.client_factory("red_team", s.red_team_model)
-        except LLMError:
-            pass
-        candidates = []
-        for h in hyps:
-            tools, plan = run_tools(h, snap, view, s, check_citations=source == "scout")
-            pm = llm_roles.premortem(red_client, h, tools) if red_client is not None else ""
-            candidates.append(Candidate(h, source, report(tools, pm), plan))
-        proposals = [ProposalRecord(hypothesis=c.hypothesis, source=c.source, red_team=c.red_team)
-                     for c in candidates]
+        # 2. Red Team determinista (con veto) sobre lo del Scout.
+        def evaluate(hs, source):
+            out = []
+            for h in hs:
+                tools, plan = run_tools(h, snap, view, s, check_citations=source == "scout")
+                out.append(Candidate(h, source, report(tools, ""), plan))
+            return out
+
+        candidates = evaluate(hyps, "scout")
+        # Si nada del Scout sobrevive (o no hubo Scout), entra el respaldo con el efecto mínimo detectable:
+        # así una semana de hipótesis inviables no deja a la persona sin experimento.
+        if not any(c.red_team.verdict == "pass" for c in candidates):
+            why = reason or ("todas las hipótesis del Scout fueron vetadas" if candidates else "sin hipótesis")
+            if mde is None:
+                reason = why + "; ni el respaldo entra en el tope de semanas"
+            else:
+                candidates += evaluate(fallback_hypotheses(mde), "allocator_fallback")
+                reason = why + "; respaldo con el efecto mínimo detectable"
 
         # 3. Allocator + constitución (ya aplicada como herramienta con veto).
         ledger = build_ledger(self._ledger_results(view))
         pick, prereg_source = choose(candidates, ledger, s.exploration_fraction, random.Random(run_id))
+        if pick is not None:
+            # Pre-mortem del Red Team LLM (familia B, sin veto) solo para lo elegido: una llamada, no ocho.
+            try:
+                pm = llm_roles.premortem(self.client_factory("red_team", s.red_team_model), pick.hypothesis,
+                                         pick.red_team.tools)
+            except LLMError:
+                pm = ""
+            chosen = replace(pick, red_team=report(pick.red_team.tools, pm))
+            candidates = [chosen if c is pick else c for c in candidates]
+            pick = chosen
+        proposals = [ProposalRecord(hypothesis=c.hypothesis, source=c.source, red_team=c.red_team)
+                     for c in candidates]
         if pick is None:
             return record(proposals, llm_used=llm_used, reason=reason or "todas las hipótesis fueron vetadas")
 
         # 4. Preregistro sellado ANTES del primer sorteo.
-        exp_id, seed = f"exp_{_hex12()}", secrets.token_hex(32)
+        exp_id, seed = f"exp_{self.new_id()}", secrets.token_hex(32)
         self.seeds.save(exp_id, seed)
         run = record(proposals, chosen=exp_id, llm_used=llm_used, reason=reason)
         prereg = Preregistration(

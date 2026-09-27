@@ -4,7 +4,7 @@
 
 ## Estado
 - Fase 1 terminada (2026-09-26).
-- Fase 2 terminada en código (2026-09-26). Falta grabar la corrida completa con Granite para el replay.
+- Fase 2 terminada (2026-09-26). Corrida real grabada: `data/cassettes/`, respuestas de Qwen y Granite sobre el snapshot SINTÉTICO.
 
 ## Hecho
 ### Fase 1: estadística (`core/stats/`)
@@ -46,8 +46,19 @@
 4. **Contexto de 4096 tokens:** el prompt del Scout quedó con un techo de unos 2240 tokens (medido) para cualquier duración de la línea base.
 5. **Bug heredado:** el validador de JSON de Night Council no soporta `"null"`. Corregido acá; en Night Council sigue igual.
 
+## Corrida real (qwen3.5:4b + granite4.2:8b, 2026-09-26)
+- **Sin restricción:** el Scout propuso ratios de 0.65–0.7 (realistas) y el Red Team vetó las 3 por potencia (12–18 semanas). En la primera también detectó un confusor real del fixture ("escritura" = "mañana" en el 100% de los bloques).
+- **Cambios de diseño a partir de eso:**
+  1. El Scout recibe como restricción el efecto mínimo detectable.
+  2. Si todo lo del Scout se veta, entra el respaldo.
+  3. El pre-mortem se escribe solo para lo elegido (1 llamada en vez de 8).
+- **Con restricción:** `retrasar_distracciones` con ratio 0.38 pasó todas las herramientas; las otras dos quedaron apenas por encima (3.7 y 5.4 semanas).
+- **Latencias:** Scout 37 s, pre-mortem 39 s.
+
+## Limitación conocida
+El verificador comprueba que cada cifra EXISTA en el snapshot, pero no que diga lo que el modelo afirma. En la corrida real, Qwen escribió "50% de escritura censurados" cuando es 4%; el 50 existe en otro lado del snapshot. No cambia la decisión (las herramientas usan los datos, no el texto), pero la justificación que ve la persona puede estar mal. Mejora posible: atar cada porcentaje a un `pct_*` del bucket citado.
+
 ## En curso
-- Grabar las respuestas reales de Scout y Red Team (`NDE1_LIVE_TESTS=1`) para el test de replay.
 
 ## Para el Frente B (ExperimentProvider)
 - `ctx.experiments.active()` devuelve `None` si no hay experimento o si la semilla local falta o no coincide con el compromiso. En ese caso se asigna control.

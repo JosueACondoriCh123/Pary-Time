@@ -38,10 +38,14 @@ def _prompt(name: str) -> tuple[str, str]:
     return text, f"{name}@{sha256(text)[:8]}"
 
 
-def scout(client: OpenAICompatClient, snapshot: Snapshot) -> tuple[list[Hypothesis], LLMCall, list[str]]:
-    """Hipótesis válidas según el contrato, la llamada auditable y lo descartado por formato."""
+def scout(client: OpenAICompatClient, snapshot: Snapshot,
+          constraints: dict | None = None) -> tuple[list[Hypothesis], LLMCall, list[str]]:
+    """Hipótesis válidas según el contrato, la llamada auditable y lo descartado por formato.
+    `constraints` (p.ej. el efecto mínimo detectable) va junto al snapshot para que proponga algo testeable."""
     system, version = _prompt("scout")
-    obj, call = client.complete_json(purpose="scout", system=system, user=snapshot.to_prompt(),
+    user = snapshot.to_prompt() + ("\n\nRESTRICCIONES: " + json.dumps(constraints, ensure_ascii=False)
+                                   if constraints else "")
+    obj, call = client.complete_json(purpose="scout", system=system, user=user,
                                      schema=SCOUT_SCHEMA, prompt_version=version, max_tokens=1500)
     if obj.get("abstain"):
         return [], call, []
