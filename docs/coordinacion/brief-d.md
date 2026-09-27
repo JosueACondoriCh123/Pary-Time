@@ -1,7 +1,7 @@
 # Brief · Frente D: app Electron
 
 > Pegale este archivo entero al agente externo 3 como primer mensaje. Su worktree es
-> `C:\Users\HP\Documents\n-de-1-frente-d` (rama `frente-d`).
+> `C:\Users\HP\Documents\n-de-1\n-de-1-frente-d` (rama `frente-d`).
 
 ## Contexto en 5 líneas
 Consejo N-de-1 es una app de escritorio para Windows que hace experimentos aleatorizados sobre cómo arranca a

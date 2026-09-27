@@ -1,7 +1,7 @@
 # Brief · Frente B: runtime e intervenciones
 
 > Pegale este archivo entero al agente externo 2 como primer mensaje. Su worktree es
-> `C:\Users\HP\Documents\n-de-1-frente-b` (rama `frente-b`).
+> `C:\Users\HP\Documents\n-de-1\n-de-1-frente-b` (rama `frente-b`).
 
 ## Contexto en 5 líneas
 Consejo N-de-1 es una app de escritorio para Windows que hace experimentos aleatorizados sobre cómo arranca a

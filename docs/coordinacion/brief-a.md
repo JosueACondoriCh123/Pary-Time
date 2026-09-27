@@ -1,7 +1,7 @@
 # Brief · Frente A: sensor y resultado
 
 > Pegale este archivo entero al agente externo 1 como primer mensaje. Su worktree es
-> `C:\Users\HP\Documents\n-de-1-frente-a` (rama `frente-a`).
+> `C:\Users\HP\Documents\n-de-1\n-de-1-frente-a` (rama `frente-a`).
 
 ## Contexto en 5 líneas
 Consejo N-de-1 es una app de escritorio para Windows que hace experimentos aleatorizados sobre cómo arranca a
