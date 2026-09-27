@@ -5,7 +5,8 @@
 
 ## Estado
 - Fases 1, 2 y 3 hechas del lado de la app (2026-09-26).
-- Lo que falta depende de otros frentes: B1 y B2 para las rutas de bloques y runtime, y A para el sidecar congelado.
+- 2026-09-27: el sidecar de A (`a060e33`) quedó integrado en la app empaquetada y verificado de punta a punta.
+- Lo que falta depende de B1 y B2 (rutas de bloques y runtime).
 
 ## Hecho
 
@@ -84,14 +85,22 @@
 - **Empaquetado:**
   - `packaging/electron-builder.yml`: NSIS por usuario, `asInvoker`, sin elevación.
   - `extraResources` toma el sidecar de A.
-  - `npm run dist` genera el instalador; ya se probó y sale uno de 112 MB, todavía sin sidecar.
+  - `npm run dist` genera el instalador.
+
+### Integración con el sidecar de A (2026-09-27)
+- Se construyó la app empaquetada con `dist/nde1-core/` de A copiado en `<repo>/dist/` (ignorado por git).
+- Resultado del e2e `e2e/packaged.spec.ts`, sobre `release/win-unpacked` y sin Python:
+  - `isPackaged` da true y el núcleo congelado arranca en unos 7 s.
+  - `/health` responde, `/activity/today` da 200 con el sensor real y `/journal/verify` sale ok.
+  - La vista "Hoy" muestra "Sensor: midiendo".
+- Al cerrar la app no quedan procesos `nde1-core` huérfanos: el modo onedir no tiene proceso hijo.
+- `NDE1_NO_LOGIN_ITEM=1` evita que el test registre el `.exe` de `release/` en el inicio de Windows.
 
 ## En curso
 - Nada. Sigo con B2 (scheduler e intervenciones) cuando se mergee B1.
 
 ## Bloqueos
 - `/blocks` y `/runtime/*` responden 501 hasta el merge de B1 y B2. La app lo muestra con el mensaje de 501.
-- El instalador no incluye el núcleo hasta que A entregue `packaging/sidecar.spec`.
 
 ## Coordinación con A (sidecar)
 `packaging/sidecar.spec` tiene que producir un PyInstaller **onedir** en `<repo>/dist/nde1-core/`, con el ejecutable
@@ -119,4 +128,5 @@ Después, según qué quieras probar:
 | `npm run test:e2e` | Build más Playwright for Electron contra el núcleo real: `/health`, 401 sin token, renderer aislado, token no guardado, **matar el núcleo y verificar que se relanza**, y el planificador |
 | `npm run dev` | App contra el núcleo real, con HMR |
 | `npm run dev:fixtures` | App con los datos de ejemplo |
-| `npm run dist` | Instalador NSIS en `app/release/` |
+| `npm run dist` | Instalador NSIS en `app/release/` (antes, copiá o construí `dist/nde1-core/` en la raíz del repo) |
+| `npm run dist:dir` y después `npx playwright test e2e/packaged.spec.ts` | App empaquetada con el núcleo congelado (se saltea si falta el sidecar) |
