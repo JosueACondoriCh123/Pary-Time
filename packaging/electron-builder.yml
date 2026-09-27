@@ -1,0 +1,41 @@
+# Instalador de Windows (NSIS, por usuario, sin permisos de administrador).
+# Se corre desde app/: `npm run dist`. Las rutas son relativas a app/.
+appId: dev.nde1.consejo
+productName: Consejo N-de-1
+copyright: Josué Condori
+
+directories:
+  output: release
+  buildResources: build
+
+files:
+  - dist/**
+  - dist-electron/**
+  - package.json
+
+asar: true
+
+# Usa el Electron ya instalado: evita extraer el zip (en Windows, el antivirus bloquea el rename del .tmp).
+electronDist: node_modules/electron/dist
+
+# El núcleo congelado por PyInstaller (packaging/sidecar.spec, Frente A) en modo onedir:
+# <repo>/dist/nde1-core/nde1-core.exe → resources/nde1-core/nde1-core.exe (lo busca electron/sidecar-logic.ts).
+extraResources:
+  - from: ../dist/nde1-core
+    to: nde1-core
+    filter:
+      - "**/*"
+
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+  icon: build/icon.png
+  requestedExecutionLevel: asInvoker
+
+nsis:
+  oneClick: true
+  perMachine: false
+  allowElevation: false
+  deleteAppDataOnUninstall: false
+  shortcutName: Consejo N-de-1

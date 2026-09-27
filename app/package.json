@@ -1,0 +1,49 @@
+{
+  "name": "nde1-app",
+  "productName": "Consejo N-de-1",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Experimentos aleatorizados sobre cómo arrancás a trabajar",
+  "author": "Josué Condori",
+  "type": "module",
+  "main": "dist-electron/main.cjs",
+  "scripts": {
+    "contracts": "node scripts/contracts.mjs",
+    "dev": "node scripts/dev.mjs",
+    "dev:fixtures": "node scripts/dev.mjs --fixtures",
+    "build": "npm run build:renderer && npm run build:electron",
+    "build:renderer": "vite build",
+    "build:electron": "node scripts/build-electron.mjs",
+    "start": "electron .",
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.electron.json --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:e2e": "npm run build && playwright test",
+    "dist": "npm run build && npm run icon && electron-builder --config ../packaging/electron-builder.yml --win nsis",
+    "icon": "node scripts/make-icon.mjs",
+    "dist:dir": "npm run build && npm run icon && electron-builder --config ../packaging/electron-builder.yml --win --dir"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.63.0",
+    "@types/node": "^26.6.3",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.1.1",
+    "electron": "^44.4.5",
+    "electron-builder": "^26.15.3",
+    "esbuild": "^0.28.2",
+    "eslint": "^10.11.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.12.0",
+    "json-schema-to-typescript": "^16.0.0",
+    "typescript": "^6.0.3",
+    "typescript-eslint": "^8.70.1",
+    "vite": "^8.3.1",
+    "vitest": "^5.0.2"
+  },
+  "dependencies": {
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  }
+}
