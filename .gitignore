@@ -13,3 +13,6 @@ data/journal.jsonl*
 data/*.lock*
 data/runtime/
 tests/fixtures/traces/*.raw.jsonl
+
+# Worktrees de los frentes externos (viven acá adentro; tienen su propia rama)
+/n-de-1-frente-*/
