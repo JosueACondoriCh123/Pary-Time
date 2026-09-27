@@ -2,6 +2,41 @@
 
 > Solo el dueño del frente escribe este archivo. Actualizalo al terminar cada tarea.
 
+## Fase 6 · comprobación local, CI y candidato de A (2026-09-27)
+- Continuación solicitada por Josué. Integrada la base `main@4f5beb8` mediante
+  `33af5a8`, incluidas las correcciones de C y las excepciones de privacidad
+  aprobadas por el Frente 0. El soak realtime de F5 sigue activo; no se reinició
+  ni se reemplazó por la corrida acelerada.
+- `tools/capture/release_check.py`: comprobación local de solo lectura para A.
+  Reutiliza el preflight, exige etiqueta explícita real, resolución registrada
+  con N completo y reporte realtime aprobado de 48 h. Comprueba compromiso,
+  asignaciones, índices, conteos y coherencia con el preregistro, sin recalcular
+  estadísticas de C ni revelar datos en la salida. No genera la resolución.
+  Los casos de prueba son inventados, aunque uno use la etiqueta `real` para
+  probar esa condición; no constituyen el primer experimento real de Josué.
+- `scripts/ci_a.py`: comando ejecutable para CI/local, desde un commit limpio.
+  Verifica contratos, privacidad, todos los tests de A y un smoke sintético;
+  opcionalmente reconstruye y prueba el EXE, crea ZIP completo, manifiesto de
+  archivos con SHA-256 y checksum del ZIP. Relee el ZIP y verifica cada archivo.
+  Falla ante chequeos rechazados, cambio de fuentes o archivos privados/enlaces
+  en el bundle. Logs y bases de prueba quedan ignorados; no se publican.
+- La opción `--history` audita las referencias Git disponibles. Dependencias
+  mantienen los rangos existentes; se registra Python/PyInstaller y el commit,
+  sin prometer reproducibilidad del binario byte por byte entre instalaciones.
+- **Integración pendiente de 0:** `scripts/ci-frente-a.yml` está lista para copiar
+  a `.github/workflows/frente-a.yml`. A entrega la plantilla en su carpeta y no
+  edita la infraestructura global fuera de su reparto. Usa Ubuntu/Windows y
+  Python 3.11; sube exclusivamente recibo, manifiesto, checksum y ZIP exitosos.
+  No hay remoto Git configurado en esta copia; no se ejecutó GitHub Actions.
+- **C/D/0:** producir la primera resolución real, integrar y validar el instalador
+  NSIS y decidir tag/firma/publicación. Un CI de A verde conserva
+  `release_approved=false`; los datos reales y la comprobación de 48 h son locales.
+- Datos revisados: faltan `journal.jsonl` y `activity.sqlite` bajo `../data`;
+  tampoco se encontró journal en las dos ubicaciones habituales de Electron
+  revisadas en F4, ni está configurado `NDE1_DATA_DIR`. Se solicitó la ubicación
+  si existe otra carpeta real. No se recorrió el perfil del usuario.
+- Uso y límites: `scripts/README.md` y `tools/capture/README.md`.
+
 ## Fase 5 · estabilidad, sidecar y logs (2026-09-27)
 - Continuación solicitada por Josué; eligió **muestras sintéticas** para el soak.
   Se integró `main@6905b88` en `frente-a` mediante `0012efa`. El instalador NSIS

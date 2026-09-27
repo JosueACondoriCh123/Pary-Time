@@ -1,5 +1,46 @@
 # Captura local del Frente A
 
+## Fase 6: comprobar la resolución registrada antes de la entrega
+
+Cerrá normalmente la aplicación y usá la carpeta de datos reales, en esta misma
+computadora. No subas el SQLite o journal a un runner de CI.
+
+```powershell
+..\.venv\Scripts\python.exe tools/capture/release_check.py --data-dir ../data --soak-status build/phase5-realtime-20260927/status.json
+```
+
+`../data` es un ejemplo. El chequeo reutiliza el preflight de medición, exige un
+marcador explícito `DATA_LABEL=real`, al menos una resolución registrada y un
+reporte sintético de soak **realtime** terminado con 48 h transcurridas. Una
+corrida acelerada, activa, interrumpida, fallida, corta o con cifras inconsistentes
+no satisface el requisito. No crea ni repara carpetas, datos o resoluciones.
+
+Sobre el journal verificado comprueba, en cada resolución y hasta ese punto:
+preregistro previo sin duplicados, compromiso de la semilla revelada, secuencia
+consecutiva de índices, asignaciones conforme al sorteo normativo, conteos de
+outcomes/censura/device-off/abortos, N mínimo por brazo, alpha y orden temporal.
+Los abortos mantienen sus outcomes por intención de tratar. Los conteos admiten
+que un brazo supere N mientras el otro lo alcanza. `supported` y `not_supported`
+reciben el mismo tratamiento: no se busca un resultado favorable. Una resolución
+anticipada con N incompleto queda pendiente para este hito, incluso si el journal
+registra correctamente el veredicto `insufficient`.
+
+La salida contiene solo conteos, booleanos y códigos de problema. No publica
+títulos, procesos, rutas, IDs de experimentos, semillas, efectos ni p-valores.
+Exit 0 significa `a_checks_passed=true`; 1, requisitos pendientes o inconsistentes;
+2, error de ejecución. Se rechaza SQLite con WAL y se detectan cambios de tamaño
+o fecha de los archivos durante la lectura. Cerrá la app: no es una instantánea
+transaccional entre varios archivos y no puede garantizarla frente a un escritor.
+
+Límites: una etiqueta no prueba la procedencia real, y un JSON de soak no es una
+atestación independiente. No se reconstruyen estadísticas de C, no se reevalúan
+outcomes contra trazas ya purgadas, no se revela ninguna semilla aún oculta y no se
+escribe al journal. El Frente C produce la primera resolución real; esta herramienta
+solo comprueba sus referencias y coherencia de medición. Tampoco sustituye la
+validación del instalador, seguridad global, firma o autorización de publicación.
+
+CI y empaquetado de A: ver `scripts/README.md` y `scripts/ci_a.py`.
+
 ## Fase 5: estabilidad con datos sintéticos
 
 `soak.py` ejercita `Sampler._ingest`, compresión, retención y SQLite reales con
