@@ -84,8 +84,9 @@ quedaron congelados al cerrar la Fase 0.
   lo que por rangos es conservador. El análisis es por intención de tratar: los bloques abortados cuentan en su brazo
   y los `device_off` se excluyen. Se valida contra `scipy.stats.permutation_test` y con simulación de efecto conocido.
 - **Potencia:** el Red Team veta si el N necesario para el efecto propuesto no entra en unas 3 semanas de bloques.
-- **Comparaciones múltiples:** el α se ajusta por el número de hipótesis ya probadas en el ledger (alpha-spending
-  sobre `family_alpha`).
+- **Comparaciones múltiples:** alpha-investing (Foster y Stine, 2008) sobre `family_alpha`. Controla la tasa de
+  descubrimientos falsos (mFDR) secuencial, y cada hallazgo devuelve α para las hipótesis siguientes
+  (`core/stats/multiplicity.py`).
 - **Ledger:** posterior Beta(1 + apoyados, 1 + no apoyados) por intervención.
 - **Veto regret:** el 10% del presupuesto (`exploration_fraction`) prueba hipótesis vetadas por evidencia débil,
   nunca las vetadas por la constitución, y mide cuántas replican.
