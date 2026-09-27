@@ -193,7 +193,12 @@ function applyLoginItem(prefs: Prefs) {
   // En desarrollo registraría el electron.exe pelado; en los tests e2e, el exe de release/.
   if (!app.isPackaged || process.env.NDE1_NO_LOGIN_ITEM === "1") return;
   app.setLoginItemSettings({ openAtLogin: prefs.openAtLogin, args: ["--hidden"] });
+  // Las builds sueltas de "Consejo N-de-1" se registraban con otro nombre. Si esa entrada sigue, al reiniciar arranca
+  // la app vieja, toma el candado de instancia única (misma carpeta de datos) y Pary Time ya no puede abrirse.
+  for (const name of LEGACY_LOGIN_ITEMS) app.setLoginItemSettings({ openAtLogin: false, name });
 }
+
+const LEGACY_LOGIN_ITEMS = ["electron.app.Consejo N-de-1"];
 
 function registerIpc() {
   ipcMain.handle("nde1:sidecar", () => sidecar.state);
