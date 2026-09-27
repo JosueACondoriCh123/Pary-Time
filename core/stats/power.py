@@ -35,7 +35,8 @@ def sigma_log(values: Sequence[float]) -> float:
     return float(np.std(y, ddof=1))
 
 
-def required_n_per_arm(sigma: float, expected_ratio: float, alpha: float, power: float = 0.8) -> int:
+def required_n_per_arm(sigma: float, expected_ratio: float, alpha: float, power: float = 0.8,
+                       efficiency: float = MEDIAN_ARE) -> int:
     if not 0 < expected_ratio < 1:
         raise ValueError("expected_ratio debe estar en (0, 1): solo se buscan reducciones de latencia")
     if sigma <= 0:
@@ -43,15 +44,16 @@ def required_n_per_arm(sigma: float, expected_ratio: float, alpha: float, power:
     delta = -math.log(expected_ratio)
     z = NormalDist().inv_cdf
     n_mean = 2 * ((z(1 - alpha) + z(power)) * sigma / delta) ** 2
-    return max(MIN_N_PER_ARM, math.ceil(n_mean / MEDIAN_ARE))
+    return max(MIN_N_PER_ARM, math.ceil(n_mean / efficiency))
 
 
-def mde_ratio(sigma: float, alpha: float, n_per_arm: float, power: float = 0.8) -> float:
+def mde_ratio(sigma: float, alpha: float, n_per_arm: float, power: float = 0.8,
+              efficiency: float = MEDIAN_ARE) -> float:
     """Efecto mínimo detectable (como ratio de latencias) con `n_per_arm`: inversa de required_n_per_arm."""
     if n_per_arm <= 0:
         return 0.0
     z = NormalDist().inv_cdf
-    delta = (z(1 - alpha) + z(power)) * sigma * math.sqrt(2 / (n_per_arm * MEDIAN_ARE))
+    delta = (z(1 - alpha) + z(power)) * sigma * math.sqrt(2 / (n_per_arm * efficiency))
     return math.exp(-delta)
 
 
@@ -65,8 +67,8 @@ class Feasibility:
 
 
 def feasibility(sigma: float, expected_ratio: float, alpha: float, eligible_blocks_per_week: float,
-                max_weeks: float = 3.0, power: float = 0.8) -> Feasibility:
-    n = required_n_per_arm(sigma, expected_ratio, alpha, power)
+                max_weeks: float = 3.0, power: float = 0.8, efficiency: float = MEDIAN_ARE) -> Feasibility:
+    n = required_n_per_arm(sigma, expected_ratio, alpha, power, efficiency)
     if eligible_blocks_per_week <= 0:
         return Feasibility(n, 0.0, math.inf, False, "no hay bloques elegibles en la línea base")
     weeks = 2 * n / eligible_blocks_per_week

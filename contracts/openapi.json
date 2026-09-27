@@ -1004,8 +1004,11 @@
             "type": "string"
           },
           "test": {
-            "const": "permutation_median_diff_one_sided@1",
-            "default": "permutation_median_diff_one_sided@1",
+            "default": "permutation_meanlog_diff_stratified@2",
+            "enum": [
+              "permutation_median_diff_one_sided@1",
+              "permutation_meanlog_diff_stratified@2"
+            ],
             "title": "Test",
             "type": "string"
           }

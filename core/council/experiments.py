@@ -13,7 +13,7 @@ from core.contracts import (BlockOutcome, ExperimentProgress, ExperimentRecord, 
                             Report, Resolution, Settings, VetoRegret, permuted_arm, seed_commitment)
 from core.council.council import SeedStore
 from core.council.journal_view import JournalView
-from core.interfaces import ActiveExperiment
+from core.interfaces import ActiveExperiment, time_of_day
 from core.journal import Journal, JournalError, append_typed
 from core.stats.analysis import analyze
 from core.stats.ledger import build_ledger
@@ -69,8 +69,9 @@ class Experiments:
             raise ExperimentError(f"no se puede revelar la semilla de {experiment_id}")
         self._check_draws(view, experiment_id, seed, p.arms[1])
         c, t = view.experiment_outcomes(experiment_id)
+        strata = {bid: time_of_day(b.planned_start_ms).value for bid, b in view.blocks.items()}
         an = analyze(c, t, n_per_arm=p.n_per_arm, alpha=p.alpha, experiment_id=experiment_id,
-                     rules=p.outcome_rules)
+                     rules=p.outcome_rules, test=p.test, strata=strata)
         in_exp = {bid for bid, a in view.assignments.items() if a.experiment_id == experiment_id}
         res = Resolution(experiment_id=experiment_id, resolved_ms=self.now_ms(), verdict=an.verdict,
                          n_control=an.n_control, n_treatment=an.n_treatment, median_control_s=an.median_control_s,

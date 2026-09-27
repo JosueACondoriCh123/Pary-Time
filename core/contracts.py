@@ -290,7 +290,8 @@ class Preregistration(_Model):
     arms: tuple[Arm, Arm] = Field(description="(control, tratamiento)")
     primary_metric: Literal["latency_median_censored"] = "latency_median_censored"
     outcome_rules: OutcomeRules
-    test: Literal["permutation_median_diff_one_sided@1"] = "permutation_median_diff_one_sided@1"
+    test: Literal["permutation_median_diff_one_sided@1", "permutation_meanlog_diff_stratified@2"] = \
+        "permutation_meanlog_diff_stratified@2"
     n_per_arm: int = Field(ge=4)
     alpha: float = Field(gt=0, lt=0.5)
     seed_commitment: str = Field(pattern=r"^[0-9a-f]{64}$")

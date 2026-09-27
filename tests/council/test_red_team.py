@@ -27,13 +27,15 @@ def test_power_passes_with_a_clear_effect_and_vetoes_a_tiny_one(baseline):
     assert not tiny.passed and "tope" in tiny.detail
 
 
-def test_a_moderator_with_one_block_per_day_is_too_slow_to_test(baseline):
-    """Compromiso real del N-de-1: restringir a mañanas deja 7 bloques/semana y el mismo efecto pide
-    más de 3 semanas. El Red Team lo veta por potencia (evidencia débil: explorable)."""
+def test_a_moderator_with_one_block_per_day_needs_a_big_effect(baseline):
+    """Compromiso real del N-de-1: restringir a mañanas deja 7 bloques/semana. Con el test @2 (estratificado,
+    media de log-latencia) un efecto grande (×0.4) entra en 3 semanas; uno moderado (×0.6) no, y el Red Team lo
+    veta por potencia (evidencia débil: explorable). Con @1 (mediana) ni el ×0.4 entraba: 4.3 semanas."""
     v, s = ctx(baseline)
-    verdict, plan = power_tool(hyp(ratio=0.4), s, v, alpha=0.02375)
-    assert not verdict.passed and "7.0 bloques elegibles/semana" in verdict.detail
-    assert plan is not None and plan.weeks_needed > 3
+    big, _ = power_tool(hyp(ratio=0.4), s, v, alpha=0.02375)
+    assert big.passed and "7.0 bloques elegibles/semana" in big.detail, big.detail
+    slow, plan = power_tool(hyp(ratio=0.6), s, v, alpha=0.02375)
+    assert not slow.passed and plan is not None and plan.weeks_needed > 3
 
 
 def test_power_vetoes_without_enough_baseline(journal):

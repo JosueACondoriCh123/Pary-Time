@@ -12,7 +12,8 @@ from typing import Sequence
 import numpy as np
 
 from core.contracts import BlockOutcome, OutcomeRules
-from core.stats.permutation import latency_values, permutation_test, seed_from
+from core.stats.permutation import TEST_ID as TEST_V1, latency_values, permutation_test, seed_from
+from core.stats.stratified import stratified_test
 
 
 @dataclass(frozen=True)
@@ -34,7 +35,9 @@ def _usable(outcomes: Sequence[BlockOutcome]) -> list[BlockOutcome]:
 
 
 def analyze(control: Sequence[BlockOutcome], treatment: Sequence[BlockOutcome], *, n_per_arm: int,
-            alpha: float, experiment_id: str, rules: OutcomeRules) -> Analysis:
+            alpha: float, experiment_id: str, rules: OutcomeRules, test: str = TEST_V1,
+            strata: dict[str, str] | None = None) -> Analysis:
+    """`test` es el del preregistro. `strata` ({block_id: franja}) hace falta para el @2."""
     excluded = sum(o.status == "device_off" for o in [*control, *treatment])
     c, t = _usable(control), _usable(treatment)
     cen_c, cen_t = sum(o.censored for o in c), sum(o.censored for o in t)
@@ -42,8 +45,14 @@ def analyze(control: Sequence[BlockOutcome], treatment: Sequence[BlockOutcome], 
         return Analysis("insufficient", len(c), len(t), None, None, None, None, cen_c, cen_t, excluded)
     vc = latency_values([o.latency_s for o in c], [o.censored for o in c], rules.censor_s)
     vt = latency_values([o.latency_s for o in t], [o.censored for o in t], rules.censor_s)
-    res = permutation_test(vc, vt, seed=seed_from(experiment_id))
     mc, mt = float(np.median(vc)), float(np.median(vt))
-    ratio = round(mt / mc, 4) if mc > 0 else None
-    verdict = "supported" if res.p_value <= alpha else "not_supported"
-    return Analysis(verdict, len(c), len(t), mc, mt, ratio, res.p_value, cen_c, cen_t, excluded)
+    if test == TEST_V1:
+        res = permutation_test(vc, vt, seed=seed_from(experiment_id))
+        p, ratio = res.p_value, (round(mt / mc, 4) if mc > 0 else None)
+    else:
+        st = strata or {}
+        res2 = stratified_test(vc, [st.get(o.block_id, "?") for o in c], vt, [st.get(o.block_id, "?") for o in t],
+                               seed=seed_from(experiment_id))
+        p, ratio = res2.p_value, round(res2.ratio, 4)       # media geométrica tratamiento / control
+    verdict = "supported" if p <= alpha else "not_supported"
+    return Analysis(verdict, len(c), len(t), mc, mt, ratio, p, cen_c, cen_t, excluded)

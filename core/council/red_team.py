@@ -23,7 +23,8 @@ from core.council.snapshot import Snapshot
 from core.council.verifier import verify
 from core.interfaces import moderator_matches
 from core.stats.multiplicity import MIN_VIABLE_ALPHA, next_alpha
-from core.stats.power import feasibility, mde_ratio, sigma_log
+from core.stats.power import feasibility, mde_ratio
+from core.stats.stratified import sigma_within
 
 MIN_BASELINE_BLOCKS = 6
 MAX_WEEKS = 3.0
@@ -68,10 +69,10 @@ def power_tool(h: Hypothesis, snapshot: Snapshot, view: JournalView, alpha: floa
                            detail=f"línea base insuficiente: {len(rows)} bloques < {MIN_BASELINE_BLOCKS}"), None
     if not 0 < h.expected_ratio < 1:
         return ToolVerdict(name="power", passed=False, detail="expected_ratio debe ser < 1"), None
-    sigma = sigma_log([r["latency_min"] * 60 for r in rows])
+    sigma = sigma_within([r["latency_min"] * 60 for r in rows], [r["time_of_day"] for r in rows])
     cens = min(sum(r["censored"] for r in rows) / len(rows), MAX_CENSORED_FRACTION)
     per_week = eligible_blocks_per_week(view, h.moderator)
-    f = feasibility(sigma, h.expected_ratio, alpha, per_week, max_weeks=math.inf)
+    f = feasibility(sigma, h.expected_ratio, alpha, per_week, max_weeks=math.inf, efficiency=1.0)
     n = math.ceil(f.n_per_arm / (1 - cens))
     weeks = 2 * n / per_week if per_week else math.inf
     ok = weeks <= MAX_WEEKS
@@ -87,10 +88,10 @@ def fallback_ratio(snapshot: Snapshot, view: JournalView, alpha: float) -> float
     rows = snapshot.rows
     if len(rows) < MIN_BASELINE_BLOCKS:
         return None
-    sigma = sigma_log([r["latency_min"] * 60 for r in rows])
+    sigma = sigma_within([r["latency_min"] * 60 for r in rows], [r["time_of_day"] for r in rows])
     cens = min(sum(r["censored"] for r in rows) / len(rows), MAX_CENSORED_FRACTION)
     budget = math.floor(MAX_WEEKS * eligible_blocks_per_week(view, None) / 2) * (1 - cens) * 0.95
-    r = round(mde_ratio(sigma, alpha, budget), 2) if budget >= 4 else 0.0
+    r = round(mde_ratio(sigma, alpha, budget, efficiency=1.0), 2) if budget >= 4 else 0.0
     return r if FALLBACK_MIN_RATIO <= r < 1 else None
 
 
