@@ -20,6 +20,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "jsonschema>=4.22"]
+packaging = ["pyinstaller>=6"]     # solo para construir el sidecar (packaging/sidecar.spec)
 
 [tool.setuptools.packages.find]
 include = ["core*"]

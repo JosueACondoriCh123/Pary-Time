@@ -42,7 +42,7 @@ def test_journal_verify_route(client):
     assert client.get("/journal/verify", headers=auth()).json() == {"ok": True, "n_events": 1, "error": None}
 
 
-@pytest.mark.parametrize("method,path", [("get", "/activity/today"), ("get", "/runtime/status")])
+@pytest.mark.parametrize("method,path", [("get", "/runtime/status")])
 def test_front_stubs_answer_501_until_implemented(client, method, path):
     assert getattr(client, method)(path, headers=auth()).status_code == 501
 
@@ -74,3 +74,8 @@ def test_council_routes_are_live_and_hide_effects_without_an_experiment(client):
     assert client.get("/experiments/current", headers=auth()).json() is None
     assert client.get("/experiments", headers=auth()).json() == []
     assert len(client.get("/ledger", headers=auth()).json()) == 4
+
+
+def test_sensing_routes_are_live(client):
+    r = client.get("/activity/today", headers=auth())
+    assert r.status_code == 200 and set(r.json()) >= {"local_date", "minutes_by_category", "sensor_running"}

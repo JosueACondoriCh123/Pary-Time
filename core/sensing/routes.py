@@ -16,8 +16,8 @@ def build_router(service):
 
     @router.post("/activity/pause", response_model=ActivitySummary)
     def activity_pause(minutes: int = Query(ge=1, le=480)):
-        """Pausa de privacidad: el sensor no registra nada durante `minutes`."""
-        # Frozen OpenAPI description retained; outcome@1 requires __paused__ coverage.
+        """Pausa de privacidad durante `minutes`: no se graban títulos ni procesos, solo tramos
+        `__paused__` (outcome@1), para que la pausa cuente como "no trabajo" y no como compu apagada."""
         service.sampler.pause(minutes)
         return service.summary()
 

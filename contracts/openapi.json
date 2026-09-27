@@ -1572,7 +1572,7 @@
   "paths": {
     "/activity/pause": {
       "post": {
-        "description": "Pausa de privacidad: el sensor no registra nada durante `minutes`.",
+        "description": "Pausa de privacidad durante `minutes`: no se graban títulos ni procesos, solo tramos\n`__paused__` (outcome@1), para que la pausa cuente como \"no trabajo\" y no como compu apagada.",
         "operationId": "activity_pause_activity_pause_post",
         "parameters": [
           {

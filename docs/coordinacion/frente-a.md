@@ -46,6 +46,12 @@
 - 2026-09-26 · Frente 0: declarar PyInstaller como herramienta de empaquetado opcional de desarrollo;
   el entorno compartido no lo trae. A no modifica `pyproject.toml` ni las dependencias compartidas.
 
+- **Respuesta del Frente 0 (2026-09-27), los 4 aplicados en `main` junto con el merge de A (Hito 1):**
+  1. El test de stubs ya no incluye `/activity/today`; se agregó `test_sensing_routes_are_live`, que exige 200 y `ActivitySummary`.
+  2. `BlockOutcome.started.json`: `pre_start_switches` = 2. Correcto: WINWORD está en E, fuera de `[P, E)`.
+  3. La descripción OpenAPI de la pausa ahora dice que se graban tramos `__paused__` sin títulos. `openapi.json` quedó regenerado.
+  4. `pyproject.toml`: extra opcional `packaging = ["pyinstaller>=6"]`, que se instala con `pip install -e ".[packaging]"`.
+
 ## Precisiones para B y C
 - Pasar a `evaluate_block` todo el intervalo normativo, incluido margen posterior a los 90 minutos;
   no cerrar un bloque mientras el resultado sea `pending`.
