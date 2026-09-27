@@ -180,7 +180,8 @@ function createTray() {
 }
 
 function applyLoginItem(prefs: Prefs) {
-  if (!app.isPackaged) return; // en desarrollo registraría el electron.exe pelado
+  // En desarrollo registraría el electron.exe pelado; en los tests e2e, el exe de release/.
+  if (!app.isPackaged || process.env.NDE1_NO_LOGIN_ITEM === "1") return;
   app.setLoginItemSettings({ openAtLogin: prefs.openAtLogin, args: ["--hidden"] });
 }
 
