@@ -17,7 +17,7 @@ let dataDir: string;
 
 test.beforeAll(async () => {
   dataDir = mkdtempSync(join(tmpdir(), "nde1-pkg-"));
-  const env = { ...process.env, NDE1_DATA_DIR: dataDir, NDE1_NO_LOGIN_ITEM: "1" } as Record<string, string>;
+  const env = { ...process.env, NDE1_DATA_DIR: dataDir, NDE1_NO_LOGIN_ITEM: "1", NDE1_USER_DATA: join(dataDir, "_userdata") } as Record<string, string>;
   for (const k of ["VITE_DEV_SERVER_URL", "VITE_FIXTURES", "NDE1_PYTHON", "NDE1_REPO"]) delete env[k];
   app = await electron.launch({ executablePath: exe, env });
   const pages = () => app.windows().filter((w) => w.url().endsWith("index.html"));

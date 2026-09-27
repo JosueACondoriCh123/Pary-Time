@@ -1,8 +1,8 @@
 // "Resultados": experimentos resueltos con la semilla verificada, el ledger y el veto regret.
-import { useEffect, useState } from "react";
+import { Fragment, useEffect, useState } from "react";
 import type { ExperimentRecord, LedgerEntry } from "../contracts";
 import { useLoad } from "../core";
-import { betaCurve, betaMean } from "../lib/beta";
+import { betaMean } from "../lib/beta";
 import { effectSentence } from "../lib/effect";
 import { ARM_LABEL } from "../lib/labels";
 import { VERDICT_LABEL } from "../lib/report";
@@ -60,14 +60,11 @@ export function Results() {
       <Card>
         <h2>Qué tan bien te funciona cada intervención</h2>
         <p className="muted small">
-          Curva: lo que se sabe hasta ahora (posterior Beta). Más a la derecha y más angosta = funcionó más veces.
+          Cada experimento terminado suma evidencia. La barra es la probabilidad estimada de que te funcione
+          (posterior Beta); sin experimentos queda en 50%, que es “no sabemos”.
         </p>
         <ErrorNote error={ledger.error} />
-        <div className="grid-2">
-          {(ledger.data ?? []).map((l) => (
-            <LedgerCurve key={l.intervention} entry={l} />
-          ))}
-        </div>
+        <LedgerBars entries={ledger.data ?? []} />
       </Card>
 
       <Card>
@@ -217,33 +214,30 @@ function SeedProof(props: { commitment: string; committedMs: number; seed: strin
   );
 }
 
-function LedgerCurve({ entry }: { entry: LedgerEntry }) {
-  const W = 260;
-  const H = 70;
-  const pts = betaCurve(entry.alpha, entry.beta);
-  // Escala fija (mínimo 3): así la uniforme del principio se ve baja y ancha, no "segura".
-  const maxY = Math.max(3, ...pts.map((p) => p[1]));
-  const y = (d: number) => (H - (d / maxY) * (H - 4)).toFixed(1);
-  const path = [
-    `M0,${y(pts[0][1])}`,
-    ...pts.map(([x, d]) => `L${(x * W).toFixed(1)},${y(d)}`),
-    `L${W},${y(pts[pts.length - 1][1])}`,
-  ];
-  const mean = betaMean(entry.alpha, entry.beta);
+function LedgerBars({ entries }: { entries: LedgerEntry[] }) {
+  const sorted = [...entries].sort((a, b) => b.n_resolved - a.n_resolved || betaMean(b.alpha, b.beta) - betaMean(a.alpha, a.beta));
   return (
-    <div>
-      <p>
-        <strong>{ARM_LABEL[entry.intervention]}</strong>{" "}
-        <span className="muted small">
-          · funcionó {entry.n_supported} de {entry.n_resolved}
-        </span>
-      </p>
-      <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} role="img" aria-label={`Posterior Beta(${entry.alpha}, ${entry.beta})`}>
-        <path d={`${path.join(" ")} L${W},${H} L0,${H} Z`} fill="rgba(91,141,239,0.25)" />
-        <path d={path.join(" ")} fill="none" stroke="#5b8def" strokeWidth="2" />
-        <line x1={mean * W} x2={mean * W} y1={0} y2={H} stroke="#9aa3b2" strokeDasharray="3 3" />
-      </svg>
-      <p className="muted small">Promedio: {Math.round(mean * 100)}%</p>
+    <div className="ledger">
+      {sorted.map((l) => {
+        const mean = betaMean(l.alpha, l.beta);
+        return (
+          <Fragment key={l.intervention}>
+            <strong>{ARM_LABEL[l.intervention]}</strong>
+            {l.n_resolved === 0 ? (
+              <span className="untested">sin probar todavía</span>
+            ) : (
+              <div className="bar big" role="img" aria-label={`${Math.round(mean * 100)}%`}>
+                <span style={{ width: `${mean * 100}%` }} />
+              </div>
+            )}
+            <span className="muted small">
+              {l.n_resolved === 0
+                ? "—"
+                : `funcionó ${l.n_supported} de ${l.n_resolved} · ${Math.round(mean * 100)}%`}
+            </span>
+          </Fragment>
+        );
+      })}
     </div>
   );
 }

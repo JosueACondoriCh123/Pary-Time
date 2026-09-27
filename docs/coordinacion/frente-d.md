@@ -196,3 +196,32 @@ bien. Hay tres avisos para el Frente 0:
 - **Para el Frente 0:** el guion (`docs/hackathon/demo.md`, paso 4) dice "18.7 → 5.4 min", pero el `demo-data` actual
   da medianas de 14 → 9 min, ratio 0.50 y p = 0.002. Conviene ajustar el guion o citar los números de la pantalla.
 
+### Mejoras del frontend (2026-09-27)
+- **Consejo compacto:**
+  - Arriba, el flujo de la reunión: ideas del Scout → vetadas → respaldo → preregistrada.
+  - Una fila desplegable por idea, con un chip de veredicto (el motivo del veto se lee con el verificador primero).
+  - Los respaldos del Allocator van agrupados en una sola fila.
+  - La elegida aparece completa, con herramientas, pre-mortem y preregistro. El detalle técnico del respaldo queda
+    plegado.
+- **"Hoy" con línea de tiempo:**
+  - Etapas: sellado → hora → intervención → arranque. Emergencia y "hoy no" se marcan como aviso.
+  - Cuenta regresiva grande antes de la hora.
+  - El bloque en foco es el activo o, si no hay, el próximo cuando falta menos de 30 min.
+  - `blockTimeline` es pura y está testeada, incluida la regla de nunca nombrar el brazo si `arm_revealed` es null.
+- **Ledger en barras:** "funcionó n de m · %" y "sin probar todavía" en lugar de curvas planas.
+- **Modo proyector:** botón al pie de la barra lateral y `Ctrl+Shift+P`. Letra de 19 px y más contraste; se recuerda
+  por pantalla.
+- **Variable `NDE1_USER_DATA`:** los tests, las capturas y el GIF usan su propia carpeta de usuario. Así conviven con
+  la app instalada abierta (antes el candado de instancia única los cerraba) y no tocan sus preferencias.
+- 61 tests de Vitest y 4 e2e pasan. Capturas regeneradas en `docs/hackathon/img/`.
+
+### Pedido de contrato (2026-09-27)
+- `RuntimeStatus`: agregar `n_windows_minimized: int` y `n_reapplied: int` para el bloque activo, sin títulos.
+- **Por qué:** la línea de tiempo de "Hoy" podría decir "2 ventanas minimizadas · re-minimizadas 1 vez", que es lo que
+  el público no ve en la demo. Hoy esos números solo están en los eventos `intervention` del journal.
+- **Opcional:** no bloquea la demo.
+
+### Para el Frente 0
+- El `demo-data` actual ya no tiene vetos del verificador, después del arreglo de falsos positivos. El guion
+  (`docs/hackathon/demo.md`, paso 3) ya prevé contarlo con la corrida real del README si no aparece un ❌.
+

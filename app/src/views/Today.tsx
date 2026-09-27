@@ -1,9 +1,10 @@
 // "Hoy": el bloque activo con su condición revelada, cuánto falta para el siguiente, "Hoy no" y salida de emergencia.
 import { useEffect, useState } from "react";
-import type { BlockView } from "../contracts";
+import type { BlockView, RuntimeStatus } from "../contracts";
 import { useCore, useLoad, useNow } from "../core";
-import { ARM_HINT, ARM_LABEL, STATUS_LABEL, TASK_LABEL, visibleArm } from "../lib/labels";
-import { clock, dayLabel, duration, today, untilText } from "../lib/time";
+import { STATUS_LABEL, TASK_LABEL } from "../lib/labels";
+import { blockTimeline, focusBlock } from "../lib/timeline";
+import { clock, dayLabel, duration, mss, today, untilText } from "../lib/time";
 import { Card, ErrorNote, useAction } from "../ui";
 
 const LIVE = new Set(["confirmed", "running"]);
@@ -30,6 +31,7 @@ export function Today() {
   const list = (blocks.data ?? []).filter((b) => b.status !== "cancelled");
   const active = activeBlock(list, status.data?.active_block_id);
   const next = nextBlock(list, now);
+  const focus = focusBlock(active, next, now);
 
   const replace = (b: BlockView) => blocks.setData(list.map((x) => (x.block_id === b.block_id ? b : x)));
 
@@ -44,8 +46,8 @@ export function Today() {
 
       <ErrorNote error={blocks.error} />
 
-      {active ? (
-        <ActiveCard block={active} now={now} onChange={replace} />
+      {focus ? (
+        <FocusCard block={focus} status={status.data} now={now} onChange={replace} />
       ) : (
         <Card className="hero">
           <p className="big-text">{next ? "Todavía no empezó ningún bloque." : "No hay bloques por delante hoy."}</p>
@@ -53,14 +55,14 @@ export function Today() {
         </Card>
       )}
 
-      {next && (
+      {next && next !== focus && (
         <Card>
           <p className="muted small">Siguiente</p>
           <p>
             <strong>{clock(next.planned_start_ms)}</strong> · {next.task_label}{" "}
             <span className="muted">({untilText(next.planned_start_ms, now)})</span>
           </p>
-          {!active && <AbortButton block={next} onDone={replace} />}
+          {!focus && <AbortButton block={next} onDone={replace} />}
         </Card>
       )}
 
@@ -87,31 +89,44 @@ export function Today() {
   );
 }
 
-function ActiveCard({ block, now, onChange }: { block: BlockView; now: number; onChange: (b: BlockView) => void }) {
-  const arm = visibleArm(block);
-  const elapsed = (now - block.planned_start_ms) / 1000;
+function FocusCard(props: {
+  block: BlockView;
+  status: RuntimeStatus | undefined;
+  now: number;
+  onChange: (b: BlockView) => void;
+}) {
+  const { block, now } = props;
+  const before = now < block.planned_start_ms;
+  const steps = blockTimeline(block, props.status, now);
+  const kind = block.task_kind === "otro" ? "Bloque" : `Bloque de ${TASK_LABEL[block.task_kind].toLowerCase()}`;
   return (
     <Card className="hero">
       <p className="muted small">
-        {block.task_kind === "otro" ? "Bloque" : `Bloque de ${TASK_LABEL[block.task_kind].toLowerCase()}`} ·{" "}
-        {clock(block.planned_start_ms)} ·{" "}
-        {elapsed >= 0 ? `hace ${duration(elapsed)}` : untilText(block.planned_start_ms, now)}
+        {kind} · {clock(block.planned_start_ms)} · {block.planned_minutes} min
       </p>
       <p className="big-text">{block.task_label}</p>
-      {arm ? (
-        <>
-          <p className="arm-big">{ARM_LABEL[arm]}</p>
-          <p className="muted">{ARM_HINT[arm]}</p>
-        </>
+      {before ? (
+        <p className="countdown" aria-live="polite">
+          {mss(block.planned_start_ms - now)}
+        </p>
       ) : (
-        <p className="muted">La condición se revela a las {clock(block.planned_start_ms)}.</p>
+        <p className="muted">Hace {duration((now - block.planned_start_ms) / 1000)}</p>
       )}
+      <ol className="timeline" aria-label="Etapas del bloque">
+        {steps.map((st, i) => (
+          <li key={st.key} className={st.state}>
+            <span className="dot" aria-hidden>
+              {st.state === "done" ? "✓" : st.state === "warn" ? "!" : i + 1}
+            </span>
+            <div>
+              <div className="t-title">{st.title}</div>
+              {st.sub && <div className="t-sub">{st.sub}</div>}
+            </div>
+          </li>
+        ))}
+      </ol>
       {block.first_step && <p className="first-step">Primer paso: {block.first_step}</p>}
-      {block.aborted ? (
-        <p className="muted">Marcaste “hoy no”. El bloque igual cuenta en el análisis.</p>
-      ) : (
-        LIVE.has(block.status) && <AbortButton block={block} onDone={onChange} />
-      )}
+      {!block.aborted && LIVE.has(block.status) && <AbortButton block={block} onDone={props.onChange} />}
     </Card>
   );
 }

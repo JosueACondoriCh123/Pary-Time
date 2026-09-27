@@ -36,7 +36,7 @@ execFileSync(python, ["tools/demo_live.py", "--data-dir", dataDir, "--in", `${LE
 });
 const startAt = Date.now() + LEAD_S * 1000;
 
-const env = { ...process.env, NDE1_DATA_DIR: dataDir, NDE1_REPO: repo };
+const env = { ...process.env, NDE1_DATA_DIR: dataDir, NDE1_REPO: repo, NDE1_USER_DATA: join(tmpdir(), "nde1-gif-userdata") };
 for (const k of ["VITE_DEV_SERVER_URL", "VITE_FIXTURES"]) delete env[k];
 const app = await electron.launch({ args: ["."], cwd: resolve(here, ".."), env });
 let ffmpeg;
