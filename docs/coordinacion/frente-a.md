@@ -2,6 +2,84 @@
 
 > Solo el dueño del frente escribe este archivo. Actualizalo al terminar cada tarea.
 
+## Fase 5 · estabilidad, sidecar y logs (2026-09-27)
+- Continuación solicitada por Josué; eligió **muestras sintéticas** para el soak.
+  Se integró `main@6905b88` en `frente-a` mediante `0012efa`. El instalador NSIS
+  sigue siendo responsabilidad de D; A entrega el sidecar y evidencia del sensor.
+- `tools/capture/soak.py` ejecuta muestras sintéticas sobre el compresor, Sampler y
+  SQLite reales, con durabilidad normal de producción. Comprueba integridad,
+  solapamientos, retención, estados permitidos y crecimiento de heap/handles.
+  Ejercita huecos, saltos y retrocesos de reloj y reaperturas cada seis horas.
+  No inicia Win32, no escribe al journal, no toca datos de la aplicación y no
+  representa actividad real de Josué. Uso, límites y parada: `tools/capture/README.md`.
+- Refuerzos productivos: avisos de muestreo limitados a uno por minuto con conteo
+  y clase del error; mensajes y tracebacks privados siguen excluidos. Si SQLite
+  falla durante inicialización, su conexión se cierra antes de propagar el error,
+  permitiendo reintentar sin acumular handles. Sin cambios en `outcome@1` o contratos.
+- **Soak real de 48 h iniciado**, con ventana oculta: 2026-09-27 13:43:53 Bolivia
+  (17:43:53 UTC). Fin previsto: 2026-09-29 13:43:53 Bolivia, si el equipo permanece
+  activo. PID de trabajo inicial **57732** (el launcher fue 60500).
+  Estado local: `build/phase5-realtime-20260927/status.json`;
+  métricas: `build/phase5-realtime-20260927/metrics.jsonl`.
+  Sigue **pendiente** hasta observar `status=completed`, `checks_passed=true` y
+  `wall_48h_completed=true`. El estado inicial fue verificado junto con el proceso vivo.
+  Para detener: crear `build/phase5-realtime-20260927/stop.request`.
+- Carga acelerada de 48 h lógicas: `build/phase5-accelerated-20260927/status.json`.
+  La evidencia final se registrará al terminar; no equivale a 48 h transcurridas.
+  Una suspensión o cierre forzado no se convierte en aprobación ni se rellena con
+  observaciones inventadas. Los directorios de ensayo y binarios están ignorados.
+- Sidecar reconstruido desde un workpath nuevo `build/phase5-sidecar-20260927`:
+  consumir **TODO `dist/nde1-core/`**, incluido `_internal/`. Smoke sobre el EXE:
+  **1 passed** (25.03 s), con HTTP real, rutas de A rechazando solicitudes sin token,
+  pausa persistida y reinicio. También se inspeccionó el bytecode del EXE: contiene
+  `_report_error` y el cierre de la conexión ante fallo de inicialización.
+  SHA-256 del EXE: `ff89cf0bc41aa82617ed5502a8614ff65ba2155910ed0257109b74370eb14fe4`.
+  Manifiesto local de fuentes/EXE: `build/phase5-artifacts.json`.
+  Recompilar al integrar cambios posteriores de 0/B/C; esta evidencia corresponde
+  exactamente a la base indicada más los cambios de A.
+- Validación: **143 passed, 1 skipped** en `tests/sensing` (58.92 s; el skip es el
+  EXE opt-in, que pasó por separado). Exportación de contratos correcta. La suite
+  general dio **283 passed, 2 skipped, 1 failed** (256.96 s), sin omitir el fallo:
+  `tests/council/test_council_lifecycle.py::test_full_lifecycle_resolves_at_n_and_reveals_the_committed_seed`
+  falló con `KeyError` al buscar una resolución ausente. No se alteró C desde A.
+  Para C: el test suministra exactamente `2*n` outcomes; la asignación por bloques
+  de cuatro no garantiza n por brazo cuando n es impar. Revisar los conteos y el
+  criterio de término del fixture antes de asumir una resolución inmediata.
+- Ensayo Win32 acotado, sin leer ventanas: 5.000 consultas del propio proceso y
+  5.000 de un PID inválido, **201 handles antes y después**. Evidencia local:
+  `build/phase5-native-handles.json`. No sustituye un soak nativo prolongado.
+- Scanner con los archivos finales preparados y `--history`: **256 archivos,
+  7 errores y 34 avisos**, exit 1; sin hallazgos nuevos en los cambios de F5 de A.
+  El email de `app/package-lock.json:4158` aparece en la copia actual y dos commits;
+  quedan dos emails en el historial de `scripts/check_private_allow.txt` (`4f5beb8`)
+  y rutas de usuario históricas en `tests/runtime/test_soak.py:11` (`20637ab`,
+  `455cba3`). No se imprimen los valores ni se amplía la allowlist para ocultarlos.
+  El scanner lee todas las referencias Git, también entregas de otros frentes
+  aún no integradas en A. Los avisos incluyen rutas documentales y cinco imágenes
+  cuya información visual no fue auditada por el scanner. Revisión pendiente de 0.
+
+### Revisión de seguridad del ámbito de A
+- Revisión manual de `core/sensing`, herramientas de captura y frontera HTTP del
+  sidecar. No se ejecutó el comando `/security-review`, que no está disponible
+  en esta sesión; no se presenta esto como una auditoría completa de la aplicación.
+- Corregidos: crecimiento de stderr ante errores sostenidos/intermitentes y
+  conexiones SQLite sin cierre explícito tras una inicialización fallida.
+  Regresiones verificadas con errores que contienen un canario privado, SQLite
+  inválido real y recuperación posterior; sin mocks de disco ni del sistema operativo.
+- Las cuatro rutas de A requieren autenticación en la aplicación compuesta y en
+  el EXE. Las solicitudes sin token o con token incorrecto se rechazan antes de
+  leer/escribir el almacén. Resúmenes y reportes no exportan títulos ni procesos.
+  SQL parametrizado; títulos locales acotados; pausa omite lectura de ventanas;
+  eliminación por retención mantiene `secure_delete` y checkpoint del WAL.
+- Límites: este soak mide Python/SQLite; el smoke Win32 y el EXE son breves.
+  Faltan soak del escritorio completo e instalación/desinstalación NSIS por D.
+  No se certifica cifrado local, borrado forense ni ausencia absoluta de fugas.
+- Para 0/D, antes de compartir logs generales: `core/__main__.py` imprime el token
+  temporal en stderr si falta `NDE1_TOKEN`; Electron sí lo suministra. Los errores
+  generales de arranque/HTTP también pueden incluir rutas en traceback. A no
+  cambió la composición ni el protocolo de inicio congelados; definir y probar
+  la política de redacción/exportación de logs en esos componentes.
+
 ## Fase 4 · primer experimento real (2026-09-27)
 - Continuación solicitada por Josué. Se interpreta como **F4 del plan posterior a la
   hackathon** (primer experimento real y `withdraw`), manteniendo A en sensor/medición.

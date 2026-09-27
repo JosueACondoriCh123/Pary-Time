@@ -19,9 +19,10 @@ class SpanStore:
         if self._db is None:
             self.path.parent.mkdir(parents=True, exist_ok=True)
             db = sqlite3.connect(self.path, timeout=10, check_same_thread=False)
-            db.execute("PRAGMA journal_mode=WAL")
-            db.execute("PRAGMA secure_delete=ON")
-            db.executescript("""
+            try:
+                db.execute("PRAGMA journal_mode=WAL")
+                db.execute("PRAGMA secure_delete=ON")
+                db.executescript("""
                 CREATE TABLE IF NOT EXISTS spans (
                     start_ms INTEGER PRIMARY KEY, end_ms INTEGER NOT NULL,
                     process TEXT NOT NULL, title TEXT NOT NULL,
@@ -31,7 +32,10 @@ class SpanStore:
                 CREATE INDEX IF NOT EXISTS spans_start ON spans(start_ms);
                 CREATE INDEX IF NOT EXISTS spans_end ON spans(end_ms);
                 CREATE TABLE IF NOT EXISTS sensor_meta (key TEXT PRIMARY KEY, value INTEGER NOT NULL);
-            """)
+                """)
+            except BaseException:
+                db.close()
+                raise
             self._db = db
         return self._db
 

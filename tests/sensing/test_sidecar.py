@@ -39,6 +39,12 @@ def test_frozen_sidecar_serves_activity_and_preserves_pause_after_restart(tmp_pa
             with httpx.Client(base_url=f"http://127.0.0.1:{ready['port']}", timeout=15,
                               headers={"X-NDE1-Token": token}) as client:
                 assert client.get("/health").json()["ok"]
+                for method, endpoint in (("GET", "/activity/today"),
+                                         ("POST", "/activity/pause?minutes=5"),
+                                         ("POST", "/activity/resume"),
+                                         ("GET", "/outcomes?from_date=2026-09-27&to_date=2026-09-27")):
+                    assert client.request(method, endpoint,
+                                          headers={"X-NDE1-Token": ""}).status_code == 401
                 summary = client.get("/activity/today")
                 assert summary.status_code == 200
                 if attempt == 0:
