@@ -2,6 +2,65 @@
 
 > Solo el dueño del frente escribe este archivo. Actualizalo al terminar cada tarea.
 
+## Fase 4 · primer experimento real (2026-09-27)
+- Continuación solicitada por Josué. Se interpreta como **F4 del plan posterior a la
+  hackathon** (primer experimento real y `withdraw`), manteniendo A en sensor/medición.
+- Entrega de A: `tools/capture/preflight.py --data-dir <carpeta>` y documentación en
+  `tools/capture/README.md`. Audita en solo lectura la etiqueta, semana de línea base,
+  integridad del journal, referencias/duplicados, coherencia de outcomes y SQLite de A.
+  Comprueba reglas preregistradas y cambios de clasificación durante experimentos.
+  No escribe eventos, no inicia captura ni experimento, no revela semillas ni efectos.
+- Requiere cerrar normalmente el núcleo para leer SQLite sin WAL; no repara ni elimina
+  archivos. La salida solo trae agregados y códigos de problema. Los tests verifican
+  que tanto los bytes como la lista de archivos queden iguales antes y después.
+  La semana se mide como intervalo calendario entre fechas con outcomes de línea base,
+  incluyendo ambas; se reporta por separado cuántos días tuvieron observaciones. No
+  exige siete días trabajados ni sustituye el mínimo de muestra o potencia del consejo.
+- Comprobación local: `../data` carece de `journal.jsonl` y `activity.sqlite`; falta
+  la semana de línea base. `../demo-data` está marcado **sintetico** y se rechaza para
+  un experimento real (también tenía WAL durante la lectura). No se confunde la demo
+  ni la captura breve de 20 s con datos reales de una semana.
+  Tampoco existen datos bajo las ubicaciones revisadas `%APPDATA%/nde1-app/data` y
+  `%APPDATA%/Consejo N-de-1/data`. Si se usa `NDE1_DATA_DIR`, hay que comprobar esa
+  ubicación explícita; no se hizo una búsqueda indiscriminada por el perfil del usuario.
+- La captura prolongada y el primer experimento real siguen pendientes de datos reales.
+  No se implementó una retirada usando `block_abort`, ni se alteró `outcome@1`.
+- Validación final de A: **21 pruebas nuevas de preflight aprobadas**;
+  `export_contracts.py --check` correcto. La corrida de suite completa terminó con **265 passed,
+  2 skipped y 1 fallo** en `test_a_true_effect_is_found_with_the_preregistered_stratified_test`:
+  el simulador devolvió `not_supported` donde el test exige `supported`. No se cambió
+  código productivo del sensor, reglas, simulador, consejo ni estadísticas en esta entrega.
+- Diagnóstico para C: `core/simulate/engine.py` siembra las trazas e IDs del consejo,
+  pero `Council.run()` genera la semilla del experimento con `secrets.token_hex(32)`;
+  los IDs de bloques también usan `secrets`. `--seed 7` no fija el sorteo completo.
+  Corregir la inyección de aleatoriedad **solo en simulación**, conservando la semilla
+  segura en uso real y la verificación del sorteo. No elegir otra traza/semilla a mano
+  para ocultar este fallo ni relajar la prueba desde A.
+- El test de integración pasó al repetirlo aisladamente **sin cambios**. Se conserva
+  el fallo anterior como incidencia intermitente; no se presenta la suite completa como verde.
+- Scanner de la copia de A con los archivos nuevos preparados: sin hallazgos nuevos;
+  permanece el email del lockfile ya reportado (exit 1) y avisos de rutas en docs.
+
+### Pedidos de contrato a 0/B/C/D para completar F4
+1. Definir el evento y estado `withdraw` a nivel experimento, su ruta autenticada y
+   semántica de semilla/resolución. Hoy `JournalKind`, `ExperimentProgress` y
+   `ExperimentProvider` no contienen retirada. Conservar los outcomes históricos;
+   distinguir retirada de "Hoy no" de un bloque y de la salida de emergencia.
+2. B/C: definir qué sucede con asignaciones ya confirmadas y bloques pendientes;
+   restaurar intervenciones y evitar nuevas aplicaciones/sorteos del experimento
+   retirado. A no escribe ni filtra retrospectivamente outcomes por esa condición.
+3. 0/B/C: congelar la configuración experimental pertinente. Actualmente `PUT
+   /settings` permite modificar listas de distracción, navegadores y whitelist durante
+   un experimento; B consulta ajustes actuales. Eso cambia features/intervenciones,
+   aunque el matcher de trabajo y las constantes de `outcome@1` se mantengan iguales.
+   A detecta cambios journalizados, pero no puede impedirlos desde su interfaz actual.
+4. D/0: definir si retirar el experimento conserva la captura ordinaria o también la
+   pausa por decisión del usuario. La pausa de A sigue siendo temporal (1–480 min);
+   no usarla como una retirada permanente implícita.
+
+Estos pedidos corresponden a la siguiente integración; no son requisitos para usar
+el preflight. Una salida 0 del preflight no sustituye el verificador/potencia del consejo.
+
 ## Hackathon · entrega prioritaria (2026-09-27)
 - **`synth.py` LISTO para integrar en C**, basado en `main@15b4f50` y el brief definitivo.
   Implementa la firma `SynthDay` con `latency_scale` opcional. Importar
