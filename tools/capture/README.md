@@ -1,5 +1,44 @@
 # Captura local del Frente A
 
+## Demo de hackathon: datos sintéticos
+
+`tools.capture.synth.synth_day` implementa `core.interfaces.SynthDay` sin leer el sensor,
+reloj actual, archivos ni journal. Solo debe recibir bloques creados para la demo,
+con matchers genéricos: el matcher elegido se incorpora a la ventana de trabajo.
+Las etiquetas, destinos y primeros pasos no se copian. Se rechazan matchers con
+rutas o emails; esto no reemplaza la responsabilidad del llamador de usar datos sintéticos.
+
+```python
+from datetime import date
+from random import Random
+from tools.capture.synth import synth_day
+
+spans = synth_day(date(2026, 9, 27), demo_blocks, "tdah_mananas", Random(7),
+                  latency_scale={demo_blocks[0].block_id: 0.5})
+```
+
+Las latencias de base son lognormales (sigma 0.6), con medianas de 25 minutos por
+la mañana y 8 por la tarde/noche. Hay 5% de apagados por bloque; las mañanas añaden
+10% de demoras largas. Los parámetros son inventados para la demostración, sin
+significado clínico. El factor multiplica la demora latente antes de evaluarla:
+`0.5` la reduce a la mitad y puede convertir una demora censurada en un arranque.
+Los apagados se conservan. El evaluador real sigue decidiendo todos los resultados.
+
+Los tramos de trabajo duran al menos 16 minutos; hay entre 1 y 4 cambios de ventana
+antes del trabajo. Fuera de las ventanas se añade actividad genérica de 08:00 a 22:00,
+inactividad y algunas pausas `__paused__` con `idle=true` y título vacío. Los períodos
+apagados quedan sin observaciones, también en el margen posterior a los 90 minutos.
+
+Reservar **106 minutos desde el inicio de cada bloque**, sin solapamientos ni cruces
+de medianoche. Todos los bloques deben pertenecer al día local pedido y tener IDs
+distintos. Mismo día, bloques, perfil, semilla, factores y zona horaria producen los
+mismos tramos; cambiar un factor no altera las extracciones aleatorias de los otros
+bloques. Los factores deben ser finitos y no negativos. Perfil disponible: `tdah_mananas`.
+El simulador de C debe marcar su directorio con `DATA_LABEL=sintetico` y mostrar
+**DATOS SINTÉTICOS**. Este generador no escribe ni marca directorios por sí mismo.
+
+## Capturar uso real (fuera de la entrega de hackathon)
+
 Desde `n-de-1/n-de-1-frente-a`, usando el Python 3.11 del proyecto padre:
 
 ```powershell

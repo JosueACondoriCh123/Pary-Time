@@ -2,12 +2,32 @@
 
 > Solo el dueño del frente escribe este archivo. Actualizalo al terminar cada tarea.
 
-## Estado
+## Hackathon · entrega prioritaria (2026-09-27)
+- **`synth.py` LISTO para integrar en C**, basado en `main@15b4f50` y el brief definitivo.
+  Implementa la firma `SynthDay` con `latency_scale` opcional. Importar
+  `from tools.capture.synth import synth_day`; pasar `date`, bloques sintéticos,
+  `"tdah_mananas"`, `random.Random(seed)` y factores por ID si corresponden.
+- Distribución lognormal, medianas 25/8 min, sigma 0.6; 5% apagados, componente de
+  demoras largas matinales, 80% de primeras ventanas matinales en distracción,
+  1–4 cambios, trabajo ≥16 min y actividad/pausas fuera de bloques.
+- Solo trazas: el resultado sigue saliendo del `evaluate_block` real. No se modificó
+  `outcome@1`, contratos, sorteo ni journal. Todo es sintético, sin estimaciones clínicas.
+- **Integración C:** dejar ≥106 minutos entre inicios y hasta medianoche; las ventanas
+  de observación incluyen margen para completar trabajo después de los 90 min.
+  Solo matchers genéricos de demo: se usa el primer matcher de proceso, o el de título.
+  No pasar bloques reales. `DATA_LABEL` es responsabilidad del simulador.
+- Pruebas específicas: **12 passed**, con determinismo, clasificación real, distribución,
+  censura, apagados, escala, privacidad básica de entradas y ventanas inválidas.
+  Comando: `python -m pytest -q tests/sensing/test_synth.py`.
+- En curso: `scripts/check_private.py`, allowlist y revisión de `main`/historial.
+- La captura de días, instalador y soak del plan anterior quedan fuera de esta entrega.
+
+## Estado previo a la hackathon
 - 2026-09-27: Fase 2 reforzada con recuperación del sensor, regresión real breve y replay de trazas.
   Sigue pendiente la validación con 2–3 días reales de Josué; no se da por cumplida con la captura breve.
 - La entrega inicial `a060e33` ya fue integrada por el Frente 0 (Hito 1).
 - Fase 3: sidecar reconstruido con las correcciones de Fase 2 y verificado en Windows.
-- Worktree real: `C:\Users\HP\Documents\n-de-1\n-de-1-frente-a`, rama `frente-a`.
+- Worktree: `n-de-1-frente-a` dentro del proyecto, rama `frente-a`.
 - Base de esta continuación: `main@121b372`, con A, C, D y las cuatro respuestas del Frente 0 incorporadas.
 
 ## Hecho
