@@ -23,3 +23,6 @@ trace-title|tests/fixtures/traces/start.synthetic.jsonl|cap3|Reviewed synthetic 
 email|app/package-lock.json|i@izs.me|Public npm maintainer contact inside a third-party deprecation notice (glob 7.2.3)
 user-path|tests/runtime/test_soak.py|HP|Deliberately fake path; the soak test asserts it never reaches the journal
 email|scripts/check_private_allow.txt|i@izs.me|Documents the allowed public npm maintainer contact
+email|app/src/views/Access.tsx|demo@example.com|Reviewed fictional address at reserved example.com; placeholder for the explicitly requested mock login/signup
+email|app/ui-tests/secondary.spec.ts|demo@example.com|Same fictional address used to verify demo credentials never reach storage or requests
+email|scripts/check_private_allow.txt|demo@example.com|Documents the exact fictional address reviewed for the secondary screens

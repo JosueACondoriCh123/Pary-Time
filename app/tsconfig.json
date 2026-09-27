@@ -14,5 +14,5 @@
     "skipLibCheck": true,
     "types": ["vite/client"]
   },
-  "include": ["src", "tests", "vite.config.ts", "playwright.config.ts", "e2e"]
+  "include": ["src", "tests", "vite.config.ts", "playwright.config.ts", "playwright.secondary.config.ts", "e2e", "ui-tests"]
 }
