@@ -1,12 +1,18 @@
-# Coordinación: 4 agentes en paralelo
+# Coordinación: Claude y 2 agentes externos en paralelo
 
 | Frente | Agente | Worktree / rama | Carpetas propias (solo escribe acá) |
 |---|---|---|---|
 | **0: Columna** | Claude (sesión principal) | `n-de-1` / `main` | `contracts/`, `docs/` (salvo `frente-{a,b,d}.md`), `core/app.py`, `core/__main__.py`, `core/contracts.py`, `core/interfaces.py`, `core/journal/`, `core/llm/`, `core/_stub.py`, `tools/export_contracts.py`, `pyproject.toml`, `tests/integration/` |
 | **C: Consejo y estadística** | Claude (sesión principal) | `n-de-1` / `main` | `core/council/`, `core/stats/`, `tests/council/`, `tests/stats/`, `data/cassettes/` |
 | **A: Sensor y resultado** | Externo 1 | `n-de-1/n-de-1-frente-a` / `frente-a` | `core/sensing/`, `tools/capture/`, `tests/sensing/`, `tests/fixtures/traces/`, y en la Fase 3 solo `packaging/sidecar.spec` |
-| **B: Runtime e intervenciones** | Externo 2 | `n-de-1/n-de-1-frente-b` / `frente-b` | `core/runtime/`, `tests/runtime/` |
-| **D: App Electron** | Externo 3 | `n-de-1/n-de-1-frente-d` / `frente-d` | `app/`, `packaging/` (salvo `sidecar.spec`) |
+| **B1: Bloques y sorteo** | Externo 2 (ver `brief-b1.md`) | `n-de-1/n-de-1-frente-b` / `frente-b` | `core/runtime/`, `tests/runtime/` |
+| **B2: Scheduler e intervenciones** | Claude, cuando B1 esté mergeado | `n-de-1` / `main` | `core/runtime/`, `tests/runtime/` |
+| **D: App Electron** | Claude | `n-de-1/n-de-1-frente-d` / `frente-d` | `app/`, `packaging/` (salvo `sidecar.spec`) |
+
+## Cambio de reparto (2026-09-26)
+Quedan dos agentes externos. El externo 2 hace solo la Fase 1 de B (`brief-b1.md`): bloques, rutas y sorteo.
+Claude toma D en `n-de-1-frente-d` y, después del merge de B1, el resto de B (scheduler, intervenciones,
+overlay y recuperación). `brief-b.md` y `brief-d.md` quedan como especificación completa de cada frente.
 
 ## Reglas
 1. **Solo escribís en tus carpetas.** Si necesitás algo fuera, lo pedís en tu `frente-X.md`.
