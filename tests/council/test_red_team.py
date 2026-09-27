@@ -79,3 +79,11 @@ def test_run_tools_reports_all_five_tools(baseline):
     tools, plan = run_tools(hyp(moderator=None, ratio=0.4), s, v, Settings(), check_citations=False)
     assert [t.name for t in tools] == ["verifier", "power", "confounders", "multiplicity", "constitution"]
     assert all(t.passed for t in tools) and plan is not None, [t.detail for t in tools]
+
+
+def test_the_size_uses_the_whole_budget_not_the_models_optimism(baseline):
+    v, s = ctx(baseline)
+    optimistic, plan_o = power_tool(hyp(moderator=None, ratio=0.3), s, v, alpha=0.02375)
+    modest, plan_m = power_tool(hyp(moderator=None, ratio=0.45), s, v, alpha=0.02375)
+    assert optimistic.passed and modest.passed
+    assert plan_o.n_per_arm == plan_m.n_per_arm == 21          # 3 semanas × 14 bloques / 2, prometa lo que prometa

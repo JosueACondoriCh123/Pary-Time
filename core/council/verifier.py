@@ -40,13 +40,25 @@ def _collect(obj, key: str, out: dict[str, set[float]]) -> None:
             _collect(v, key, out)
 
 
+# Constantes de las reglas que el Scout conoce por el prompt (no son datos): tramo de 15 min, censura a 90 min,
+# cuenta regresiva de 3 min. Nombrarlas no es inventar.
+RULE_CONSTANTS = {15.0, 90.0, 3.0}
+
+
 def allowed_numbers(snapshot: Snapshot, h: Hypothesis) -> dict[str, set[float]]:
     out: dict[str, set[float]] = {"any": set(), "pct": set(), "min": set()}
     _collect(snapshot.data, "", out)
+    # Formas equivalentes de un mismo porcentaje (corrida real, 2026-09-27): "0.83" por 83% y "87% no censurados"
+    # por 13% censurados. El complemento se admite solo dentro del mismo tema.
+    for key in [k for k in out if k.startswith("pct_")] + ["pct"]:
+        vals = set(out[key])
+        out[key] |= {100 - v for v in vals} if key != "pct" else set()
+        out["any"] |= {round(v / 100, 2) for v in vals}
     r = h.expected_ratio
     from_ratio = {round(100 * r), round(100 * (1 - r)), round(100 * (1 - r), 1), round(100 * r, 1)}
     out["pct"] |= from_ratio
-    out["any"] |= from_ratio | {r}
+    out["any"] |= from_ratio | {r} | RULE_CONSTANTS
+    out["min"] |= RULE_CONSTANTS
     return out
 
 
