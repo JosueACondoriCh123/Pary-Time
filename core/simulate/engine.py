@@ -72,7 +72,7 @@ def _ms(d: date, h: int, m: int = 0) -> int:
 
 
 def simulate(out: Path, *, weeks: int = 5, seed: int = 7, true_effect: float = 0.5,
-             start: date | None = None, llm: str = "off") -> SimResult:
+             start: date | None = None, llm: str = "off", cassettes: Path | None = None) -> SimResult:
     """Corre `weeks` semanas simuladas en `out` (que tiene que no existir o estar vacío).
 
     `true_effect`: factor real sobre la latencia en los bloques con intervención (0.5 = la mitad). Es el efecto
@@ -103,11 +103,13 @@ def simulate(out: Path, *, weeks: int = 5, seed: int = 7, true_effect: float = 0
         if llm == "off":                                   # el consejo lo toma como LLM caído → respaldo
             raise LLMError("simulación sin LLM (--llm off)")
         return OpenAICompatClient.for_ollama(Settings().ollama_base_url, model, mode=llm,
-                                             cassette_dir=out / "llm_cassettes", timeout=600)
+                                             cassette_dir=Path(cassettes) if cassettes else out / "llm_cassettes",
+                                             timeout=600)
 
     ids = random.Random(seed + 1)
     council = Council(journal, settings_store.get, seeds, factory, now_ms=clock.now_ms,
-                      new_id=lambda: f"{ids.getrandbits(48):012x}")
+                      new_id=lambda: f"{ids.getrandbits(48):012x}",
+                      new_seed=lambda: f"{ids.getrandbits(256):064x}")   # sorteo reproducible (solo simulación)
     experiments = Experiments(journal, settings_store.get, seeds, now_ms=clock.now_ms)
     ctx.experiments = experiments
     runtime = RuntimeService(ctx, clock, NoWindows())
