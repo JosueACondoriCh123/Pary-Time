@@ -62,8 +62,10 @@ def allowed_numbers(snapshot: Snapshot, h: Hypothesis) -> dict[str, set[float]]:
     return out
 
 
-def _matches(x: float, allowed: set[float]) -> bool:
-    return any(abs(x - v) <= 0.051 + 0.005 * abs(v) for v in allowed)
+def _matches(x: float, allowed: set[float], pct: bool = False) -> bool:
+    """Los % del snapshot son enteros redondeados: el modelo que calcula 8/13 puede escribir 61 o 62 (caso real)."""
+    tol = (lambda v: 1.0) if pct else (lambda v: 0.051 + 0.005 * abs(v))
+    return any(abs(x - v) <= tol(v) for v in allowed)
 
 
 def verify(h: Hypothesis, snapshot: Snapshot) -> ToolVerdict:
@@ -82,7 +84,7 @@ def verify(h: Hypothesis, snapshot: Snapshot) -> ToolVerdict:
             if kind == "pct" and marks:                               # el tema más cercano en el texto
                 topic = min(marks, key=lambda t: abs(t[0] - m.start()))[1]
                 pool = allowed.get(topic, set())
-            if not _matches(float(num.replace(",", ".")), pool):
+            if not _matches(float(num.replace(",", ".")), pool, pct=kind == "pct"):
                 invented.append(num + (unit if unit == "%" else f" {unit}" if unit else ""))
     problems = []
     if unknown:

@@ -57,3 +57,17 @@ Adelantado mientras B1 trabaja. Todo va en archivos que el brief de B1 le prohí
 - Ya no quedan stubs 501. El test de stubs se reemplazó por `test_full_app_plans_confirms_runs_and_aborts_a_block_end_to_end`, que corre por HTTP con los 4 frentes montados.
 - `tests/conftest.py` fija `NDE1_NO_DESKTOP=1`: ningún test minimiza ventanas reales ni abre archivos. Solo `test_b2_windows.py` usa `Win32Ops`, y sobre su propia ventana Tk.
 - **La línea base real puede empezar:** planificar y confirmar bloques desde la app. Sin experimento activo, todo bloque es control y solo se mide.
+
+## Hackathon (2026-09-27)
+- **T0:** `contracts@1.1` (`Health.data_label`), interfaz `SynthDay` con `latency_scale`, UWP (`ApplicationFrameHost.exe`) y patrones de WhatsApp, Discord y Telegram en los defaults, y briefs `*-hackathon.md`.
+- **Merges:** A (`synth.py`), B (`demo_live.py`, WhatsApp/YouTube *cloaked*, overlay sobre pantalla completa; tocó `app/electron/main.ts` de D con un arreglo aceptado) y D (franja sintética, `npm run demo`, `demo:live` y `shots`, consejo legible, prueba de la semilla).
+- **`core/simulate` + `test_full_cycle.py`.** El simulador destapó dos defectos, los dos corregidos:
+  1. la mediana agrupada (@1) diluía el efecto al mezclar mañanas y tardes; se reemplazó por el test @2 estratificado;
+  2. N salía del efecto que prometía el Scout; ahora usa todo el presupuesto de semanas.
+- **Verificador sin falsos positivos:** acepta fracciones, complementos del mismo tema y las constantes de las reglas. Sigue atrapando invenciones reales ("47% de censura" cuando era 0%).
+- **Estudio de potencia (semillas 1 a 10):** 9 de 10 apoyados con efecto ×0.5; ningún apoyado sin efecto.
+- **`demo-data`:** `--seed 11 --llm cache`, apoyado, con el consejo real. README público, capturas y guiones en `docs/hackathon/`.
+- **Pendiente:** `check_private.py` (A), el ensayo en vivo con WhatsApp y YouTube abiertos (Josué), el video, y hacer público el repo (Josué).
+- **Cierre de la hackathon (2026-09-27):**
+  - `check_private.py --history` da 0 errores. Los dos falsos positivos quedaron en la allowlist con su motivo: el email público de un mantenedor de npm en `package-lock.json` y la ruta falsa a propósito de `test_soak.py`. Quedan 33 avisos: rutas `C:\Users\HP` en los docs de coordinación (solo exponen el nombre de usuario de Windows) e imágenes, revisadas a mano.
+  - Hubo una edición directa en el working tree de `main` sobre `app/electron/main.ts` (endurecimiento del overlay, `isDestroyed`), que entró en `faffef2`. Se aceptó, pero cada agente tiene que escribir en su worktree.

@@ -34,10 +34,11 @@ N-de-1 (una sola persona, aleatorizado), pero nadie lo hace a mano durante seman
 
 ## Desafíos y aprendizajes
 - **El simulador encontró un error nuestro:** la mediana agrupada perdía el efecto cuando se mezclan mañanas y
-  tardes (un efecto de ×0.5 se medía como 0.88). Lo reemplazamos por un test estratificado; ahora recupera 0.50 y no
-  da falsos positivos.
+  tardes (un efecto de ×0.5 se medía como 0.88), y después que el desbalance de franjas contaminaba la media. El test
+  actual promedia dentro de cada franja: lo detecta en 8 de 10 semillas (la potencia de diseño) y no da falsos
+  positivos sin efecto.
 - **LLM chico y local:** Qwen con razonamiento activado devolvía respuestas vacías, el prompt no entraba en 4096
-  tokens y el modelo inventó un "50%". Por eso el veto es determinista y el verificador ata cada cifra a su unidad y
+  tokens y el modelo inventó porcentajes ("47% de censura" cuando era 0%). Por eso el veto es determinista y el verificador ata cada cifra a su unidad y
   tema.
 - **Un N-de-1 tiene poca potencia:** con 2 bloques por día, en 3 semanas solo se detectan efectos grandes. El Scout
   recibe ese límite como restricción.

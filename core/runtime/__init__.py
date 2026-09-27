@@ -18,6 +18,7 @@ from core.journal import append_typed
 
 from .intervention_state import InterventionState
 from .interventions import WindowOps, default_window_ops
+from .privacy_log import attach_runtime_log, detach_runtime_log
 from .routes import build_router
 from .scheduler import BlockNotActive, Scheduler
 from .store import BlockConflict, BlockInvalid, BlockNotFound, BlockStore, StoredBlock
@@ -61,12 +62,16 @@ class RuntimeService:
                                    InterventionState(ctx.data_dir / "interventions.sqlite"),
                                    windows or default_window_ops(), now_ms=self.clock.now_ms)
         self.router = build_router(self)
+        self._log: object | None = None
 
     def start(self) -> None:
+        self._log = attach_runtime_log(self.ctx.data_dir)
         self.scheduler.start()              # restaura ventanas de una caída y arranca el tick
 
     def stop(self) -> None:
         self.scheduler.stop()
+        detach_runtime_log(self._log)
+        self._log = None
         self.store.close()
 
     # ---------------------------------------------------------------- B2: rutas de Claude

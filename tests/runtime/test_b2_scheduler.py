@@ -1,4 +1,6 @@
 """Scheduler de B2 con el evaluate_block y el categorize reales del Frente A. Datos SINTÉTICOS."""
+from datetime import datetime
+
 import pytest
 
 from core.contracts import Arm, BlockStatus, Settings, Target
@@ -96,6 +98,30 @@ def test_abort_reverts_logs_and_keeps_evaluating_the_block(tmp_path):
     assert events(ctx, "outcome")[0]["payload"]["latency_s"] == 2400       # intención de tratar
     with pytest.raises(BlockNotActive):
         sched.abort(b.block_id, P + 58 * MIN)
+
+
+def test_a_tick_gap_does_not_apply_the_intervention_twice(tmp_path):
+    """Una suspensión de varios minutos no vuelve a aplicar: el brazo ya está applied."""
+    b = block(1)
+    sched, ctx, _ = make(tmp_path, [b], {b.block_id: Arm.retrasar_distracciones})
+    sched.tick(P)
+    sched.tick(P + 10 * MIN)
+    assert iv(ctx) == [(b.block_id, "applied", "block_start")]
+
+
+def test_midnight_handoff_keeps_a_single_active_intervention(tmp_path):
+    late = int(datetime(2026, 9, 29, 23, 50).timestamp() * 1000)
+    early = int(datetime(2026, 9, 30, 0, 20).timestamp() * 1000)
+    b1 = block(1, start=late)
+    b2 = block(2, start=early).model_copy(update={"local_date": "2026-09-30"})
+    sched, ctx, repo = make(tmp_path, [b1, b2],
+                            {b1.block_id: Arm.retrasar_distracciones, b2.block_id: Arm.cuenta_regresiva})
+    sched.tick(late)
+    sched.tick(early)
+    assert iv(ctx) == [(b1.block_id, "applied", "block_start"), (b1.block_id, "reverted", "block_start"),
+                       (b2.block_id, "applied", "block_start")]
+    assert repo.get(b1.block_id).status == BlockStatus.running
+    assert sched.overlay(early + MIN).block_id == b2.block_id
 
 
 def test_recovery_restores_and_then_reapplies_only_what_is_safe(tmp_path):

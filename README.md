@@ -24,7 +24,13 @@ Declarás tus bloques de trabajo. Un consejo de agentes **locales** hace el rest
 nunca salen de un SQLite local y se borran a los 14 días. El journal no guarda títulos ni textos, así que el reporte
 se puede compartir con un profesional.
 
-<!-- capturas: docs/hackathon/img/ (las genera `npm run shots` en app/) -->
+| El consejo delibera | El sorteo se verifica |
+|---|---|
+| ![Consejo](docs/hackathon/img/consejo.png) | ![Resultados](docs/hackathon/img/resultados.png) |
+
+*Capturas sobre datos SINTÉTICOS (`npm run shots`). A la izquierda, el Scout propone 3 hipótesis, las 5
+herramientas del Red Team las revisan y se preregistra la elegida (N = 21 aunque el modelo prometa un efecto que
+pediría menos). A la derecha, la semilla revelada coincide con el hash publicado antes del primer sorteo.*
 
 ## Qué lo hace distinto
 Búsqueda del 2026-09-26, sin pretensión de exhaustividad:
@@ -41,27 +47,50 @@ Un experimento real tarda semanas. `python -m core.simulate` corre **el código 
 de bloques con tramos de actividad sintéticos y un **efecto verdadero conocido** (con la intervención se arranca en la
 mitad de tiempo).
 
+**Corrida de la demo** (`--seed 11 --llm cache`, consejo real con Qwen y Granite):
+
 | | Resultado |
 |---|---|
-| Línea base | 14 bloques de control; el consejo se reúne |
-| Preregistro | `abrir_trabajo`, N = 20 por brazo, α = 0.024 (alpha-investing), semilla comprometida |
-| Resolución | latencia mediana **18.7 → 5.4 min**, ratio geométrico **0.50** (el efecto verdadero era 0.5), **p = 0.005 < α** |
-| Sin efecto (control del simulador) | **no apoyado**: no hay falso descubrimiento |
+| Línea base | 1 semana de bloques de control |
+| Consejo | el Scout propone `primer_paso` (ratio 0.45), pasa el verificador y el Red Team, y se preregistra |
+| Preregistro | N = 21 por brazo (todo el presupuesto de 3 semanas), α = 0.024 (alpha-investing), hash de la semilla |
+| Resolución | latencia mediana **13.8 → 11.0 min**, ratio dentro de franja **0.68**, **p = 0.021 < α = 0.024**: apoyado |
+| Segunda reunión | 3 hipótesis nuevas del Scout; se elige `cuenta_regresiva` y queda en curso |
 | Journal | 268 eventos, `verify` ok; cada asignación coincide con la semilla revelada |
 
-**El simulador encontró un error nuestro.** El primer test preregistrado comparaba medianas agrupadas. Con mañanas
-lentas y tardes rápidas la latencia es bimodal, y la mediana caía en el hueco entre los dos grupos: un efecto
-verdadero de ×0.5 se medía como 0.88 (p = 0.27). Lo reemplazamos por un test que permuta **dentro de cada franja
-horaria** y compara la media de log-latencia (`permutation_meanlog_diff_stratified@2`). Mejor que te lo diga un
-simulador y no tu primer experimento real.
+**Estudio de potencia** (`--llm off`, semillas 1 a 10, el mismo código):
+
+| Efecto verdadero | Apoyado |
+|---|---|
+| ×0.5 (con la intervención, la mitad de tiempo) | **8 de 10** (se diseñó para 80%) |
+| ×1.0 (sin efecto) | **0 de 5** (ningún falso descubrimiento) |
+
+Las semillas 1 y 7 son los 2 de 10 que fallan con efecto real: la latencia baja, pero el test preregistrado con
+su α no alcanza y el veredicto dice "no apoyado". Es la potencia prometida, no un error: el sistema no se autoengaña
+para darte una buena noticia.
+
+**El simulador encontró tres errores nuestros**, antes de que le pasen a una persona real:
+1. **Medianas agrupadas:** el primer test comparaba medianas de todos los bloques juntos. Con mañanas lentas y tardes
+   rápidas la latencia es bimodal, y la mediana caía en el hueco entre los dos grupos: un ×0.5 verdadero se medía
+   como 0.88 (p = 0.27).
+2. **Desbalance por franja:** los bloques alternan mañana y tarde, y el sorteo en bloques de 4 puede cargar el
+   tratamiento de mañanas lentas. La media agrupada mezclaba franja con efecto (ratio 0.92 con un ×0.5 real). El test
+   actual (`permutation_meanlog_diff_stratified@2`) permuta **dentro de cada franja** y promedia las diferencias
+   **dentro de franja**, con pesos tipo Mantel-Haenszel.
+3. **Sorteo no reproducible:** la semilla del consejo salía de `secrets`, que es correcto en uso real pero hacía
+   irreproducible la simulación. Ahora es inyectable, y en la simulación está sembrada.
 
 ## Corrida real del consejo (Ollama local, RTX 4050 6 GB)
 - Qwen propuso 3 hipótesis en 37 s y Granite escribió el pre-mortem en 39 s. Las respuestas quedaron grabadas en
   `data/cassettes/` y se reproducen en los tests.
 - **Sin restricción:** el Scout pidió efectos realistas (−30%), y el Red Team las vetó por potencia (12–18 semanas).
   Ahora el Scout recibe el **efecto mínimo detectable** como restricción.
-- **El verificador atrapó a Qwen inventando** "50% de bloques censurados" (era 4%): la cifra existía, pero como
-  porcentaje de otra cosa.
+- **El verificador atrapó a Qwen inventando:** "50% de bloques censurados" (era 4%) y "47% de censura en lectura"
+  (era 0%). La cifra a veces existía, pero como porcentaje de otra cosa: por eso cada cifra se ata a su unidad y
+  a su tema.
+- **Otro error nuestro:** el Red Team dimensionaba N con el efecto que prometía el Scout. Con un 0.45 optimista salió
+  N = 6 y un efecto real no llegó a p < α. Ahora el efecto propuesto solo decide si la hipótesis es testeable, y N usa
+  todo el presupuesto de semanas: el tamaño no sale de la confianza del modelo.
 
 ## Probarlo
 Requisitos: Windows 10/11, Python 3.11, Node 20 o superior, [Ollama](https://ollama.com) (opcional; sin él, el
@@ -72,8 +101,9 @@ python -m venv .venv
 .venv\Scripts\python -m pip install -e ".[dev]"
 ollama pull qwen3.5:4b; ollama pull granite4.2:8b          # opcional
 
-# 5 semanas simuladas (DATOS SINTÉTICOS) y la app encima
-.venv\Scripts\python -m core.simulate --out demo-data --weeks 5 --seed 7
+# 5 semanas simuladas (DATOS SINTÉTICOS) y la app encima. Con Ollama, el consejo es real (--llm cache);
+# sin Ollama usá --llm off (respaldo determinista, otros resultados)
+.venv\Scripts\python -m core.simulate --out demo-data --weeks 5 --seed 11 --llm cache
 cd app; npm install; npm run demo
 
 # demo en vivo: un bloque que empieza en 2 minutos con WhatsApp/YouTube minimizados

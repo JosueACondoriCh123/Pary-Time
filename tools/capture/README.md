@@ -39,6 +39,50 @@ El simulador de C debe marcar su directorio con `DATA_LABEL=sintetico` y mostrar
 
 ## Capturar uso real (fuera de la entrega de hackathon)
 
+### Fase 4: comprobar los datos antes del experimento real
+
+Cerrá normalmente la app para que SQLite complete su checkpoint y ejecutá desde A:
+
+```powershell
+..\.venv\Scripts\python.exe tools/capture/preflight.py --data-dir ../data
+```
+
+Elegí la carpeta de datos reales usada por tu app: `../data` es solo un ejemplo. Electron
+usa `NDE1_DATA_DIR` si está definido; en otro caso, `data` dentro de su carpeta `userData`.
+La herramienta no crea esa carpeta,
+no arranca el sensor y no modifica datos. Lee el journal con su verificador de hashes
+y la base propia de A mediante SQLite inmutable. Si hay un WAL, rehúsa leerlo para no
+ignorar observaciones pendientes; cerrá el núcleo y repetí. No elimina el WAL ni repara
+un journal truncado. Detecta cambios de archivos durante la lectura.
+
+La salida JSON contiene únicamente conteos, límites temporales agregados y códigos de
+problema. **No contiene títulos, procesos, rutas, efectos por brazo, p-valores ni semillas.**
+No se recalculan resultados ni se escribe al journal. Comprueba:
+
+- etiqueta `DATA_LABEL`: `sintetico` nunca puede aprobar como datos reales;
+- al menos siete días calendario entre la primera y última fecha local con resultados
+  de línea base, contando ambas fechas, antes del primer preregistro; se informa además
+  cuántas fechas tuvieron observaciones, sin exigir trabajo todos los días;
+- los `device_off` y los controles de un experimento no completan esa semana;
+- integridad del journal, duplicados, referencias básicas y resultados finales coherentes;
+- reglas de medición preregistradas iguales a `outcome@1`, y cambios de configuración
+  que afectaron la clasificación de distracciones durante un experimento;
+- actividad persistida no vacía, ordenada, sin solapamientos y base SQLite legible.
+
+Exit **0** significa que esas comprobaciones de medición pasaron; **1**, que hay
+problemas reportados; **2**, que no pudo completarse la comprobación. Los siete días
+provienen de la semana de línea base del plan: **no son un criterio de potencia** ni
+una autorización del consejo para iniciar el experimento. Sin marcador se conserva
+el valor `real` del contrato Health, pero se advierte que no se verificó la procedencia.
+Una etiqueta, por sí sola, no prueba que las observaciones sean reales.
+
+Límites: no contrasta cada outcome contra las trazas originales, que pueden haberse
+purgado por retención; no reconstruye ajustes históricos ni detecta cambios manuales
+de `settings.json` que no dejaron evento. `withdraw`, la restauración de ventanas y
+la decisión de continuar capturando requieren los contratos y servicios de 0/B/C/D.
+
+### Registrar y reproducir trazas
+
 Desde `n-de-1/n-de-1-frente-a`, usando el Python 3.11 del proyecto padre:
 
 ```powershell

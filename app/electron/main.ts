@@ -125,10 +125,15 @@ function createOverlayWindow() {
   overlayWin.setIgnoreMouseEvents(true, { forward: true });
   lockNavigation(overlayWin);
   load(overlayWin, "overlay");
+  // Si Windows o un crash del renderer la destruyen, se suelta la referencia y se rehace.
+  overlayWin.on("closed", () => {
+    overlayWin = null;
+    if (!quitting) createOverlayWindow();
+  });
 }
 
 function showMain(to?: NavTarget) {
-  if (!mainWin) return;
+  if (!mainWin || mainWin.isDestroyed()) return;
   if (mainWin.isMinimized()) mainWin.restore();
   mainWin.show();
   mainWin.focus();
@@ -209,7 +214,7 @@ function registerIpc() {
     return next;
   });
   ipcMain.on("nde1:overlay-visible", (e, visible: boolean) => {
-    if (!overlayWin || e.sender !== overlayWin.webContents) return;
+    if (!overlayWin || overlayWin.isDestroyed() || e.sender !== overlayWin.webContents) return;
     if (visible) {
       // YouTube a pantalla completa se sube después: hay que volver a pedir el tope.
       overlayWin.setAlwaysOnTop(true, "screen-saver");
@@ -225,7 +230,9 @@ if (primary) {
     mkdirSync(dataDir, { recursive: true });
     registerIpc();
     sidecar.on("state", (state) => {
-      for (const win of BrowserWindow.getAllWindows()) win.webContents.send("nde1:sidecar", state);
+      for (const win of BrowserWindow.getAllWindows()) {
+        if (!win.isDestroyed()) win.webContents.send("nde1:sidecar", state);
+      }
     });
     sidecar.start();
     applyLoginItem(loadPrefs(prefsPath));
@@ -233,7 +240,9 @@ if (primary) {
     createMainWindow();
     createOverlayWindow();
     setInterval(() => {
-      if (overlayWin?.isVisible()) overlayWin.setAlwaysOnTop(true, "screen-saver");
+      if (overlayWin && !overlayWin.isDestroyed() && overlayWin.isVisible()) {
+        overlayWin.setAlwaysOnTop(true, "screen-saver");
+      }
     }, 1000);
   });
 
