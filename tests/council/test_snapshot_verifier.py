@@ -35,3 +35,12 @@ def test_verifier_rejects_unknown_block_ids_and_ignores_dates(baseline):
     snap = build_snapshot(JournalView.load(baseline))
     v = verify(hyp("Desde 2026-09-14 a las 09:00 hay retrasos.", ids=["blk_ffffffffffff"]), snap)
     assert not v.passed and "inexistentes" in v.detail and "2026" not in v.detail
+
+
+def test_prompt_size_is_capped_whatever_the_baseline_length(journal):
+    """Ollama trae 4096 tokens de contexto. Medido: 40 días → 2242 tokens de prompt con el system (~2 caracteres
+    por token en esta tabla). Tope de 4000 caracteres para el snapshot + 1500 de salida del Scout = margen."""
+    from tests.council.conftest import fill_baseline
+    fill_baseline(journal, days=60)
+    snap = build_snapshot(JournalView.load(journal))
+    assert snap.data["n_blocks"] == 120 and len(snap.to_prompt()) <= 4000

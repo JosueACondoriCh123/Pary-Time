@@ -42,7 +42,7 @@ class LLMError(Exception):
 
 MODES = ("live", "record", "replay", "cache")
 _TYPES = {"object": dict, "array": list, "string": str, "integer": int,
-          "number": (int, float), "boolean": bool}
+          "number": (int, float), "boolean": bool, "null": type(None)}
 
 
 def extract_json(raw: str) -> dict:
@@ -124,10 +124,16 @@ class OpenAICompatClient:
 
     @classmethod
     def for_ollama(cls, base_url: str, model: str, *, mode: str | None = None,
-                   cassette_dir: Path | None = None, timeout: float = 300) -> "OpenAICompatClient":
-        """Ollama no pide clave, pero el SDK exige una no vacía."""
+                   cassette_dir: Path | None = None, timeout: float = 300,
+                   think: bool = False) -> "OpenAICompatClient":
+        """Ollama no pide clave, pero el SDK exige una no vacía.
+
+        `think=False` manda `reasoning_effort: "none"`. Medido el 2026-09-26 con qwen3.5:4b: con el
+        razonamiento activo el modelo gastó los 400 tokens pensando y devolvió `content` vacío; sin
+        razonamiento respondió el JSON correcto en 0.5 s. El veto real es determinista, así que no hace falta."""
         return cls(base_url, "ollama", model, mode=mode or os.getenv("NDE1_LLM_MODE", "live"),
-                   cassette_dir=cassette_dir, timeout=timeout)
+                   cassette_dir=cassette_dir, timeout=timeout,
+                   extra_body=None if think else {"reasoning_effort": "none"})
 
     def request_key(self, system: str, user: str, schema: dict, max_tokens: int) -> str:
         return sha256(canonical({"model": self.model, "system": system, "user": user, "schema": schema,

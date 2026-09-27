@@ -42,7 +42,7 @@ def scout(client: OpenAICompatClient, snapshot: Snapshot) -> tuple[list[Hypothes
     """Hipótesis válidas según el contrato, la llamada auditable y lo descartado por formato."""
     system, version = _prompt("scout")
     obj, call = client.complete_json(purpose="scout", system=system, user=snapshot.to_prompt(),
-                                     schema=SCOUT_SCHEMA, prompt_version=version, max_tokens=2000)
+                                     schema=SCOUT_SCHEMA, prompt_version=version, max_tokens=1500)
     if obj.get("abstain"):
         return [], call, []
     hyps, dropped = [], []

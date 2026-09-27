@@ -65,3 +65,10 @@ def test_cache_mode_replays_what_is_recorded_and_calls_only_for_the_rest(tmp_pat
 def test_for_ollama_needs_no_real_key():
     c = OpenAICompatClient.for_ollama("http://localhost:11434/v1", "qwen3:8b", mode="replay")
     assert c.model == "qwen3:8b" and c.mode == "replay"
+
+
+def test_validate_supports_nullable_types():
+    schema = {"type": "object", "properties": {"moderator": {"type": ["object", "null"]}}}
+    assert validate({"moderator": None}, schema) == []
+    assert validate({"moderator": {"kind": "x"}}, schema) == []
+    assert validate({"moderator": "mañana"}, schema)

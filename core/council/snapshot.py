@@ -17,6 +17,9 @@ from core.interfaces import time_of_day
 from core.journal.canon import canonical, sha256
 
 WEEKDAYS = ("lun", "mar", "mie", "jue", "vie", "sab", "dom")
+PROMPT_ROWS = 30
+PROMPT_COLUMNS = ("block_id", "weekday", "time_of_day", "task_kind", "latency_min", "censored",
+                  "aborted", "pre_start_switches", "first_category", "distraction_min_before_start", "started_early")
 
 
 @dataclass(frozen=True)
@@ -29,7 +32,22 @@ class Snapshot:
         return self.data["blocks"]
 
     def to_prompt(self) -> str:
-        return canonical(self.data)
+        """Versión compacta para el LLM: tabla (columnas + filas), booleanos 0/1 y solo los últimos
+        `PROMPT_ROWS` bloques; los `facts` siguen cubriendo todos. Ollama trae 4096 tokens de contexto por
+        defecto: 12 días de bloques como objetos JSON ya ocupaban 3761 tokens (medido el 2026-09-26)."""
+        rows = self.rows[-PROMPT_ROWS:]
+        table = [[int(r[c]) if isinstance(r[c], bool) else r[c] for c in PROMPT_COLUMNS] for r in rows]
+        head = {k: v for k, v in self.data.items() if k not in ("blocks", "facts")}
+        facts = {"columns": list(FACT_COLUMNS), "all": [self.data["facts"]["all"][c] for c in FACT_COLUMNS]}
+        for key in PROMPT_FACT_GROUPS:
+            facts[key] = {g: [f[c] for c in FACT_COLUMNS] for g, f in self.data["facts"][key].items()}
+        return canonical({**head, "facts": facts, "blocks_shown": len(rows), "columns": list(PROMPT_COLUMNS),
+                          "blocks": table})
+
+
+FACT_COLUMNS = ("n", "median_latency_min", "censored", "pct_censored", "first_is_distraction",
+                "pct_first_is_distraction")
+PROMPT_FACT_GROUPS = ("by_time_of_day", "by_task_kind", "by_first_category")
 
 
 def _latency_min(o) -> float:
