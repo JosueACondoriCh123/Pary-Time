@@ -7,8 +7,9 @@ Reglas (brief-b / constitución):
     reciclan: sin ese chequeo se podría restaurar una ventana ajena) y que siguen minimizadas.
   * `abrir_trabajo` abre el objetivo y al revertir no hace nada: nunca se cierra el trabajo de la persona.
 
-El filtro de ventanas reales (sin dueño, sin estilo de herramienta, no *cloaked*), la verificación por PID y la
-lista de procesos protegidos se portaron de la rama `frente-b2` (otra sesión de Claude, 2026-09-27).
+El filtro de ventanas reales (sin dueño, sin estilo de herramienta). Las cloaked se conservan y
+`select_distractions` se queda solo con las que ya son distracción: WhatsApp UWP y un video a
+pantalla completa siguen cloaked mientras se ven; el resto no se minimiza.
 """
 from __future__ import annotations
 
@@ -29,13 +30,22 @@ log = logging.getLogger(__name__)
 PROTECTED_PROCESSES = frozenset({"consejo n-de-1.exe", "nde1-core.exe", "electron.exe", "explorer.exe"})
 
 
+# El escritorio nuevo de WhatsApp no se llama WhatsApp.exe. ApplicationFrameHost es el marco UWP.
+_WHATSAPP_PROCESSES = frozenset({"whatsapp.exe", "whatsapp.root.exe"})
+
+
 @dataclass(frozen=True)
 class WinInfo:
-    """Ventana top-level visible. `title` es LOCAL: nunca va al journal ni a los logs."""
+    """Ventana top-level visible. `title` es LOCAL: nunca va al journal ni a los logs.
+
+    `cloaked` queda en el objeto porque WhatsApp UWP y un YouTube a pantalla completa pueden
+    seguir cloaked mientras se ven. El filtro de más abajo decide si igual cuentan.
+    """
     hwnd: int
     pid: int
     process: str
     title: str
+    cloaked: bool = False
 
 
 class WindowOps(Protocol):
@@ -47,17 +57,45 @@ class WindowOps(Protocol):
     def is_minimized(self, hwnd: int) -> bool: ...
 
 
+def _is_distraction(window: WinInfo, settings: Settings, categorize: Categorize) -> bool:
+    """Distracción según Frente A, más el WhatsApp de escritorio que no matchea `WhatsApp.exe`.
+
+    No cambia `categorize` ni outcome@1: solo decide qué ventanas minimiza esta intervención.
+    Una ventana cloaked entra únicamente si ya es distracción (UWP visible o video a pantalla
+    completa). El resto de las cloaked —otro escritorio, una UWP suspendida— queda afuera.
+    """
+    name = window.process.casefold()
+    if name in _WHATSAPP_PROCESSES:
+        return True
+    if name == "applicationframehost.exe" and "whatsapp" in window.title.casefold():
+        return True
+    span = ActivitySpan(start_ms=0, end_ms=0, process=window.process[:260], title=window.title[:512],
+                        idle=False)
+    return categorize(span, None, settings) == Category.distraction
+
+
 def select_distractions(windows: list[WinInfo], settings: Settings, categorize: Categorize) -> list[WinInfo]:
-    """Ventanas que `categorize` (Frente A) considera distracción, fuera de la lista blanca y de lo protegido."""
-    white = {p.lower() for p in settings.whitelist_processes} | PROTECTED_PROCESSES
+    """Ventanas de distracción, fuera de la lista blanca y de lo protegido.
+
+    Una ventana cloaked solo llega acá si `windows()` la vio. Entra si ya es distracción
+    (WhatsApp UWP o un YouTube cloaked en pantalla completa). Una cloaked que no es
+    distracción no pasa `_is_distraction`.
+    """
+    white = {item.casefold() for item in settings.whitelist_processes}
+    protected = PROTECTED_PROCESSES | white
     me = os.getpid()
     out = []
-    for w in windows:
-        if w.process.lower() in white or w.pid == me:
+    for window in windows:
+        name = window.process.casefold()
+        if name in protected or window.pid == me:
             continue
-        span = ActivitySpan(start_ms=0, end_ms=0, process=w.process[:260], title=w.title[:512], idle=False)
-        if categorize(span, None, settings) == Category.distraction:
-            out.append(w)
+        if name.startswith("whatsapp") and any(item.startswith("whatsapp") for item in white):
+            continue
+        if (name == "applicationframehost.exe" and "whatsapp" in window.title.casefold()
+                and any(item.startswith("whatsapp") for item in white)):
+            continue
+        if _is_distraction(window, settings, categorize):
+            out.append(window)
     return out
 
 
@@ -96,8 +134,9 @@ _GW_OWNER, _GWL_EXSTYLE, _WS_EX_TOOLWINDOW, _DWMWA_CLOAKED = 4, -20, 0x00000080,
 
 
 class Win32Ops:
-    """Lo que se ve en la barra de tareas: ventanas top-level visibles, sin dueño, que no son de herramientas
-    ni están *cloaked* (UWP suspendidas u otro escritorio virtual). Solo minimizar/restaurar."""
+    """Lo que se ve en la barra de tareas: ventanas top-level visibles, sin dueño, que no son de herramientas.
+    Las cloaked se listan igual (con la marca) porque UWP y la pantalla completa las usan estando a la vista.
+    Solo minimizar/restaurar."""
 
     def __init__(self):
         if sys.platform != "win32":
@@ -139,12 +178,13 @@ class Win32Ops:
                 gui = self._gui
                 if not gui.IsWindowVisible(hwnd) or gui.GetWindow(hwnd, _GW_OWNER):
                     return True
-                if gui.GetWindowLong(hwnd, _GWL_EXSTYLE) & _WS_EX_TOOLWINDOW or self._cloaked(hwnd):
+                if gui.GetWindowLong(hwnd, _GWL_EXSTYLE) & _WS_EX_TOOLWINDOW:
                     return True
                 title = gui.GetWindowText(hwnd)
                 if title:
                     _, pid = self._proc.GetWindowThreadProcessId(hwnd)
-                    found.append(WinInfo(hwnd, pid, self._process_name(pid), title[:512]))
+                    found.append(WinInfo(hwnd, pid, self._process_name(pid), title[:512],
+                                         cloaked=self._cloaked(hwnd)))
             except Exception as exc:                     # una ventana que se cierra durante el recorrido
                 log.debug("ventana ignorada: %s", type(exc).__name__)
             return True

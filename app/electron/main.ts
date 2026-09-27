@@ -210,8 +210,11 @@ function registerIpc() {
   });
   ipcMain.on("nde1:overlay-visible", (e, visible: boolean) => {
     if (!overlayWin || e.sender !== overlayWin.webContents) return;
-    if (visible && !overlayWin.isVisible()) overlayWin.showInactive();
-    if (!visible && overlayWin.isVisible()) overlayWin.hide();
+    if (visible) {
+      // YouTube a pantalla completa se sube después: hay que volver a pedir el tope.
+      overlayWin.setAlwaysOnTop(true, "screen-saver");
+      if (!overlayWin.isVisible()) overlayWin.showInactive();
+    } else if (overlayWin.isVisible()) overlayWin.hide();
   });
 }
 
@@ -229,6 +232,9 @@ if (primary) {
     createTray();
     createMainWindow();
     createOverlayWindow();
+    setInterval(() => {
+      if (overlayWin?.isVisible()) overlayWin.setAlwaysOnTop(true, "screen-saver");
+    }, 1000);
   });
 
   app.on("before-quit", () => {

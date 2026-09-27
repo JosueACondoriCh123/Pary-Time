@@ -167,6 +167,28 @@ def test_distraction_selection_respects_the_whitelist():
     assert [w.hwnd for w in select_distractions(wins, s, categorize)] == [2]
 
 
+def test_whatsapp_desktop_and_cloaked_youtube_count_other_cloaked_windows_do_not():
+    wins = [WinInfo(1, 1, "WhatsApp.Root.exe", "WhatsApp"),
+            WinInfo(2, 2, "ApplicationFrameHost.exe", "WhatsApp", cloaked=True),
+            WinInfo(3, 3, "chrome.exe", "lofi - YouTube", cloaked=True),
+            WinInfo(4, 4, "msedge.exe", "YouTube", cloaked=True),
+            WinInfo(5, 5, "ApplicationFrameHost.exe", "B&O Audio Control", cloaked=True),
+            WinInfo(6, 6, "msedgewebview2.exe", "WhatsApp")]
+    picked = select_distractions(wins, Settings(), categorize)
+    assert [w.hwnd for w in picked] == [1, 2, 3, 4]
+    white = Settings(whitelist_processes=["WhatsApp.exe"])
+    assert [w.hwnd for w in select_distractions(wins, white, categorize)] == [3, 4]
+
+
+def test_synthetic_demo_shows_the_countdown_for_delay_distractions(tmp_path):
+    b = block(1)
+    sched, _, _ = make(tmp_path, [b], {b.block_id: Arm.retrasar_distracciones})
+    assert not sched.overlay(P - 2 * MIN).visible
+    (tmp_path / "DATA_LABEL").write_text("sintetico\n", encoding="utf-8")
+    shown = sched.overlay(P - 2 * MIN)
+    assert shown.visible and shown.kind == "countdown" and shown.text.endswith("arrancás en 2:00")
+
+
 def test_our_own_app_the_core_and_the_desktop_are_never_distractions():
     import os
     from core.runtime.interventions import PROTECTED_PROCESSES
