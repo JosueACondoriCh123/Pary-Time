@@ -14,6 +14,17 @@ Quedan dos agentes externos. El externo 2 hace solo la Fase 1 de B (`brief-b1.md
 Claude toma D en `n-de-1-frente-d` y, después del merge de B1, el resto de B (scheduler, intervenciones,
 overlay y recuperación). `brief-b.md` y `brief-d.md` quedan como especificación completa de cada frente.
 
+## HACKATHON (2026-09-27, entrega hoy): lo único que vale esta noche
+Plan: `C:\Users\HP\.claude\plans\quiero-basarme-en-la-validated-cloud.md`.
+- **Externo 1 (A):** `brief-a-hackathon.md`. `tools/capture/synth.py` (primero) y `scripts/check_private.py`.
+- **Externo 2 (B):** `brief-b-hackathon.md`. `tools/demo_live.py` y el ensayo con apps reales. **Desde ahora,
+  `core/runtime/` completo es suyo.**
+- **Claude, sesión D:** `brief-d-hackathon.md`. Franja de datos sintéticos, `npm run demo`, consejo legible y
+  capturas.
+- **Claude, Frente 0 + C:** `core/simulate`, `test_full_cycle.py`, README público, `docs/hackathon/` y los merges.
+
+Nada de features fuera de esos briefs. El merge a `main` lo hace el Frente 0 apenas cada uno avise en su `frente-X.md`.
+
 ## Aviso (2026-09-27): B2 ya está en `main`; la rama `frente-b2` quedó reemplazada
 Dos sesiones de Claude hicieron B2 en paralelo sin saberlo. La versión de `main` (Frente 0) está completa e integrada: scheduler, rutas, recuperación y tests con ventanas reales.
 
