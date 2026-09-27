@@ -400,8 +400,8 @@ class Settings(_Model):
     exploration_fraction: float = Field(0.10, ge=0, le=0.5)
     family_alpha: float = Field(0.05, gt=0, lt=0.5)
     ollama_base_url: str = "http://localhost:11434/v1"
-    scout_model: str = ""
-    red_team_model: str = ""
+    scout_model: str = "qwen3.5:4b"         # Alibaba; Red Team de otra familia
+    red_team_model: str = "granite4.2:8b"   # IBM
 
 
 class Health(_Model):

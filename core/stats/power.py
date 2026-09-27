@@ -46,6 +46,15 @@ def required_n_per_arm(sigma: float, expected_ratio: float, alpha: float, power:
     return max(MIN_N_PER_ARM, math.ceil(n_mean / MEDIAN_ARE))
 
 
+def mde_ratio(sigma: float, alpha: float, n_per_arm: float, power: float = 0.8) -> float:
+    """Efecto mínimo detectable (como ratio de latencias) con `n_per_arm`: inversa de required_n_per_arm."""
+    if n_per_arm <= 0:
+        return 0.0
+    z = NormalDist().inv_cdf
+    delta = (z(1 - alpha) + z(power)) * sigma * math.sqrt(2 / (n_per_arm * MEDIAN_ARE))
+    return math.exp(-delta)
+
+
 @dataclass(frozen=True)
 class Feasibility:
     n_per_arm: int

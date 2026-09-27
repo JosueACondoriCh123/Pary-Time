@@ -1377,12 +1377,12 @@
             "type": "integer"
           },
           "red_team_model": {
-            "default": "",
+            "default": "granite4.2:8b",
             "title": "Red Team Model",
             "type": "string"
           },
           "scout_model": {
-            "default": "",
+            "default": "qwen3.5:4b",
             "title": "Scout Model",
             "type": "string"
           },

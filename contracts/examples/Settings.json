@@ -29,6 +29,6 @@
   "exploration_fraction": 0.1,
   "family_alpha": 0.05,
   "ollama_base_url": "http://localhost:11434/v1",
-  "scout_model": "",
-  "red_team_model": ""
+  "scout_model": "qwen3.5:4b",
+  "red_team_model": "granite4.2:8b"
 }
