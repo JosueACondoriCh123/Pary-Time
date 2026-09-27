@@ -72,6 +72,22 @@ def test_a_percentage_is_bound_to_the_topic_its_clause_names(baseline):
     assert distr != cens
     ok = hyp(f"A la mañana, el {distr}% arranca en distracción y el {cens}% queda censurado.")
     assert verify(ok, snap).passed, verify(ok, snap).detail
-    swapped = hyp(f"A la mañana, el {distr}% de los bloques queda censurado.")
+    # Un % de distracción que no es ni un % censurado ni su complemento en ningún grupo, puesto como censura.
+    from core.council.verifier import allowed_numbers
+    pool = allowed_numbers(snap, hyp("x"))["pct_censored"]
+    everywhere = allowed_numbers(snap, hyp("x"))["pct"]
+    wrong = next((v for v in sorted(everywhere) if v not in pool), None) or         next(v for v in range(1, 100) if v not in pool)
+    swapped = hyp(f"A la mañana, el {wrong}% de los bloques queda censurado.")
     v = verify(swapped, snap)
-    assert not v.passed and f"{distr}%" in v.detail
+    assert not v.passed and f"{wrong}%" in v.detail
+
+
+def test_equivalent_forms_of_real_numbers_are_not_inventions(baseline):
+    """Casos reales de qwen3.5:4b (2026-09-27): fracción de un %, el complemento del % censurado y la regla de 15 min."""
+    snap = build_snapshot(JournalView.load(baseline))
+    f = snap.data["facts"]["by_time_of_day"]["morning"]
+    frac = round(f["pct_first_is_distraction"] / 100, 2)
+    comp = 100 - f["pct_censored"]
+    ok = hyp(f"La primera ventana es distracción con fracción {frac}; el {comp}% de las mañanas no queda censurado. "
+             "Bloquear apps hasta completar 15 min.")
+    assert verify(ok, snap).passed, verify(ok, snap).detail

@@ -24,7 +24,7 @@ from core.council.journal_view import JournalView
 from core.council.experiments import Experiments
 from core.interfaces import AppContext, SynthDay
 from core.journal import Journal
-from core.llm import OpenAICompatClient
+from core.llm import LLMError, OpenAICompatClient
 from core.sensing.categorize import categorize
 from core.sensing.outcome import evaluate_block
 from core.sensing.store import SpanStore
@@ -100,11 +100,10 @@ def simulate(out: Path, *, weeks: int = 5, seed: int = 7, true_effect: float = 0
     seeds = SeedStore(out)
 
     def factory(role: str, model: str) -> OpenAICompatClient:
-        if llm == "off":
-            return OpenAICompatClient.for_ollama("http://127.0.0.1:9/v1", model, mode="replay",
-                                                 cassette_dir=out / "sin-llm")      # siempre LLMError → respaldo
+        if llm == "off":                                   # el consejo lo toma como LLM caído → respaldo
+            raise LLMError("simulación sin LLM (--llm off)")
         return OpenAICompatClient.for_ollama(Settings().ollama_base_url, model, mode=llm,
-                                             cassette_dir=out / "llm_cassettes")
+                                             cassette_dir=out / "llm_cassettes", timeout=600)
 
     ids = random.Random(seed + 1)
     council = Council(journal, settings_store.get, seeds, factory, now_ms=clock.now_ms,
