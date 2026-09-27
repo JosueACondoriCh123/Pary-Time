@@ -19,7 +19,8 @@ let tray: Tray | null = null;
 let quitting = false;
 
 // Tests, capturas y GIF usan su propia carpeta de usuario: conviven con la app abierta y no tocan sus preferencias.
-if (process.env.NDE1_USER_DATA) app.setPath("userData", process.env.NDE1_USER_DATA);
+// La app ahora se llama Pary Time, pero los datos siguen en la carpeta de siempre: renombrar no borra la línea base.
+app.setPath("userData", process.env.NDE1_USER_DATA ?? join(app.getPath("appData"), "Consejo N-de-1"));
 
 // Dos núcleos no pueden compartir el data-dir: la segunda instancia solo le pasa el foco a la primera.
 const primary = app.requestSingleInstanceLock();
@@ -86,7 +87,7 @@ function createMainWindow() {
     height: 800,
     minWidth: 760,
     minHeight: 560,
-    title: "Consejo N-de-1",
+    title: "Pary Time",
     backgroundColor: "#0d0628",
     icon: trayIcon(64),
     show: !process.argv.includes("--hidden"),
@@ -157,7 +158,7 @@ function statusMessage(status: number, okText: string): string {
 
 function createTray() {
   tray = new Tray(trayIcon(32));
-  tray.setToolTip("Consejo N-de-1");
+  tray.setToolTip("Pary Time");
   const pause = async (minutes: number) => {
     const status = await callCore("POST", `/activity/pause?minutes=${minutes}`);
     notify("Sensor", statusMessage(status, `Sensor en pausa ${minutes} min.`));
@@ -170,6 +171,7 @@ function createTray() {
     Menu.buildFromTemplate([
       { label: "Abrir", click: () => showMain() },
       { label: "Planificar mañana", click: () => showMain("planner") },
+      { label: "Distracciones", click: () => showMain("distractions") },
       { type: "separator" },
       { label: "Pausar sensor 30 min", click: () => void pause(30) },
       { label: "Pausar sensor 60 min", click: () => void pause(60) },

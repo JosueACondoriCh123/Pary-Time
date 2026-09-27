@@ -1,7 +1,7 @@
 # Instalador de Windows (NSIS, por usuario, sin permisos de administrador).
 # Se corre desde app/: `npm run dist`. Las rutas son relativas a app/.
 appId: dev.nde1.consejo
-productName: Consejo N-de-1
+productName: Pary Time
 copyright: Josué Condori
 
 directories:
@@ -38,4 +38,4 @@ nsis:
   perMachine: false
   allowElevation: false
   deleteAppDataOnUninstall: false
-  shortcutName: Consejo N-de-1
+  shortcutName: Pary Time

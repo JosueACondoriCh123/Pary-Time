@@ -27,7 +27,7 @@ from core.interfaces import Categorize
 log = logging.getLogger(__name__)
 
 # Nunca se minimizan: la propia app (empaquetada y en desarrollo), el núcleo y el escritorio de Windows.
-PROTECTED_PROCESSES = frozenset({"consejo n-de-1.exe", "nde1-core.exe", "electron.exe", "explorer.exe"})
+PROTECTED_PROCESSES = frozenset({"pary time.exe", "consejo n-de-1.exe", "nde1-core.exe", "electron.exe", "explorer.exe"})
 
 
 # El escritorio nuevo de WhatsApp no se llama WhatsApp.exe. ApplicationFrameHost es el marco UWP.

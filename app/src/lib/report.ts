@@ -62,7 +62,7 @@ export function reportHtml(report: Report, seedChecks: Record<string, boolean> =
     )
     .join("");
   return `<!doctype html>
-<html lang="es"><head><meta charset="utf-8"><title>Consejo N-de-1 · reporte</title>
+<html lang="es"><head><meta charset="utf-8"><title>Pary Time · reporte</title>
 <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'">
 <style>
 body{font-family:"Segoe UI",system-ui,sans-serif;max-width:820px;margin:2rem auto;padding:0 1rem;color:#1a1d23;line-height:1.5}
@@ -71,7 +71,7 @@ table{border-collapse:collapse;width:100%;margin:.5rem 0}th,td{text-align:left;p
 th{font-weight:600;width:45%}td{word-break:break-all}.disclaimer{background:#f4f6f9;border-left:4px solid #5b8def;padding:.6rem .9rem}
 .muted{color:#5d6675}
 </style></head><body>
-<h1>Consejo N-de-1 · reporte</h1>
+<h1>Pary Time · reporte</h1>
 <p class="muted">Generado el ${escapeHtml(dateTime(report.generated_ms))}</p>
 <p class="disclaimer">${escapeHtml(disclaimer)}</p>
 <h2>Integridad del journal</h2>

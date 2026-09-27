@@ -34,7 +34,7 @@ const run = (cmd, args, env = process.env) =>
   );
 
 await run("npm", ["run", "build"]);
-console.log(`\nConsejo N-de-1 · demo sobre ${dir} (DATOS SINTÉTICOS)\n`);
+console.log(`\nPary Time · demo sobre ${dir} (DATOS SINTÉTICOS)\n`);
 const electron = (await import("electron")).default;
 const env = { ...process.env, NDE1_DATA_DIR: dir, NDE1_REPO: repo };
 delete env.VITE_DEV_SERVER_URL;

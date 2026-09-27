@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { _electron as electron, expect, test, type ElectronApplication, type Page } from "@playwright/test";
 
 const unpacked = join(import.meta.dirname, "..", "release", "win-unpacked");
-const exe = join(unpacked, "Consejo N-de-1.exe");
+const exe = join(unpacked, "Pary Time.exe");
 const sidecar = join(unpacked, "resources", "nde1-core", "nde1-core.exe");
 
 test.skip(!existsSync(exe) || !existsSync(sidecar), "sin build empaquetado con sidecar");
