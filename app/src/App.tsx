@@ -3,6 +3,7 @@ import type { NavTarget } from "./bridge";
 import { FIXTURES, useCore, useLoad } from "./core";
 import { readProfile, saveProfile, type AccessMode, type LocalProfile } from "./lib/local-profile";
 import { Access } from "./views/Access";
+import { Distractions } from "./views/Distractions";
 import { Experiment } from "./views/Experiment";
 import { History } from "./views/History";
 import { Planner } from "./views/Planner";
@@ -18,6 +19,7 @@ const NAV: { id: AppView; label: string }[] = [
   { id: "home", label: "Inicio" },
   { id: "today", label: "Hoy" },
   { id: "history", label: "Mi tiempo" },
+  { id: "distractions", label: "Distracciones" },
   { id: "planner", label: "Planificar" },
   { id: "experiment", label: "Experimento" },
   { id: "results", label: "Resultados" },
@@ -28,6 +30,7 @@ const NAV: { id: AppView; label: string }[] = [
 const VIEWS: Record<NavTarget, () => ReactNode> = {
   today: () => <Today />,
   history: () => <History />,
+  distractions: () => <Distractions />,
   planner: () => <Planner />,
   experiment: () => <Experiment />,
   results: () => <Results />,
@@ -42,6 +45,11 @@ export function App() {
   const contentRef = useRef<HTMLElement>(null);
 
   useEffect(() => window.nde1?.onNavigate(setView), []);
+  useEffect(() => {
+    const go = (e: Event) => setView((e as CustomEvent<AppView>).detail);
+    window.addEventListener("pary:navigate", go);
+    return () => window.removeEventListener("pary:navigate", go);
+  }, []);
   const [projector, toggleProjector] = useProjector();
   useEffect(() => {
     contentRef.current?.focus({ preventScroll: true });
@@ -75,7 +83,7 @@ export function App() {
       )}
       <nav className="nav" aria-label="Secciones">
         <div className="brand">
-          Consejo <span>N-de-1</span>
+          Pary <span>Time</span>
         </div>
         {NAV.map((n) => (
           <button

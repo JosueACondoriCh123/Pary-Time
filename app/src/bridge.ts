@@ -16,7 +16,7 @@ export interface Prefs {
   openAtLogin: boolean;
 }
 
-export type NavTarget = "planner" | "today" | "history" | "experiment" | "results" | "report" | "settings";
+export type NavTarget = "planner" | "today" | "history" | "distractions" | "experiment" | "results" | "report" | "settings";
 
 export interface Nde1Bridge {
   sidecar(): Promise<SidecarState>;

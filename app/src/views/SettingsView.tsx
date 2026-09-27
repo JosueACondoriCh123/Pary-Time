@@ -1,19 +1,11 @@
-// "Ajustes": listas del sensor, retención, modelos de Ollama, arranque con Windows y pausa del sensor.
+// "Ajustes": retención, modelos de Ollama, arranque con Windows y pausa del sensor. Las listas de distracción
+// viven en su propia vista ("Distracciones").
 import { useEffect, useState } from "react";
 import type { Prefs } from "../bridge";
 import type { Settings } from "../contracts";
 import { useCore, useLoad } from "../core";
 import { Card, ErrorNote, useAction } from "../ui";
 import { SensorCard } from "./Today";
-
-type ListKey = "distraction_processes" | "distraction_title_patterns" | "browser_processes" | "whitelist_processes";
-
-const LISTS: { key: ListKey; label: string; hint: string }[] = [
-  { key: "distraction_processes", label: "Programas que distraen", hint: "Uno por línea. Ej.: Discord.exe" },
-  { key: "distraction_title_patterns", label: "Sitios que distraen", hint: "Texto del título del navegador. Ej.: youtube" },
-  { key: "browser_processes", label: "Navegadores", hint: "Para buscar sitios que distraen en sus títulos." },
-  { key: "whitelist_processes", label: "Lista blanca", hint: "Nunca se minimizan. Ej.: Teams.exe" },
-];
 
 export const toLines = (xs: string[] | undefined) => (xs ?? []).join("\n");
 export const fromLines = (s: string) => [...new Set(s.split(/\r?\n/).map((x) => x.trim()).filter(Boolean))];
@@ -22,24 +14,28 @@ export function SettingsView() {
   const { api } = useCore();
   const settings = useLoad((a) => a.settings(), []);
   const [draft, setDraft] = useState<Settings | null>(null);
-  const [lists, setLists] = useState<Record<ListKey, string> | null>(null);
   const save = useAction();
   const [savedAt, setSavedAt] = useState<number | null>(null);
 
   const base = draft ?? settings.data ?? null;
-  const texts =
-    lists ?? (base ? (Object.fromEntries(LISTS.map((l) => [l.key, toLines(base[l.key])])) as Record<ListKey, string>) : null);
 
   async function onSave(e: React.FormEvent) {
     e.preventDefault();
-    if (!base || !texts) return;
-    const body: Settings = { ...base };
-    for (const l of LISTS) body[l.key] = fromLines(texts[l.key]);
+    if (!draft) return;
+    // Se parte de lo último guardado: la vista Distracciones pudo cambiar las listas mientras tanto.
+    const fresh = await save.run(() => api.settings());
+    if (!fresh) return;
+    const body: Settings = {
+      ...fresh,
+      raw_retention_days: draft.raw_retention_days,
+      ollama_base_url: draft.ollama_base_url,
+      scout_model: draft.scout_model,
+      red_team_model: draft.red_team_model,
+    };
     const next = await save.run(() => api.putSettings(body));
     if (next) {
       settings.setData(next);
       setDraft(null);
-      setLists(null);
       setSavedAt(Date.now());
     }
   }
@@ -54,23 +50,16 @@ export function SettingsView() {
       <SensorCard />
 
       <ErrorNote error={settings.error} />
-      {base && texts && (
+      {base && (
         <form onSubmit={onSave} className="view">
-          <Card className="list-edit">
+          <Card>
             <h2>Distracciones</h2>
-            <div className="grid-2">
-              {LISTS.map((l) => (
-                <label key={l.key}>
-                  {l.label}
-                  <textarea
-                    value={texts[l.key]}
-                    onChange={(e) => setLists({ ...texts, [l.key]: e.target.value })}
-                    spellCheck={false}
-                  />
-                  <span className="small">{l.hint}</span>
-                </label>
-              ))}
-            </div>
+            <p className="muted">
+              Los sitios y programas que distraen ahora tienen su propia sección, con paquetes y pausa por sitio.
+            </p>
+            <button type="button" onClick={() => window.dispatchEvent(new CustomEvent("pary:navigate", { detail: "distractions" }))}>
+              Ir a Distracciones →
+            </button>
           </Card>
 
           <Card>
@@ -113,10 +102,10 @@ export function SettingsView() {
           </Card>
 
           <div className="row">
-            <button type="submit" className="primary" disabled={save.busy || (!draft && !lists)}>
+            <button type="submit" className="primary" disabled={save.busy || !draft}>
               Guardar ajustes
             </button>
-            {savedAt && !draft && !lists && <span className="pass small">Guardado.</span>}
+            {savedAt && !draft && <span className="pass small">Guardado.</span>}
           </div>
           <ErrorNote error={save.error} />
         </form>

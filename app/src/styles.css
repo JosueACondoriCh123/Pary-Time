@@ -1223,6 +1223,7 @@ html.projector .muted.small {
 .countdown,
 .nav {
   user-select: none;
+}
 
 /* ---------------------------------------------------------------- Mi tiempo */
 .history .view-head { display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
@@ -1604,4 +1605,293 @@ button.primary:disabled,
     rgba(40, 22, 10, 0.72);
   color: var(--warn);
   border-bottom: 1px solid rgba(255, 196, 107, 0.35);
+}
+
+/* ================================================================ Distracciones (estilo extensión de Chrome) */
+
+.distractions .view-head p {
+  max-width: 44rem;
+  margin-top: 0.35rem;
+}
+
+.dx-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.dx-head h2 {
+  margin-top: 0.4rem;
+}
+
+.add-site {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  align-items: center;
+  flex: 1;
+  justify-content: flex-end;
+  min-width: 18rem;
+}
+
+.add-site input {
+  width: auto;
+  flex: 1;
+  min-width: 12rem;
+  max-width: 22rem;
+}
+
+.add-note {
+  flex-basis: 100%;
+  text-align: right;
+  margin: 0;
+}
+
+.save-state {
+  min-height: 1.3rem;
+  font-size: 0.85rem;
+  color: var(--ok);
+  margin: -0.4rem 0 -0.4rem;
+}
+
+.tiles {
+  list-style: none;
+  padding: 0;
+  margin: 0.9rem 0 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 0.7rem;
+}
+
+.tile {
+  display: grid;
+  grid-template-columns: auto 1fr auto auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 0.6rem 0.7rem 0.8rem;
+  border-radius: 16px;
+  background: linear-gradient(144deg, rgba(238, 237, 242, 0.1), rgba(238, 237, 242, 0.02) 60%);
+  border: 1px solid rgba(238, 237, 242, 0.14);
+  transition: opacity 0.2s, border-color 0.2s, background 0.2s;
+}
+
+.tile:hover {
+  border-color: rgba(238, 237, 242, 0.28);
+}
+
+.tile.off {
+  opacity: 0.55;
+  background: rgba(238, 237, 242, 0.03);
+  border-style: dashed;
+}
+
+.tile-icon {
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.15rem;
+  color: #fff;
+  background: linear-gradient(135deg, hsl(var(--h) 75% 58%), hsl(calc(var(--h) + 40) 70% 42%));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25), 0 4px 14px hsl(var(--h) 70% 30% / 0.45);
+}
+
+.tile.off .tile-icon {
+  filter: grayscale(1);
+}
+
+.tile-meta {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.tile-meta strong,
+.tile-meta span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tile-x {
+  width: 2rem;
+  height: 2rem;
+  padding: 0;
+  font-size: 1.2rem;
+  line-height: 1;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.tile:hover .tile-x,
+.tile-x:focus-visible {
+  opacity: 1;
+}
+
+/* Interruptor como el de las extensiones */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 2.6rem;
+  height: 1.5rem;
+  flex: none;
+}
+
+.switch input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  z-index: 1;
+}
+
+.switch span {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: rgba(238, 237, 242, 0.14);
+  border: 1px solid rgba(238, 237, 242, 0.2);
+  transition: background 0.2s;
+}
+
+.switch span::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: calc(1.5rem - 6px);
+  height: calc(1.5rem - 6px);
+  border-radius: 50%;
+  background: #eeedf2;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.35);
+  transition: transform 0.2s;
+}
+
+.switch input:checked + span {
+  background: linear-gradient(135deg, var(--accent-2), var(--accent));
+  border-color: rgba(255, 255, 255, 0.25);
+}
+
+.switch input:checked + span::after {
+  transform: translateX(1.1rem);
+}
+
+.switch input:focus-visible + span {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.dx-empty {
+  margin: 0.9rem 0 0.2rem;
+}
+
+.packs {
+  list-style: none;
+  padding: 0;
+  margin: 0.8rem 0 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.6rem;
+}
+
+.pack {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 16px;
+  border: 1px solid rgba(238, 237, 242, 0.14);
+  background: rgba(238, 237, 242, 0.04);
+}
+
+.pack > div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.pack.full {
+  border-color: rgba(79, 216, 168, 0.35);
+}
+
+.suggest {
+  margin-top: 1.1rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--line);
+}
+
+.distractions details summary {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  cursor: pointer;
+  list-style: none;
+}
+
+.distractions details summary::-webkit-details-marker {
+  display: none;
+}
+
+.distractions details summary h2::before {
+  content: "▸ ";
+  color: var(--muted);
+}
+
+.distractions details[open] summary h2::before {
+  content: "▾ ";
+}
+
+.dx-advanced {
+  margin-top: 0.9rem;
+}
+
+.chiplist .chips {
+  list-style: none;
+  padding: 0;
+  margin: 0.5rem 0 0.7rem;
+}
+
+.chip-static {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  padding: 0.15rem 0.3rem 0.15rem 0.8rem;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  background: rgba(238, 237, 242, 0.06);
+  font-size: 0.88rem;
+}
+
+.chip-static button {
+  padding: 0 0.45rem;
+  line-height: 1.4;
+}
+
+.chiplist .add-site {
+  justify-content: flex-start;
+  min-width: 0;
+}
+
+.pack button {
+  white-space: nowrap;
+  flex: none;
+}
+
+.pack {
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.tiles-legend {
+  margin: 0.8rem 0 -0.3rem;
 }
