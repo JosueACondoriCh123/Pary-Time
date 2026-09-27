@@ -19,7 +19,33 @@
 - Pruebas específicas: **12 passed**, con determinismo, clasificación real, distribución,
   censura, apagados, escala, privacidad básica de entradas y ventanas inválidas.
   Comando: `python -m pytest -q tests/sensing/test_synth.py`.
-- En curso: `scripts/check_private.py`, allowlist y revisión de `main`/historial.
+- **Scanner listo:** `scripts/check_private.py`, allowlist explícita y guía en
+  `scripts/README.md`. Revisa archivos versionados, y con `--history` líneas añadidas
+  y eliminadas de todas las referencias, incluidos merges. No imprime coincidencias
+  privadas. Las pruebas usan repositorios Git temporales reales, sin mocks.
+- **Resultado sobre `main@76b9d88`:** 240 archivos; con `--history`, exit **1**,
+  **3 errores correspondientes a un único email** (copia actual y dos apariciones
+  históricas), y **25 avisos de rutas en docs** entre copia actual e historial.
+  Comando desde A: `python scripts/check_private.py --root .. --history`.
+- **Pendiente para 0/D antes de publicar:** el lockfile `app/package-lock.json`, en
+  `node_modules/glob.deprecated` (línea 4158 en la base T0), contiene un email público
+  del mantenedor. El brief solo exceptúa `noreply@anthropic.com`: el scanner lo marca
+  como error y no lo agregué a la allowlist. Decidir cómo retirar esa dirección del
+  archivo y tratar su presencia previa en el historial antes de publicar.
+  Las rutas locales bajo `docs/` se informan como avisos, tal como permite el brief.
+  No se modifica ni reescribe el historial desde A.
+- Las dos herramientas de esta entrega tienen **30 tests aprobados**: 12 de synth y
+  18 de privacidad. Incluyen secretos borrados, otras ramas, secretos añadidos en un
+  merge, nombres de archivo sensibles, UTF-16 y redacción de salida.
+- La integración `main@bbb356c` ya contiene el generador de A y las entregas de B/C/D;
+  esta rama se actualizó a esa base para la validación final. El cambio posterior
+  `76b9d88` solo elimina duplicados de `.gitignore`.
+- Validación final sobre esa integración: **246 passed, 2 skipped** (144.64 s),
+  incluyendo `tests/integration/test_full_cycle.py` con las trazas de A y resolución
+  con semilla verificada. Los skips son Ollama live y el ejecutable empaquetado opt-in.
+  `python tools/export_contracts.py --check` terminó correctamente.
+- El escaneo debe repetirse después de añadir los archivos finales a Git y antes
+  del push. No audita archivos sin versionar ni el contenido visual de imágenes/video.
 - La captura de días, instalador y soak del plan anterior quedan fuera de esta entrega.
 
 ## Estado previo a la hackathon

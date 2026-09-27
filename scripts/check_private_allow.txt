@@ -1,0 +1,22 @@
+# rule|repository path glob|exact allowed value|reason (required)
+# Exact values only. Paths use case-sensitive repository-relative forward slashes.
+# Git author metadata is omitted from history; author emails in FILES still fail.
+email|*|noreply@anthropic.com|Public upstream coauthor attribution permitted by the brief
+user-path|contracts/examples/Block*.json|ejemplo|Fictional contract example account
+user-path|app/tests/lib.test.ts|x|Fictional account in matcher unit test
+key|tests/integration/test_llm.py|sk-uno|Deliberately fake key for cassette hashing test
+key|tests/integration/test_llm.py|sk-dos|Deliberately fake key for cassette hashing test
+key|scripts/check_private_allow.txt|sk-uno|Documents the exact fake test key
+key|scripts/check_private_allow.txt|sk-dos|Documents the exact fake test key
+token|tools/export_contracts.py|export|Public constant used only to export the local OpenAPI schema
+token|app/electron/main.ts|randomBytes(32|Code expression generating a token at runtime
+token|app/tests/api.test.ts|t|One-letter fake test token repeated in source
+token|app/tests/api.test.ts|req.headers[TOKEN_HEADER.toLowerCase(|Code expression reading a request header
+token|core/__main__.py|os.environ.get(|Code expression reading the runtime environment
+token|core/__main__.py|secrets.token_urlsafe(32|Code expression generating a token at runtime
+token|core/app.py|token|Code variable reused when constructing the app
+token|core/app.py|ctx|Tuple assignment of app state in source
+token|tests/integration/test_app.py|t|One-letter fake test token repeated in source
+token|tests/sensing/test_sidecar.py|sidecar-test-token|Public fake token for the packaged smoke test
+trace-title|tests/fixtures/traces/start.synthetic.jsonl|youtube|Reviewed synthetic distraction token
+trace-title|tests/fixtures/traces/start.synthetic.jsonl|cap3|Reviewed synthetic work token
