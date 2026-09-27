@@ -10,7 +10,7 @@ test.beforeEach(async ({ page }) => { await page.goto("/"); });
 test("invitado puede abrir todas las herramientas sin pasar por autenticación", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Inicio", exact: true })).toBeVisible();
   await expect(page.locator(".access-pill")).toHaveText("Modo invitado");
-  for (const section of ["Hoy", "Planificar", "Experimento", "Resultados", "Reporte", "Ajustes"]) {
+  for (const section of ["Hoy", "Mi tiempo", "Planificar", "Experimento", "Resultados", "Reporte", "Ajustes"]) {
     await nav(page).getByRole("button", { name: section, exact: true }).click();
     await expect(nav(page).getByRole("button", { name: section, exact: true })).toHaveAttribute("aria-current", "page");
     await expect(page.locator("main h1")).toHaveCount(1);

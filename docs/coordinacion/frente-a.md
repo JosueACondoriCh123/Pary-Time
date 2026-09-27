@@ -2,6 +2,47 @@
 
 > Solo el dueño del frente escribe este archivo. Actualizalo al terminar cada tarea.
 
+## Pantallas secundarias · pedido explícito de Josué (2026-09-27)
+
+- Por el nuevo pedido se amplió el trabajo de A a `app/`: **Inicio, Mi perfil,
+  login y signup**, estos dos últimos simulados y con entrada de invitado
+  visible antes de los campos. Implementación en `32408a9`; integración de
+  `main@c913de2` mediante `dc93689`. La copia principal mantiene sus cambios
+  visuales sin commit; no fueron copiados ni sobrescritos desde A.
+- Inicio pasa a ser la pantalla inicial y ofrece accesos al planificador, Hoy,
+  experimento y resultados. La navegación conserva los destinos de la bandeja
+  y **Mi tiempo**, integrado durante este trabajo. Ninguna sección exige cuenta.
+- Mi perfil edita nombre opcional e intención. Solo estos dos valores se
+  guardan en `localStorage` al pulsar Guardar perfil. Se controla almacenamiento
+  inválido/no disponible. La intención no modifica reglas ni estadísticas.
+- Login/registro validan datos de ejemplo y abren una sesión **de demo en memoria**.
+  No hay backend de autenticación, petición de acceso, cuenta real, almacenamiento
+  de credenciales ni separación de datos por usuario. Recargar/cerrar vuelve al
+  modo invitado. Salir de la demo conserva los bloques de esta instalación.
+- Estilos propios en `app/src/secondary.css`, usando las variables del tema,
+  sin nuevas dependencias. Campos etiquetados, controles nativos, foco al cambiar
+  de pantalla, navegación al principio del contenido y adaptación móvil.
+  La revisión visual detectó y corrigió una barra lateral fija que bloqueaba
+  los clics en móvil; la regresión comprueba también su altura.
+- Verificación tras integrar Mi tiempo: **56 tests unitarios y 9 tests de
+  navegador aprobados**; TypeScript, ESLint y build de renderer/Electron correctos.
+  Los tests recorren todas las secciones como invitado, ambos formularios vacíos,
+  persistencia/corrupción del perfil, salida y recarga de sesión, ausencia de
+  credenciales en solicitudes/storage y las cuatro pantallas a **1280, 390 y
+  320 px** sin desbordamiento horizontal. Capturas revisadas en
+  `app/test-results/secondary/` (ignoradas por Git). Estos tests usan Edge y los
+  ejemplos existentes de contratos; no inician sensor ni Electron.
+- La allowlist admite únicamente el correo inventado del dominio reservado
+  `example.com` usado por la UI y su test, con valor y rutas exactos; la excepción
+  y su motivo quedan documentados. No se admitieron direcciones personales.
+  Scanner sobre la copia final: 287 archivos, cero errores y los 16 avisos
+  documentales/de imágenes existentes; no es una auditoría del contenido visual.
+- Vista previa local de esta entrega: `http://127.0.0.1:5210/`, con franja
+  **DATOS DE EJEMPLO**. Metadatos/logs del proceso: `build/secondary-preview/`.
+  Guía de uso, comprobación e integración: `app/SECONDARY-SCREENS.md`.
+  Para 0/D: conservar el tema glass y sus fuentes al integrar la rama de A;
+  no hacen falta contratos nuevos para estas pantallas.
+
 ## Fase 6 · comprobación local, CI y candidato de A (2026-09-27)
 - Continuación solicitada por Josué. Integrada la base `main@4f5beb8` mediante
   `33af5a8`, incluidas las correcciones de C y las excepciones de privacidad

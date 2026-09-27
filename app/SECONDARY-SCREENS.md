@@ -56,10 +56,12 @@ antes de compilar para producción.
 ## Integración con el trabajo paralelo
 
 La entrega está en la rama `frente-a`, por el pedido explícito de pantallas
-secundarias. `main` tenía modificaciones sin commit de Mi tiempo y del tema
-glass; no se copiaron ni sobrescribieron. Al integrar, conservar `History`,
-el destino `history`, sus contratos y las fuentes del tema. Las vistas nuevas
-no requieren modificar el bridge de Electron ni el backend.
+secundarias. Se integró `main@c913de2`, que incorporó Mi tiempo durante este
+trabajo: `History`, el destino `history` y sus contratos se conservan y la
+prueba de acceso invitado también recorre esa sección. El tema glass seguía
+sin commit en `main`; no se copió ni sobrescribió. Al integrar estas pantallas,
+conservar esas fuentes y estilos. Las vistas nuevas no requieren modificar
+el bridge de Electron ni el backend.
 
 La allowlist de privacidad incorpora exclusivamente el correo ficticio del
 dominio reservado `example.com`, con rutas y valor exactos para el placeholder,
