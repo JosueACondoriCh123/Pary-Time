@@ -55,8 +55,12 @@
 - **Con restricción:** `retrasar_distracciones` con ratio 0.38 pasó todas las herramientas; las otras dos quedaron apenas por encima (3.7 y 5.4 semanas).
 - **Latencias:** Scout 37 s, pre-mortem 39 s.
 
-## Limitación conocida
-El verificador comprueba que cada cifra EXISTA en el snapshot, pero no que diga lo que el modelo afirma. En la corrida real, Qwen escribió "50% de escritura censurados" cuando es 4%; el 50 existe en otro lado del snapshot. No cambia la decisión (las herramientas usan los datos, no el texto), pero la justificación que ve la persona puede estar mal. Mejora posible: atar cada porcentaje a un `pct_*` del bucket citado.
+## Limitación del verificador: resuelta (2026-09-27)
+Antes solo comprobaba que cada cifra EXISTIERA en el snapshot. En la corrida real, Qwen escribió "50% censurados" cuando era 4%, y pasaba porque el 50 existía como porcentaje de distracción de otro grupo. Ahora cada cifra se ata a su unidad y su tema:
+- `N%` tiene que ser un `pct_*`, y del tema más cercano en la cláusula ("censur…" → `pct_censored`, "distrac…" → `pct_first_is_distraction`).
+- `N min` tiene que ser una latencia o unos minutos.
+
+Con la misma corrida grabada, el verificador ahora veta las 2 hipótesis del Scout que usaban ese 50%. Como nada del Scout sobrevive, entra el respaldo: `abrir_trabajo` con el efecto mínimo detectable (ratio 0.41), con pre-mortem de Granite. Sigue siendo una heurística léxica: una afirmación con un tema que el verificador no conoce solo se ata por unidad.
 
 ## En curso
 

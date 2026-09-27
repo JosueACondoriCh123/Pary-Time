@@ -44,3 +44,34 @@ def test_prompt_size_is_capped_whatever_the_baseline_length(journal):
     fill_baseline(journal, days=60)
     snap = build_snapshot(JournalView.load(journal))
     assert snap.data["n_blocks"] == 120 and len(snap.to_prompt()) <= 4000
+
+
+def test_a_percentage_must_be_a_percentage_of_the_snapshot_not_any_number(baseline):
+    """Caso real de qwen3.5:4b: "50% de escritura censurados" pasaba porque el 50 existía en otro lado."""
+    snap = build_snapshot(JournalView.load(baseline))
+    count = snap.data["facts"]["all"]["n"]                       # un conteo, no un porcentaje
+    pcts = {v for g in snap.data["facts"].values() if isinstance(g, dict)
+            for f in ([g] if "n" in g else g.values()) for k, v in f.items() if k.startswith("pct_")}
+    assert count not in pcts
+    v = verify(hyp(f"El {count}% de los bloques se censuró."), snap)
+    assert not v.passed and f"{count}%" in v.detail
+    assert verify(hyp(f"Hubo {count} bloques en la línea base."), snap).passed
+
+
+def test_minutes_must_be_latencies_or_minutes_of_the_snapshot(baseline):
+    snap = build_snapshot(JournalView.load(baseline))
+    pct = snap.data["facts"]["by_time_of_day"]["morning"]["pct_first_is_distraction"]
+    v = verify(hyp(f"La mediana de mañana fue {pct} min."), snap)
+    assert not v.passed and "min" in v.detail
+
+
+def test_a_percentage_is_bound_to_the_topic_its_clause_names(baseline):
+    snap = build_snapshot(JournalView.load(baseline))
+    f = snap.data["facts"]["by_time_of_day"]["morning"]
+    distr, cens = f["pct_first_is_distraction"], f["pct_censored"]
+    assert distr != cens
+    ok = hyp(f"A la mañana, el {distr}% arranca en distracción y el {cens}% queda censurado.")
+    assert verify(ok, snap).passed, verify(ok, snap).detail
+    swapped = hyp(f"A la mañana, el {distr}% de los bloques queda censurado.")
+    v = verify(swapped, snap)
+    assert not v.passed and f"{distr}%" in v.detail
