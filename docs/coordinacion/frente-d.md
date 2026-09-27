@@ -178,3 +178,21 @@ bien. Hay tres avisos para el Frente 0:
 - Capturas finales sobre el `demo-data` definitivo, y el GIF del overlay y de la re-minimización con `demo-live`
   (necesita `tools/demo_live.py` de B).
 - Ensayo del guion dos veces, con las fricciones anotadas acá.
+
+### Cierre de la hackathon (fase 4 de D)
+- **Capturas finales** en `docs/hackathon/img/`, sobre el `demo-data` definitivo de `main`. El consejo ya muestra la
+  corrida real de Qwen: el verificador veta 3 hipótesis por "cifras fuera del snapshot: 47%, 58%".
+- **Resultados:** sello "✅ el sorteo no se tocó" junto al veredicto, visible sin scroll (casilla del checklist del
+  guion). La frase del efecto aclara que el ratio es del test preregistrado estratificado, y las barras se rotulan
+  como medianas crudas. Antes decía "la mitad de tiempo" al lado de 14 → 9 min, y se leía como una contradicción.
+- **Capturas de página completa:** la barra lateral ahora llega hasta abajo.
+- **`npm run gif`:**
+  1. Arma `demo-live` con `tools/demo_live.py` (bloque a 45 s con `retrasar_distracciones`).
+  2. Graba el escritorio con ffmpeg.
+  3. Reabre las ventanas minimizadas, espera que se re-minimicen y toca "Salida de emergencia".
+  4. Deja el GIF en `docs/hackathon/img/demo-live.gif`.
+  - **Mueve ventanas reales y graba el escritorio completo:** hay que dejar en pantalla solo lo que se puede
+    publicar.
+- **Para el Frente 0:** el guion (`docs/hackathon/demo.md`, paso 4) dice "18.7 → 5.4 min", pero el `demo-data` actual
+  da medianas de 14 → 9 min, ratio 0.50 y p = 0.002. Conviene ajustar el guion o citar los números de la pantalla.
+

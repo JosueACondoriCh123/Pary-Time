@@ -24,7 +24,8 @@
     "dist:dir": "npm run build && npm run icon && electron-builder --config ../packaging/electron-builder.yml --win --dir",
     "demo": "node scripts/demo.mjs data",
     "demo:live": "node scripts/demo.mjs live",
-    "shots": "npm run build && node scripts/shots.mjs"
+    "shots": "npm run build && node scripts/shots.mjs",
+    "gif": "npm run build && node scripts/gif.mjs"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
