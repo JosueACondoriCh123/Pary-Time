@@ -4,6 +4,7 @@ import { FIXTURES, useCore, useLoad } from "./core";
 import { readProfile, saveProfile, type AccessMode, type LocalProfile } from "./lib/local-profile";
 import { Access } from "./views/Access";
 import { Experiment } from "./views/Experiment";
+import { History } from "./views/History";
 import { Planner } from "./views/Planner";
 import { Profile } from "./views/Profile";
 import { ReportView } from "./views/ReportView";
@@ -16,6 +17,7 @@ import "./secondary.css";
 const NAV: { id: AppView; label: string }[] = [
   { id: "home", label: "Inicio" },
   { id: "today", label: "Hoy" },
+  { id: "history", label: "Mi tiempo" },
   { id: "planner", label: "Planificar" },
   { id: "experiment", label: "Experimento" },
   { id: "results", label: "Resultados" },
@@ -25,6 +27,7 @@ const NAV: { id: AppView; label: string }[] = [
 
 const VIEWS: Record<NavTarget, () => ReactNode> = {
   today: () => <Today />,
+  history: () => <History />,
   planner: () => <Planner />,
   experiment: () => <Experiment />,
   results: () => <Results />,

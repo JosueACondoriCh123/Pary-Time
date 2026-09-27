@@ -1,0 +1,27 @@
+{
+  "$id": "https://n-de-1.local/contracts/HourUsage.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "hour": {
+      "description": "hora local del día",
+      "maximum": 23,
+      "minimum": 0,
+      "title": "Hour",
+      "type": "integer"
+    },
+    "minutes_by_category": {
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "title": "Minutes By Category",
+      "type": "object"
+    }
+  },
+  "required": [
+    "hour",
+    "minutes_by_category"
+  ],
+  "title": "HourUsage",
+  "type": "object"
+}

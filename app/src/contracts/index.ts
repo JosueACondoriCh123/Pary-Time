@@ -28,8 +28,10 @@ export type Category = "work" | "distraction" | "other" | "none";
 export type Category1 = "work" | "distraction" | "other" | "none";
 
 export interface Contracts {
+  ActivityHistory?: ActivityHistory;
   ActivitySpan?: ActivitySpan;
   ActivitySummary?: ActivitySummary;
+  AppUsage?: AppUsage;
   Arm?: Arm;
   Assignment?: Assignment;
   Block?: Block;
@@ -43,10 +45,12 @@ export interface Contracts {
   Category?: Category1;
   ConfirmDay?: ConfirmDay;
   CouncilRun?: CouncilRun;
+  DayUsage?: DayUsage;
   ExperimentProgress?: ExperimentProgress;
   ExperimentRecord?: ExperimentRecord;
   FirstStep?: FirstStep;
   Health?: Health;
+  HourUsage?: HourUsage;
   Hypothesis?: Hypothesis;
   InterventionEvent?: InterventionEvent;
   JournalVerify?: JournalVerify;
@@ -62,11 +66,110 @@ export interface Contracts {
   Resolution?: Resolution;
   RuntimeStatus?: RuntimeStatus;
   Settings?: Settings;
+  SiteUsage?: SiteUsage;
   Target?: Target;
   TaskKind?: TaskKind;
   ToolVerdict?: ToolVerdict;
   VetoRegret?: VetoRegret;
   WorkMatcher?: WorkMatcher;
+}
+/**
+ * Agregados del rango [from_date, to_date] (fechas locales, inclusive). Hasta `retention_days` hacia atrás:
+ * los tramos crudos del sensor se borran después (privacidad).
+ *
+ * This interface was referenced by `Contracts`'s JSON-Schema
+ * via the `definition` "ActivityHistory".
+ */
+export interface ActivityHistory {
+  active_minutes: number;
+  /**
+   * las 15 con más tiempo activo
+   */
+  apps: AppUsage[];
+  days: DayUsage[];
+  distraction_share: number;
+  from_date: string;
+  generated_ms: number;
+  /**
+   * 24 franjas, sumadas sobre todos los días del rango
+   */
+  hours: HourUsage[];
+  /**
+   * tramo más largo en una misma app sin inactividad
+   */
+  longest_focus_min: number;
+  retention_days: number;
+  sites: SiteUsage[];
+  /**
+   * cambios de app por hora activa
+   */
+  switches_per_hour: number;
+  to_date: string;
+  totals: {
+    [k: string]: number;
+  };
+  /**
+   * trabajo dentro de bloques declarados / tiempo activo
+   */
+  work_share: number;
+}
+/**
+ * Por proceso (nombre del ejecutable). Nunca títulos de ventana.
+ *
+ * This interface was referenced by `Contracts`'s JSON-Schema
+ * via the `definition` "AppUsage".
+ */
+export interface AppUsage {
+  /**
+   * categoría donde más tiempo pasó
+   */
+  category: "work" | "distraction" | "other" | "idle" | "paused";
+  minutes: number;
+  process: string;
+  /**
+   * fracción del tiempo activo del rango
+   */
+  share: number;
+}
+/**
+ * This interface was referenced by `Contracts`'s JSON-Schema
+ * via the `definition` "DayUsage".
+ */
+export interface DayUsage {
+  /**
+   * work + distraction + other
+   */
+  active_minutes: number;
+  local_date: string;
+  /**
+   * claves de UsageCategory
+   */
+  minutes_by_category: {
+    [k: string]: number;
+  };
+}
+/**
+ * This interface was referenced by `Contracts`'s JSON-Schema
+ * via the `definition` "HourUsage".
+ */
+export interface HourUsage {
+  /**
+   * hora local del día
+   */
+  hour: number;
+  minutes_by_category: {
+    [k: string]: number;
+  };
+}
+/**
+ * Solo el patrón de distracción que coincidió (p.ej. "youtube"), nunca el título.
+ *
+ * This interface was referenced by `Contracts`'s JSON-Schema
+ * via the `definition` "SiteUsage".
+ */
+export interface SiteUsage {
+  minutes: number;
+  site: string;
 }
 /**
  * LOCAL. Tramo continuo con la misma ventana en primer plano y el mismo estado de input.

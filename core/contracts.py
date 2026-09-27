@@ -20,7 +20,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-CONTRACTS_VERSION = "contracts@1.1"
+CONTRACTS_VERSION = "contracts@1.2"
 
 
 class _Model(BaseModel):
@@ -409,6 +409,55 @@ class Settings(_Model):
     red_team_model: str = "granite4.2:8b"   # IBM
 
 
+# ---------------------------------------------------------------- historial de uso ("Mi tiempo", 0/C)
+
+UsageCategory = Literal["work", "distraction", "other", "idle", "paused"]
+
+
+class DayUsage(_Model):
+    local_date: str
+    minutes_by_category: dict[str, int] = Field(description="claves de UsageCategory")
+    active_minutes: int = Field(description="work + distraction + other")
+
+
+class HourUsage(_Model):
+    hour: int = Field(ge=0, le=23, description="hora local del día")
+    minutes_by_category: dict[str, int]
+
+
+class AppUsage(_Model):
+    """Por proceso (nombre del ejecutable). Nunca títulos de ventana."""
+    process: str = Field(max_length=260)
+    minutes: int
+    share: float = Field(ge=0, le=1, description="fracción del tiempo activo del rango")
+    category: UsageCategory = Field(description="categoría donde más tiempo pasó")
+
+
+class SiteUsage(_Model):
+    """Solo el patrón de distracción que coincidió (p.ej. "youtube"), nunca el título."""
+    site: str = Field(max_length=60)
+    minutes: int
+
+
+class ActivityHistory(_Model):
+    """Agregados del rango [from_date, to_date] (fechas locales, inclusive). Hasta `retention_days` hacia atrás:
+    los tramos crudos del sensor se borran después (privacidad)."""
+    from_date: str
+    to_date: str
+    days: list[DayUsage]
+    hours: list[HourUsage] = Field(description="24 franjas, sumadas sobre todos los días del rango")
+    apps: list[AppUsage] = Field(description="las 15 con más tiempo activo")
+    sites: list[SiteUsage]
+    totals: dict[str, int]
+    active_minutes: int
+    distraction_share: float = Field(ge=0, le=1)
+    work_share: float = Field(ge=0, le=1, description="trabajo dentro de bloques declarados / tiempo activo")
+    longest_focus_min: int = Field(description="tramo más largo en una misma app sin inactividad")
+    switches_per_hour: float = Field(description="cambios de app por hora activa")
+    retention_days: int
+    generated_ms: int
+
+
 class Health(_Model):
     ok: bool
     version: str
@@ -456,6 +505,7 @@ EXPORTED: dict[str, type[BaseModel]] = {m.__name__: m for m in (
     Moderator, Hypothesis, ToolVerdict, RedTeamReport, Preregistration, Resolution,
     ProposalRecord, CouncilRun, ExperimentProgress, ExperimentRecord, LedgerEntry, VetoRegret,
     JournalVerify, Report, Settings, Health, BlockConfirmed, BlockAbort,
+    DayUsage, HourUsage, AppUsage, SiteUsage, ActivityHistory,
 )}
 
 # Payload de cada tipo de evento del journal.

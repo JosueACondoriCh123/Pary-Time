@@ -1,5 +1,6 @@
 // Cliente de la API del núcleo, tipado con los contratos generados. El token viaja solo en el header.
 import type {
+  ActivityHistory,
   ActivitySummary,
   BlockCreate,
   BlockUpdate,
@@ -74,6 +75,7 @@ export interface Api {
   settings(): Promise<Settings>;
   putSettings(body: Settings): Promise<Settings>;
   activityToday(): Promise<ActivitySummary>;
+  activityHistory(from: string, to: string): Promise<ActivityHistory>;
   pauseSensor(minutes: number): Promise<ActivitySummary>;
   resumeSensor(): Promise<ActivitySummary>;
 }
@@ -135,6 +137,7 @@ export function httpApi(getConnection: GetConnection, fetchImpl: typeof fetch = 
     settings: () => call("GET", "/settings"),
     putSettings: (body) => call("PUT", "/settings", body),
     activityToday: () => call("GET", "/activity/today"),
+    activityHistory: (from, to) => call("GET", `/activity/history?from_date=${q(from)}&to_date=${q(to)}`),
     pauseSensor: (minutes) => call("POST", `/activity/pause?minutes=${minutes}`),
     resumeSensor: () => call("POST", "/activity/resume"),
   };

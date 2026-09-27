@@ -46,6 +46,7 @@ try {
   const shots = [
     ["Planificar", "planificador", false],
     ["Hoy", "hoy", false],
+    ["Mi tiempo", "mi-tiempo", true],
     ["Reporte", "reporte", false],
     ["Experimento", "consejo", true],
     ["Resultados", "resultados", true],

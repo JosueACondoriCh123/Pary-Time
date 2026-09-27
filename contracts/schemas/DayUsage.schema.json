@@ -1,0 +1,31 @@
+{
+  "$id": "https://n-de-1.local/contracts/DayUsage.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "active_minutes": {
+      "description": "work + distraction + other",
+      "title": "Active Minutes",
+      "type": "integer"
+    },
+    "local_date": {
+      "title": "Local Date",
+      "type": "string"
+    },
+    "minutes_by_category": {
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "description": "claves de UsageCategory",
+      "title": "Minutes By Category",
+      "type": "object"
+    }
+  },
+  "required": [
+    "local_date",
+    "minutes_by_category",
+    "active_minutes"
+  ],
+  "title": "DayUsage",
+  "type": "object"
+}

@@ -1,0 +1,393 @@
+{
+  "from_date": "2026-09-20",
+  "to_date": "2026-09-26",
+  "days": [
+    {
+      "local_date": "2026-09-20",
+      "minutes_by_category": {
+        "work": 100,
+        "distraction": 45,
+        "other": 418,
+        "idle": 256,
+        "paused": 20
+      },
+      "active_minutes": 563
+    },
+    {
+      "local_date": "2026-09-21",
+      "minutes_by_category": {
+        "work": 100,
+        "distraction": 31,
+        "other": 424,
+        "idle": 159,
+        "paused": 124
+      },
+      "active_minutes": 555
+    },
+    {
+      "local_date": "2026-09-22",
+      "minutes_by_category": {
+        "work": 50,
+        "distraction": 6,
+        "other": 418,
+        "idle": 69,
+        "paused": 189
+      },
+      "active_minutes": 475
+    },
+    {
+      "local_date": "2026-09-23",
+      "minutes_by_category": {
+        "work": 100,
+        "distraction": 46,
+        "other": 418,
+        "idle": 150,
+        "paused": 124
+      },
+      "active_minutes": 565
+    },
+    {
+      "local_date": "2026-09-24",
+      "minutes_by_category": {
+        "work": 100,
+        "distraction": 20,
+        "other": 420,
+        "idle": 214,
+        "paused": 84
+      },
+      "active_minutes": 540
+    },
+    {
+      "local_date": "2026-09-25",
+      "minutes_by_category": {
+        "work": 50,
+        "distraction": 111,
+        "other": 418,
+        "idle": 50,
+        "paused": 209
+      },
+      "active_minutes": 580
+    },
+    {
+      "local_date": "2026-09-26",
+      "minutes_by_category": {
+        "work": 0,
+        "distraction": 0,
+        "other": 0,
+        "idle": 0,
+        "paused": 0
+      },
+      "active_minutes": 0
+    }
+  ],
+  "hours": [
+    {
+      "hour": 0,
+      "minutes_by_category": {
+        "work": 0,
+        "distraction": 0,
+        "other": 0,
+        "idle": 0,
+        "paused": 0
+      }
+    },
+    {
+      "hour": 1,
+      "minutes_by_category": {
+        "work": 0,
+        "distraction": 0,
+        "other": 0,
+        "idle": 0,
+        "paused": 0
+      }
+    },
+    {
+      "hour": 2,
+      "minutes_by_category": {
+        "work": 0,
+        "distraction": 0,
+        "other": 0,
+        "idle": 0,
+        "paused": 0
+      }
+    },
+    {
+      "hour": 3,
+      "minutes_by_category": {
+        "work": 0,
+        "distraction": 0,
+        "other": 0,
+        "idle": 0,
+        "paused": 0
+      }
+    },
+    {
+      "hour": 4,
+      "minutes_by_category": {
+        "work": 0,
+        "distraction": 0,
+        "other": 0,
+        "idle": 0,
+        "paused": 0
+      }
+    },
+    {
+      "hour": 5,
+      "minutes_by_category": {
+        "work": 0,
+        "distraction": 0,
+        "other": 0,
+        "idle": 0,
+        "paused": 0
+      }
+    },
+    {
+      "hour": 6,
+      "minutes_by_category": {
+        "work": 0,
+        "distraction": 0,
+        "other": 0,
+        "idle": 0,
+        "paused": 0
+      }
+    },
+    {
+      "hour": 7,
+      "minutes_by_category": {
+        "work": 0,
+        "distraction": 0,
+        "other": 0,
+        "idle": 0,
+        "paused": 0
+      }
+    },
+    {
+      "hour": 8,
+      "minutes_by_category": {
+        "work": 0,
+        "distraction": 0,
+        "other": 240,
+        "idle": 40,
+        "paused": 80
+      }
+    },
+    {
+      "hour": 9,
+      "minutes_by_category": {
+        "work": 126,
+        "distraction": 173,
+        "other": 0,
+        "idle": 0,
+        "paused": 0
+      }
+    },
+    {
+      "hour": 10,
+      "minutes_by_category": {
+        "work": 73,
+        "distraction": 46,
+        "other": 84,
+        "idle": 110,
+        "paused": 0
+      }
+    },
+    {
+      "hour": 11,
+      "minutes_by_category": {
+        "work": 0,
+        "distraction": 0,
+        "other": 360,
+        "idle": 0,
+        "paused": 0
+      }
+    },
+    {
+      "hour": 12,
+      "minutes_by_category": {
+        "work": 0,
+        "distraction": 0,
+        "other": 360,
+        "idle": 0,
+        "paused": 0
+      }
+    },
+    {
+      "hour": 13,
+      "minutes_by_category": {
+        "work": 0,
+        "distraction": 0,
+        "other": 212,
+        "idle": 74,
+        "paused": 74
+      }
+    },
+    {
+      "hour": 14,
+      "minutes_by_category": {
+        "work": 0,
+        "distraction": 0,
+        "other": 0,
+        "idle": 180,
+        "paused": 180
+      }
+    },
+    {
+      "hour": 15,
+      "minutes_by_category": {
+        "work": 294,
+        "distraction": 41,
+        "other": 8,
+        "idle": 15,
+        "paused": 0
+      }
+    },
+    {
+      "hour": 16,
+      "minutes_by_category": {
+        "work": 5,
+        "distraction": 0,
+        "other": 84,
+        "idle": 270,
+        "paused": 0
+      }
+    },
+    {
+      "hour": 17,
+      "minutes_by_category": {
+        "work": 0,
+        "distraction": 0,
+        "other": 360,
+        "idle": 0,
+        "paused": 0
+      }
+    },
+    {
+      "hour": 18,
+      "minutes_by_category": {
+        "work": 0,
+        "distraction": 0,
+        "other": 360,
+        "idle": 0,
+        "paused": 0
+      }
+    },
+    {
+      "hour": 19,
+      "minutes_by_category": {
+        "work": 0,
+        "distraction": 0,
+        "other": 360,
+        "idle": 0,
+        "paused": 0
+      }
+    },
+    {
+      "hour": 20,
+      "minutes_by_category": {
+        "work": 0,
+        "distraction": 0,
+        "other": 92,
+        "idle": 89,
+        "paused": 178
+      }
+    },
+    {
+      "hour": 21,
+      "minutes_by_category": {
+        "work": 0,
+        "distraction": 0,
+        "other": 0,
+        "idle": 120,
+        "paused": 240
+      }
+    },
+    {
+      "hour": 22,
+      "minutes_by_category": {
+        "work": 0,
+        "distraction": 0,
+        "other": 0,
+        "idle": 0,
+        "paused": 0
+      }
+    },
+    {
+      "hour": 23,
+      "minutes_by_category": {
+        "work": 0,
+        "distraction": 0,
+        "other": 0,
+        "idle": 0,
+        "paused": 0
+      }
+    }
+  ],
+  "apps": [
+    {
+      "process": "explorer.exe",
+      "minutes": 2520,
+      "share": 0.7681,
+      "category": "other"
+    },
+    {
+      "process": "AcroRd32.exe",
+      "minutes": 300,
+      "share": 0.0914,
+      "category": "work"
+    },
+    {
+      "process": "WINWORD.EXE",
+      "minutes": 200,
+      "share": 0.061,
+      "category": "work"
+    },
+    {
+      "process": "chrome.exe",
+      "minutes": 89,
+      "share": 0.0274,
+      "category": "distraction"
+    },
+    {
+      "process": "WhatsApp.exe",
+      "minutes": 69,
+      "share": 0.0211,
+      "category": "distraction"
+    },
+    {
+      "process": "Discord.exe",
+      "minutes": 57,
+      "share": 0.0174,
+      "category": "distraction"
+    },
+    {
+      "process": "Telegram.exe",
+      "minutes": 44,
+      "share": 0.0136,
+      "category": "distraction"
+    }
+  ],
+  "sites": [
+    {
+      "site": "youtube",
+      "minutes": 89
+    },
+    {
+      "site": "whatsapp",
+      "minutes": 69
+    }
+  ],
+  "totals": {
+    "work": 500,
+    "distraction": 260,
+    "other": 2520,
+    "idle": 900,
+    "paused": 752
+  },
+  "active_minutes": 3281,
+  "distraction_share": 0.0795,
+  "work_share": 0.1524,
+  "longest_focus_min": 209,
+  "switches_per_hour": 1.17,
+  "retention_days": 14,
+  "generated_ms": 1790545761430
+}
