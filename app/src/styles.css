@@ -841,3 +841,35 @@ code.hash.short {
 .premortem .tag {
   margin-left: 0.3rem;
 }
+
+.verdict-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.seed-badge {
+  font-weight: 700;
+  border-radius: 999px;
+  padding: 0.3rem 0.9rem;
+  text-decoration: none;
+  border: 1px solid var(--line);
+  color: var(--muted);
+}
+
+.seed-badge.ok {
+  color: var(--ok);
+  border-color: rgba(63, 182, 139, 0.6);
+  background: rgba(63, 182, 139, 0.1);
+}
+
+.seed-badge.bad {
+  color: #ff8a8d;
+  border-color: var(--danger);
+}
+
+/* La barra lateral llega hasta abajo aunque la página sea más alta que la ventana (capturas de página completa). */
+.shell {
+  background: linear-gradient(to right, #0d1014 199px, var(--line) 199px, var(--line) 200px, var(--bg) 200px);
+}

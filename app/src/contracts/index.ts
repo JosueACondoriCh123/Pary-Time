@@ -437,7 +437,7 @@ export interface Preregistration {
   red_team: RedTeamReport;
   seed_commitment: string;
   source: "scout" | "allocator_fallback" | "exploration_vetoed";
-  test?: "permutation_median_diff_one_sided@1";
+  test?: "permutation_median_diff_one_sided@1" | "permutation_meanlog_diff_stratified@2";
 }
 /**
  * Reglas de la métrica primaria. Se citan por `rules_version` en cada outcome y preregistro.
