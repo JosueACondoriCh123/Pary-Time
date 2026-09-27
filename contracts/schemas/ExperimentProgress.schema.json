@@ -1,0 +1,99 @@
+{
+  "$defs": {
+    "Arm": {
+      "description": "Condición de un bloque. `control` = sin intervención.",
+      "enum": [
+        "control",
+        "abrir_trabajo",
+        "primer_paso",
+        "retrasar_distracciones",
+        "cuenta_regresiva"
+      ],
+      "title": "Arm",
+      "type": "string"
+    },
+    "Moderator": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "time_of_day",
+            "task_kind"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "value": {
+          "description": "TimeOfDay o TaskKind según kind",
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "value"
+      ],
+      "title": "Moderator",
+      "type": "object"
+    }
+  },
+  "$id": "https://n-de-1.local/contracts/ExperimentProgress.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Vista del experimento en curso. NO incluye el efecto hasta llegar al N (anti-espiar).",
+  "properties": {
+    "created_ms": {
+      "title": "Created Ms",
+      "type": "integer"
+    },
+    "experiment_id": {
+      "title": "Experiment Id",
+      "type": "string"
+    },
+    "intervention": {
+      "$ref": "#/$defs/Arm"
+    },
+    "moderator": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Moderator"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "n_control_done": {
+      "title": "N Control Done",
+      "type": "integer"
+    },
+    "n_per_arm": {
+      "title": "N Per Arm",
+      "type": "integer"
+    },
+    "n_treatment_done": {
+      "title": "N Treatment Done",
+      "type": "integer"
+    },
+    "status": {
+      "enum": [
+        "running",
+        "closed"
+      ],
+      "title": "Status",
+      "type": "string"
+    }
+  },
+  "required": [
+    "experiment_id",
+    "intervention",
+    "moderator",
+    "n_per_arm",
+    "n_control_done",
+    "n_treatment_done",
+    "status",
+    "created_ms"
+  ],
+  "title": "ExperimentProgress",
+  "type": "object"
+}

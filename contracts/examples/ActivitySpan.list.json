@@ -1,0 +1,34 @@
+[
+  {
+    "start_ms": 1790686740000,
+    "end_ms": 1790687040000,
+    "process": "chrome.exe",
+    "title": "YouTube - Google Chrome",
+    "idle": false,
+    "locked": false
+  },
+  {
+    "start_ms": 1790687040000,
+    "end_ms": 1790687070000,
+    "process": "WhatsApp.exe",
+    "title": "WhatsApp",
+    "idle": false,
+    "locked": false
+  },
+  {
+    "start_ms": 1790687070000,
+    "end_ms": 1790687220000,
+    "process": "explorer.exe",
+    "title": "tesis",
+    "idle": false,
+    "locked": false
+  },
+  {
+    "start_ms": 1790687220000,
+    "end_ms": 1790688300000,
+    "process": "WINWORD.EXE",
+    "title": "cap3.docx - Word",
+    "idle": false,
+    "locked": false
+  }
+]

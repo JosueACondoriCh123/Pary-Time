@@ -1,0 +1,13 @@
+{
+  "experiment_id": "exp_0123456789ab",
+  "intervention": "retrasar_distracciones",
+  "moderator": {
+    "kind": "time_of_day",
+    "value": "morning"
+  },
+  "n_per_arm": 14,
+  "n_control_done": 5,
+  "n_treatment_done": 6,
+  "status": "running",
+  "created_ms": 1790561400000
+}

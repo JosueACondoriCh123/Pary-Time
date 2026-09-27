@@ -1,0 +1,33 @@
+{
+  "$id": "https://n-de-1.local/contracts/JournalVerify.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "error": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Error"
+    },
+    "n_events": {
+      "title": "N Events",
+      "type": "integer"
+    },
+    "ok": {
+      "title": "Ok",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "ok",
+    "n_events"
+  ],
+  "title": "JournalVerify",
+  "type": "object"
+}

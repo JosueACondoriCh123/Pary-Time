@@ -1,0 +1,29 @@
+{
+  "$id": "https://n-de-1.local/contracts/Target.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "LOCAL. Qué abre la intervención `abrir_trabajo`.",
+  "properties": {
+    "kind": {
+      "enum": [
+        "file",
+        "app",
+        "url",
+        "none"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "value": {
+      "default": "",
+      "maxLength": 1024,
+      "title": "Value",
+      "type": "string"
+    }
+  },
+  "required": [
+    "kind"
+  ],
+  "title": "Target",
+  "type": "object"
+}

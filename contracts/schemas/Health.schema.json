@@ -1,0 +1,31 @@
+{
+  "$id": "https://n-de-1.local/contracts/Health.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "contracts": {
+      "title": "Contracts",
+      "type": "string"
+    },
+    "journal_seq": {
+      "title": "Journal Seq",
+      "type": "integer"
+    },
+    "ok": {
+      "title": "Ok",
+      "type": "boolean"
+    },
+    "version": {
+      "title": "Version",
+      "type": "string"
+    }
+  },
+  "required": [
+    "ok",
+    "version",
+    "contracts",
+    "journal_seq"
+  ],
+  "title": "Health",
+  "type": "object"
+}

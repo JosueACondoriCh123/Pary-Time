@@ -1,0 +1,42 @@
+{
+  "$id": "https://n-de-1.local/contracts/ActivitySummary.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Resumen del día para la app. Sin títulos. Claves de minutes_by_category: \"distraction\",\n\"other\", \"idle\" (sin bloque no se sabe qué es trabajo) y \"paused\".",
+  "properties": {
+    "local_date": {
+      "title": "Local Date",
+      "type": "string"
+    },
+    "minutes_by_category": {
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "title": "Minutes By Category",
+      "type": "object"
+    },
+    "paused_until_ms": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Paused Until Ms"
+    },
+    "sensor_running": {
+      "title": "Sensor Running",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "local_date",
+    "minutes_by_category",
+    "sensor_running"
+  ],
+  "title": "ActivitySummary",
+  "type": "object"
+}

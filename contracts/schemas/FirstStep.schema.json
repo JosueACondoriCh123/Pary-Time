@@ -1,0 +1,18 @@
+{
+  "$id": "https://n-de-1.local/contracts/FirstStep.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "text": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Text",
+      "type": "string"
+    }
+  },
+  "required": [
+    "text"
+  ],
+  "title": "FirstStep",
+  "type": "object"
+}

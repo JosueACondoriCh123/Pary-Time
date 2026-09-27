@@ -1,0 +1,120 @@
+{
+  "$defs": {
+    "Target": {
+      "additionalProperties": false,
+      "description": "LOCAL. Qué abre la intervención `abrir_trabajo`.",
+      "properties": {
+        "kind": {
+          "enum": [
+            "file",
+            "app",
+            "url",
+            "none"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "value": {
+          "default": "",
+          "maxLength": 1024,
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind"
+      ],
+      "title": "Target",
+      "type": "object"
+    },
+    "TaskKind": {
+      "enum": [
+        "escritura",
+        "lectura",
+        "estudio",
+        "programacion",
+        "admin",
+        "otro"
+      ],
+      "title": "TaskKind",
+      "type": "string"
+    },
+    "WorkMatcher": {
+      "additionalProperties": false,
+      "description": "LOCAL. Una ventana cuenta como trabajo si CUALQUIER matcher coincide\n(subcadena, sin distinguir mayúsculas).",
+      "properties": {
+        "field": {
+          "enum": [
+            "process",
+            "title"
+          ],
+          "title": "Field",
+          "type": "string"
+        },
+        "pattern": {
+          "maxLength": 200,
+          "minLength": 1,
+          "title": "Pattern",
+          "type": "string"
+        }
+      },
+      "required": [
+        "field",
+        "pattern"
+      ],
+      "title": "WorkMatcher",
+      "type": "object"
+    }
+  },
+  "$id": "https://n-de-1.local/contracts/BlockCreate.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "local_date": {
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "title": "Local Date",
+      "type": "string"
+    },
+    "planned_minutes": {
+      "maximum": 240,
+      "minimum": 15,
+      "title": "Planned Minutes",
+      "type": "integer"
+    },
+    "planned_start_ms": {
+      "title": "Planned Start Ms",
+      "type": "integer"
+    },
+    "target": {
+      "$ref": "#/$defs/Target"
+    },
+    "task_kind": {
+      "$ref": "#/$defs/TaskKind"
+    },
+    "task_label": {
+      "description": "LOCAL. Nunca va al journal.",
+      "maxLength": 120,
+      "title": "Task Label",
+      "type": "string"
+    },
+    "work_matchers": {
+      "items": {
+        "$ref": "#/$defs/WorkMatcher"
+      },
+      "minItems": 1,
+      "title": "Work Matchers",
+      "type": "array"
+    }
+  },
+  "required": [
+    "local_date",
+    "planned_start_ms",
+    "planned_minutes",
+    "task_kind",
+    "task_label",
+    "target",
+    "work_matchers"
+  ],
+  "title": "BlockCreate",
+  "type": "object"
+}

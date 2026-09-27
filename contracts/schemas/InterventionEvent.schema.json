@@ -1,0 +1,72 @@
+{
+  "$defs": {
+    "Arm": {
+      "description": "Condición de un bloque. `control` = sin intervención.",
+      "enum": [
+        "control",
+        "abrir_trabajo",
+        "primer_paso",
+        "retrasar_distracciones",
+        "cuenta_regresiva"
+      ],
+      "title": "Arm",
+      "type": "string"
+    }
+  },
+  "$id": "https://n-de-1.local/contracts/InterventionEvent.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Evento `intervention` del journal. Los hwnd y nombres de ventana quedan en el estado\nlocal del runtime, no acá.",
+  "properties": {
+    "action": {
+      "enum": [
+        "applied",
+        "reapplied",
+        "reverted",
+        "failed"
+      ],
+      "title": "Action",
+      "type": "string"
+    },
+    "arm": {
+      "$ref": "#/$defs/Arm"
+    },
+    "block_id": {
+      "title": "Block Id",
+      "type": "string"
+    },
+    "n_windows": {
+      "default": 0,
+      "minimum": 0,
+      "title": "N Windows",
+      "type": "integer"
+    },
+    "reason": {
+      "enum": [
+        "block_start",
+        "device_wake",
+        "work_run_reached",
+        "censor",
+        "abort",
+        "emergency_release",
+        "recovery",
+        "error"
+      ],
+      "title": "Reason",
+      "type": "string"
+    },
+    "ts_ms": {
+      "title": "Ts Ms",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "block_id",
+    "arm",
+    "action",
+    "reason",
+    "ts_ms"
+  ],
+  "title": "InterventionEvent",
+  "type": "object"
+}

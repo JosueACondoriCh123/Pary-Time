@@ -1,0 +1,16 @@
+{
+  "block_id": "blk_a1b2c3d4e5f6",
+  "status": "started",
+  "latency_s": 420.0,
+  "censored": false,
+  "work_run_start_ms": 1790687220000,
+  "features": {
+    "pre_start_switches": 3,
+    "first_category": "distraction",
+    "distraction_s_before_start": 270,
+    "sensor_coverage": 1.0,
+    "started_early": false
+  },
+  "rules_version": "outcome@1",
+  "computed_ms": 1790688120000
+}

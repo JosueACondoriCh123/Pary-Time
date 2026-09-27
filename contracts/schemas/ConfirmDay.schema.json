@@ -1,0 +1,17 @@
+{
+  "$id": "https://n-de-1.local/contracts/ConfirmDay.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "local_date": {
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+      "title": "Local Date",
+      "type": "string"
+    }
+  },
+  "required": [
+    "local_date"
+  ],
+  "title": "ConfirmDay",
+  "type": "object"
+}

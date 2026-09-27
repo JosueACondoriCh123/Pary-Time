@@ -1,0 +1,105 @@
+{
+  "$id": "https://n-de-1.local/contracts/Settings.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "browser_processes": {
+      "default": [
+        "chrome.exe",
+        "msedge.exe",
+        "firefox.exe",
+        "brave.exe",
+        "opera.exe"
+      ],
+      "items": {
+        "type": "string"
+      },
+      "title": "Browser Processes",
+      "type": "array"
+    },
+    "distraction_processes": {
+      "default": [
+        "WhatsApp.exe",
+        "Discord.exe",
+        "Telegram.exe",
+        "Steam.exe"
+      ],
+      "items": {
+        "type": "string"
+      },
+      "title": "Distraction Processes",
+      "type": "array"
+    },
+    "distraction_title_patterns": {
+      "default": [
+        "youtube",
+        "netflix",
+        "tiktok",
+        "instagram",
+        "facebook",
+        "twitter",
+        "x.com",
+        "reddit",
+        "twitch"
+      ],
+      "items": {
+        "type": "string"
+      },
+      "title": "Distraction Title Patterns",
+      "type": "array"
+    },
+    "exploration_fraction": {
+      "default": 0.1,
+      "maximum": 0.5,
+      "minimum": 0,
+      "title": "Exploration Fraction",
+      "type": "number"
+    },
+    "family_alpha": {
+      "default": 0.05,
+      "exclusiveMaximum": 0.5,
+      "exclusiveMinimum": 0,
+      "title": "Family Alpha",
+      "type": "number"
+    },
+    "high_friction_max_fraction": {
+      "default": 0.5,
+      "exclusiveMinimum": 0,
+      "maximum": 1,
+      "title": "High Friction Max Fraction",
+      "type": "number"
+    },
+    "ollama_base_url": {
+      "default": "http://localhost:11434/v1",
+      "title": "Ollama Base Url",
+      "type": "string"
+    },
+    "raw_retention_days": {
+      "default": 14,
+      "maximum": 365,
+      "minimum": 1,
+      "title": "Raw Retention Days",
+      "type": "integer"
+    },
+    "red_team_model": {
+      "default": "",
+      "title": "Red Team Model",
+      "type": "string"
+    },
+    "scout_model": {
+      "default": "",
+      "title": "Scout Model",
+      "type": "string"
+    },
+    "whitelist_processes": {
+      "default": [],
+      "items": {
+        "type": "string"
+      },
+      "title": "Whitelist Processes",
+      "type": "array"
+    }
+  },
+  "title": "Settings",
+  "type": "object"
+}

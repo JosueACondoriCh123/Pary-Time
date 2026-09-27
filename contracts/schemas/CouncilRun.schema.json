@@ -1,0 +1,252 @@
+{
+  "$defs": {
+    "Arm": {
+      "description": "Condición de un bloque. `control` = sin intervención.",
+      "enum": [
+        "control",
+        "abrir_trabajo",
+        "primer_paso",
+        "retrasar_distracciones",
+        "cuenta_regresiva"
+      ],
+      "title": "Arm",
+      "type": "string"
+    },
+    "Hypothesis": {
+      "additionalProperties": false,
+      "properties": {
+        "cited_block_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Cited Block Ids",
+          "type": "array"
+        },
+        "expected_ratio": {
+          "description": "latencia tratamiento / control esperada",
+          "exclusiveMinimum": 0,
+          "maximum": 1.5,
+          "title": "Expected Ratio",
+          "type": "number"
+        },
+        "intervention": {
+          "$ref": "#/$defs/Arm"
+        },
+        "moderator": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Moderator"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "rationale": {
+          "maxLength": 600,
+          "title": "Rationale",
+          "type": "string"
+        }
+      },
+      "required": [
+        "intervention",
+        "expected_ratio",
+        "rationale"
+      ],
+      "title": "Hypothesis",
+      "type": "object"
+    },
+    "Moderator": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "time_of_day",
+            "task_kind"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "value": {
+          "description": "TimeOfDay o TaskKind según kind",
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "value"
+      ],
+      "title": "Moderator",
+      "type": "object"
+    },
+    "ProposalRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "hypothesis": {
+          "$ref": "#/$defs/Hypothesis"
+        },
+        "red_team": {
+          "$ref": "#/$defs/RedTeamReport"
+        },
+        "source": {
+          "enum": [
+            "scout",
+            "allocator_fallback"
+          ],
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "hypothesis",
+        "source",
+        "red_team"
+      ],
+      "title": "ProposalRecord",
+      "type": "object"
+    },
+    "RedTeamReport": {
+      "additionalProperties": false,
+      "properties": {
+        "premortem": {
+          "default": "",
+          "description": "del LLM; sin poder de veto",
+          "maxLength": 1200,
+          "title": "Premortem",
+          "type": "string"
+        },
+        "tools": {
+          "items": {
+            "$ref": "#/$defs/ToolVerdict"
+          },
+          "title": "Tools",
+          "type": "array"
+        },
+        "verdict": {
+          "enum": [
+            "pass",
+            "veto"
+          ],
+          "title": "Verdict",
+          "type": "string"
+        }
+      },
+      "required": [
+        "verdict",
+        "tools"
+      ],
+      "title": "RedTeamReport",
+      "type": "object"
+    },
+    "ToolVerdict": {
+      "additionalProperties": false,
+      "properties": {
+        "detail": {
+          "maxLength": 400,
+          "title": "Detail",
+          "type": "string"
+        },
+        "name": {
+          "enum": [
+            "power",
+            "confounders",
+            "multiplicity",
+            "verifier",
+            "constitution"
+          ],
+          "title": "Name",
+          "type": "string"
+        },
+        "passed": {
+          "title": "Passed",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "name",
+        "passed",
+        "detail"
+      ],
+      "title": "ToolVerdict",
+      "type": "object"
+    }
+  },
+  "$id": "https://n-de-1.local/contracts/CouncilRun.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Evento `council_run`: todo lo que el consejo miró, incluido lo que vetó.",
+  "properties": {
+    "chosen_experiment_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Chosen Experiment Id"
+    },
+    "fallback_reason": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Fallback Reason"
+    },
+    "llm_used": {
+      "title": "Llm Used",
+      "type": "boolean"
+    },
+    "models": {
+      "additionalProperties": {
+        "type": "string"
+      },
+      "description": "{\"scout\": \"...\", \"red_team\": \"...\"}",
+      "title": "Models",
+      "type": "object"
+    },
+    "n_blocks_in_snapshot": {
+      "title": "N Blocks In Snapshot",
+      "type": "integer"
+    },
+    "proposals": {
+      "items": {
+        "$ref": "#/$defs/ProposalRecord"
+      },
+      "title": "Proposals",
+      "type": "array"
+    },
+    "ran_ms": {
+      "title": "Ran Ms",
+      "type": "integer"
+    },
+    "run_id": {
+      "pattern": "^run_[0-9a-f]{12}$",
+      "title": "Run Id",
+      "type": "string"
+    },
+    "snapshot_sha256": {
+      "title": "Snapshot Sha256",
+      "type": "string"
+    }
+  },
+  "required": [
+    "run_id",
+    "ran_ms",
+    "snapshot_sha256",
+    "n_blocks_in_snapshot",
+    "proposals",
+    "chosen_experiment_id",
+    "llm_used"
+  ],
+  "title": "CouncilRun",
+  "type": "object"
+}

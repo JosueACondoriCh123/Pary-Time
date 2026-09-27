@@ -1,0 +1,45 @@
+{
+  "$id": "https://n-de-1.local/contracts/ActivitySpan.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "LOCAL. Tramo continuo con la misma ventana en primer plano y el mismo estado de input.\nLos huecos sin tramos significan compu apagada o suspendida.",
+  "properties": {
+    "end_ms": {
+      "title": "End Ms",
+      "type": "integer"
+    },
+    "idle": {
+      "description": "sin input por más de OutcomeRules.idle_max_s",
+      "title": "Idle",
+      "type": "boolean"
+    },
+    "locked": {
+      "default": false,
+      "title": "Locked",
+      "type": "boolean"
+    },
+    "process": {
+      "maxLength": 260,
+      "title": "Process",
+      "type": "string"
+    },
+    "start_ms": {
+      "title": "Start Ms",
+      "type": "integer"
+    },
+    "title": {
+      "maxLength": 512,
+      "title": "Title",
+      "type": "string"
+    }
+  },
+  "required": [
+    "start_ms",
+    "end_ms",
+    "process",
+    "title",
+    "idle"
+  ],
+  "title": "ActivitySpan",
+  "type": "object"
+}

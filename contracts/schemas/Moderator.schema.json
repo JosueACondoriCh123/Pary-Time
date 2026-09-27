@@ -1,0 +1,26 @@
+{
+  "$id": "https://n-de-1.local/contracts/Moderator.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "kind": {
+      "enum": [
+        "time_of_day",
+        "task_kind"
+      ],
+      "title": "Kind",
+      "type": "string"
+    },
+    "value": {
+      "description": "TimeOfDay o TaskKind según kind",
+      "title": "Value",
+      "type": "string"
+    }
+  },
+  "required": [
+    "kind",
+    "value"
+  ],
+  "title": "Moderator",
+  "type": "object"
+}

@@ -1,0 +1,81 @@
+{
+  "$id": "https://n-de-1.local/contracts/OverlayState.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Lo que la app dibuja en el overlay. La app lo consulta cada ~1 s.",
+  "properties": {
+    "block_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Block Id"
+    },
+    "kind": {
+      "anyOf": [
+        {
+          "enum": [
+            "countdown",
+            "first_step"
+          ],
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Kind"
+    },
+    "planned_start_ms": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Planned Start Ms"
+    },
+    "task_label": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Task Label"
+    },
+    "text": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Text"
+    },
+    "visible": {
+      "title": "Visible",
+      "type": "boolean"
+    }
+  },
+  "required": [
+    "visible"
+  ],
+  "title": "OverlayState",
+  "type": "object"
+}

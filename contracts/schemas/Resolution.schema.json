@@ -1,0 +1,121 @@
+{
+  "$id": "https://n-de-1.local/contracts/Resolution.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Evento `resolution`. Revela la semilla: sha256(seed) debe igualar el compromiso.",
+  "properties": {
+    "aborted_blocks": {
+      "title": "Aborted Blocks",
+      "type": "integer"
+    },
+    "alpha": {
+      "title": "Alpha",
+      "type": "number"
+    },
+    "censored_control": {
+      "title": "Censored Control",
+      "type": "integer"
+    },
+    "censored_treatment": {
+      "title": "Censored Treatment",
+      "type": "integer"
+    },
+    "excluded_device_off": {
+      "title": "Excluded Device Off",
+      "type": "integer"
+    },
+    "experiment_id": {
+      "title": "Experiment Id",
+      "type": "string"
+    },
+    "median_control_s": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Median Control S"
+    },
+    "median_treatment_s": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Median Treatment S"
+    },
+    "n_control": {
+      "title": "N Control",
+      "type": "integer"
+    },
+    "n_treatment": {
+      "title": "N Treatment",
+      "type": "integer"
+    },
+    "p_value": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "P Value"
+    },
+    "ratio": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Ratio"
+    },
+    "resolved_ms": {
+      "title": "Resolved Ms",
+      "type": "integer"
+    },
+    "seed_revealed": {
+      "pattern": "^[0-9a-f]{64}$",
+      "title": "Seed Revealed",
+      "type": "string"
+    },
+    "verdict": {
+      "enum": [
+        "supported",
+        "not_supported",
+        "insufficient"
+      ],
+      "title": "Verdict",
+      "type": "string"
+    }
+  },
+  "required": [
+    "experiment_id",
+    "resolved_ms",
+    "verdict",
+    "n_control",
+    "n_treatment",
+    "median_control_s",
+    "median_treatment_s",
+    "ratio",
+    "p_value",
+    "alpha",
+    "censored_control",
+    "censored_treatment",
+    "excluded_device_off",
+    "aborted_blocks",
+    "seed_revealed"
+  ],
+  "title": "Resolution",
+  "type": "object"
+}

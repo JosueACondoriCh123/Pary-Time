@@ -1,0 +1,28 @@
+{
+  "$id": "https://n-de-1.local/contracts/WorkMatcher.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "LOCAL. Una ventana cuenta como trabajo si CUALQUIER matcher coincide\n(subcadena, sin distinguir mayúsculas).",
+  "properties": {
+    "field": {
+      "enum": [
+        "process",
+        "title"
+      ],
+      "title": "Field",
+      "type": "string"
+    },
+    "pattern": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Pattern",
+      "type": "string"
+    }
+  },
+  "required": [
+    "field",
+    "pattern"
+  ],
+  "title": "WorkMatcher",
+  "type": "object"
+}

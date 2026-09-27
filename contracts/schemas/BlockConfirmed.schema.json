@@ -1,0 +1,50 @@
+{
+  "$defs": {
+    "TaskKind": {
+      "enum": [
+        "escritura",
+        "lectura",
+        "estudio",
+        "programacion",
+        "admin",
+        "otro"
+      ],
+      "title": "TaskKind",
+      "type": "string"
+    }
+  },
+  "$id": "https://n-de-1.local/contracts/BlockConfirmed.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Evento `block_confirmed`: lo mínimo y sin textos del usuario.",
+  "properties": {
+    "block_id": {
+      "title": "Block Id",
+      "type": "string"
+    },
+    "local_date": {
+      "title": "Local Date",
+      "type": "string"
+    },
+    "planned_minutes": {
+      "title": "Planned Minutes",
+      "type": "integer"
+    },
+    "planned_start_ms": {
+      "title": "Planned Start Ms",
+      "type": "integer"
+    },
+    "task_kind": {
+      "$ref": "#/$defs/TaskKind"
+    }
+  },
+  "required": [
+    "block_id",
+    "local_date",
+    "planned_start_ms",
+    "planned_minutes",
+    "task_kind"
+  ],
+  "title": "BlockConfirmed",
+  "type": "object"
+}

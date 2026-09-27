@@ -1,0 +1,62 @@
+{
+  "run_id": "run_00aa11bb22cc",
+  "ran_ms": 1790561400000,
+  "snapshot_sha256": "abababababababababababababababababababababababababababababababab",
+  "n_blocks_in_snapshot": 19,
+  "proposals": [
+    {
+      "hypothesis": {
+        "intervention": "retrasar_distracciones",
+        "moderator": {
+          "kind": "time_of_day",
+          "value": "morning"
+        },
+        "expected_ratio": 0.6,
+        "rationale": "En 9 de 11 bloques de mañana de la línea base la primera ventana fue una distracción y la latencia mediana fue 22 min.",
+        "cited_block_ids": [
+          "blk_a1b2c3d4e5f6",
+          "blk_0f0e0d0c0b0a"
+        ]
+      },
+      "source": "scout",
+      "red_team": {
+        "verdict": "pass",
+        "tools": [
+          {
+            "name": "verifier",
+            "passed": true,
+            "detail": "2/2 block_id existen; cifras derivables del snapshot"
+          },
+          {
+            "name": "power",
+            "passed": true,
+            "detail": "N=14 por brazo con sigma(log)=0.71 y ratio 0.6; entra en 19 días"
+          },
+          {
+            "name": "confounders",
+            "passed": true,
+            "detail": "mañana no coincide con un único día de semana"
+          },
+          {
+            "name": "multiplicity",
+            "passed": true,
+            "detail": "1a hipótesis de la familia: alpha=0.05"
+          },
+          {
+            "name": "constitution",
+            "passed": true,
+            "detail": "alta fricción en 50% de bloques elegibles: en el tope"
+          }
+        ],
+        "premortem": "Semana de parciales en octubre podría subir la latencia en ambos brazos; el efecto novedad puede inflar las primeras semanas."
+      }
+    }
+  ],
+  "chosen_experiment_id": "exp_0123456789ab",
+  "llm_used": true,
+  "fallback_reason": null,
+  "models": {
+    "scout": "qwen3:8b",
+    "red_team": "gemma3:4b"
+  }
+}

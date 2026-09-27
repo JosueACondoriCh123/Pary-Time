@@ -1,0 +1,36 @@
+{
+  "$id": "https://n-de-1.local/contracts/OutcomeRules.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Reglas de la métrica primaria. Se citan por `rules_version` en cada outcome y preregistro.\nCambiarlas es un contrato nuevo (`outcome@2`), nunca una edición silenciosa.",
+  "properties": {
+    "censor_s": {
+      "default": 5400,
+      "title": "Censor S",
+      "type": "integer"
+    },
+    "gap_tolerance_s": {
+      "default": 60,
+      "title": "Gap Tolerance S",
+      "type": "integer"
+    },
+    "idle_max_s": {
+      "default": 120,
+      "title": "Idle Max S",
+      "type": "integer"
+    },
+    "rules_version": {
+      "const": "outcome@1",
+      "default": "outcome@1",
+      "title": "Rules Version",
+      "type": "string"
+    },
+    "work_run_s": {
+      "default": 900,
+      "title": "Work Run S",
+      "type": "integer"
+    }
+  },
+  "title": "OutcomeRules",
+  "type": "object"
+}

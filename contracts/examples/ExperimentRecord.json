@@ -1,0 +1,90 @@
+{
+  "preregistration": {
+    "experiment_id": "exp_0123456789ab",
+    "created_ms": 1790561400000,
+    "hypothesis": {
+      "intervention": "retrasar_distracciones",
+      "moderator": {
+        "kind": "time_of_day",
+        "value": "morning"
+      },
+      "expected_ratio": 0.6,
+      "rationale": "En 9 de 11 bloques de mañana de la línea base la primera ventana fue una distracción y la latencia mediana fue 22 min.",
+      "cited_block_ids": [
+        "blk_a1b2c3d4e5f6",
+        "blk_0f0e0d0c0b0a"
+      ]
+    },
+    "arms": [
+      "control",
+      "retrasar_distracciones"
+    ],
+    "primary_metric": "latency_median_censored",
+    "outcome_rules": {
+      "rules_version": "outcome@1",
+      "work_run_s": 900,
+      "gap_tolerance_s": 60,
+      "idle_max_s": 120,
+      "censor_s": 5400
+    },
+    "test": "permutation_median_diff_one_sided@1",
+    "n_per_arm": 14,
+    "alpha": 0.05,
+    "seed_commitment": "e5c03599e473b1796057ca9454d330d391e4703344cf2ac5662ca2dee0c2610d",
+    "randomization": "permuted_blocks_4@1",
+    "source": "scout",
+    "red_team": {
+      "verdict": "pass",
+      "tools": [
+        {
+          "name": "verifier",
+          "passed": true,
+          "detail": "2/2 block_id existen; cifras derivables del snapshot"
+        },
+        {
+          "name": "power",
+          "passed": true,
+          "detail": "N=14 por brazo con sigma(log)=0.71 y ratio 0.6; entra en 19 días"
+        },
+        {
+          "name": "confounders",
+          "passed": true,
+          "detail": "mañana no coincide con un único día de semana"
+        },
+        {
+          "name": "multiplicity",
+          "passed": true,
+          "detail": "1a hipótesis de la familia: alpha=0.05"
+        },
+        {
+          "name": "constitution",
+          "passed": true,
+          "detail": "alta fricción en 50% de bloques elegibles: en el tope"
+        }
+      ],
+      "premortem": "Semana de parciales en octubre podría subir la latencia en ambos brazos; el efecto novedad puede inflar las primeras semanas."
+    },
+    "limitations": [
+      "sin ciego: la persona ve la intervención",
+      "moderador de franja horaria según reloj local"
+    ],
+    "council_version": "council@1"
+  },
+  "resolution": {
+    "experiment_id": "exp_0123456789ab",
+    "resolved_ms": 1792375800000,
+    "verdict": "supported",
+    "n_control": 14,
+    "n_treatment": 14,
+    "median_control_s": 1260.0,
+    "median_treatment_s": 690.0,
+    "ratio": 0.548,
+    "p_value": 0.021,
+    "alpha": 0.05,
+    "censored_control": 3,
+    "censored_treatment": 1,
+    "excluded_device_off": 2,
+    "aborted_blocks": 1,
+    "seed_revealed": "3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f3f"
+  }
+}

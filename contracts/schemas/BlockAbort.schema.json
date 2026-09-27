@@ -1,0 +1,21 @@
+{
+  "$id": "https://n-de-1.local/contracts/BlockAbort.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "block_id": {
+      "title": "Block Id",
+      "type": "string"
+    },
+    "ts_ms": {
+      "title": "Ts Ms",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "block_id",
+    "ts_ms"
+  ],
+  "title": "BlockAbort",
+  "type": "object"
+}

@@ -1,0 +1,29 @@
+{
+  "local_date": "2026-09-29",
+  "planned_start_ms": 1790686800000,
+  "planned_minutes": 50,
+  "task_kind": "escritura",
+  "task_label": "Tesis cap. 3",
+  "target": {
+    "kind": "file",
+    "value": "C:\\Users\\ejemplo\\Documents\\tesis\\cap3.docx"
+  },
+  "work_matchers": [
+    {
+      "field": "process",
+      "pattern": "WINWORD.EXE"
+    },
+    {
+      "field": "title",
+      "pattern": "cap3"
+    }
+  ],
+  "block_id": "blk_a1b2c3d4e5f6",
+  "status": "confirmed",
+  "created_ms": 1790647800000,
+  "first_step": null,
+  "aborted": false,
+  "arm_revealed": null,
+  "needs_first_step": false,
+  "experiment_id": "exp_0123456789ab"
+}

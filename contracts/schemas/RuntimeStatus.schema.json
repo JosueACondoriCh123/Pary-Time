@@ -1,0 +1,73 @@
+{
+  "$defs": {
+    "Arm": {
+      "description": "Condición de un bloque. `control` = sin intervención.",
+      "enum": [
+        "control",
+        "abrir_trabajo",
+        "primer_paso",
+        "retrasar_distracciones",
+        "cuenta_regresiva"
+      ],
+      "title": "Arm",
+      "type": "string"
+    }
+  },
+  "$id": "https://n-de-1.local/contracts/RuntimeStatus.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "active_arm_revealed": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Arm"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "active_block_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Active Block Id"
+    },
+    "emergency_released": {
+      "default": false,
+      "title": "Emergency Released",
+      "type": "boolean"
+    },
+    "interventions_applied": {
+      "items": {
+        "$ref": "#/$defs/Arm"
+      },
+      "title": "Interventions Applied",
+      "type": "array"
+    },
+    "next_block_start_ms": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "title": "Next Block Start Ms"
+    }
+  },
+  "required": [
+    "active_block_id",
+    "active_arm_revealed",
+    "interventions_applied",
+    "next_block_start_ms"
+  ],
+  "title": "RuntimeStatus",
+  "type": "object"
+}

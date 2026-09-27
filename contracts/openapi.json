@@ -1,0 +1,2789 @@
+{
+  "components": {
+    "schemas": {
+      "ActivitySummary": {
+        "additionalProperties": false,
+        "description": "Resumen del día para la app. Sin títulos. Claves de minutes_by_category: \"distraction\",\n\"other\", \"idle\" (sin bloque no se sabe qué es trabajo) y \"paused\".",
+        "properties": {
+          "local_date": {
+            "title": "Local Date",
+            "type": "string"
+          },
+          "minutes_by_category": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Minutes By Category",
+            "type": "object"
+          },
+          "paused_until_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paused Until Ms"
+          },
+          "sensor_running": {
+            "title": "Sensor Running",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "local_date",
+          "minutes_by_category",
+          "sensor_running"
+        ],
+        "title": "ActivitySummary",
+        "type": "object"
+      },
+      "Arm": {
+        "description": "Condición de un bloque. `control` = sin intervención.",
+        "enum": [
+          "control",
+          "abrir_trabajo",
+          "primer_paso",
+          "retrasar_distracciones",
+          "cuenta_regresiva"
+        ],
+        "title": "Arm",
+        "type": "string"
+      },
+      "BlockCreate": {
+        "additionalProperties": false,
+        "properties": {
+          "local_date": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "title": "Local Date",
+            "type": "string"
+          },
+          "planned_minutes": {
+            "maximum": 240.0,
+            "minimum": 15.0,
+            "title": "Planned Minutes",
+            "type": "integer"
+          },
+          "planned_start_ms": {
+            "title": "Planned Start Ms",
+            "type": "integer"
+          },
+          "target": {
+            "$ref": "#/components/schemas/Target"
+          },
+          "task_kind": {
+            "$ref": "#/components/schemas/TaskKind"
+          },
+          "task_label": {
+            "description": "LOCAL. Nunca va al journal.",
+            "maxLength": 120,
+            "title": "Task Label",
+            "type": "string"
+          },
+          "work_matchers": {
+            "items": {
+              "$ref": "#/components/schemas/WorkMatcher"
+            },
+            "minItems": 1,
+            "title": "Work Matchers",
+            "type": "array"
+          }
+        },
+        "required": [
+          "local_date",
+          "planned_start_ms",
+          "planned_minutes",
+          "task_kind",
+          "task_label",
+          "target",
+          "work_matchers"
+        ],
+        "title": "BlockCreate",
+        "type": "object"
+      },
+      "BlockOutcome": {
+        "additionalProperties": false,
+        "description": "Resultado de un bloque. Lo calcula `core.sensing.outcome.evaluate_block` (Frente A);\nel runtime (Frente B) lo escribe al journal como evento `outcome` cuando es final.",
+        "properties": {
+          "block_id": {
+            "title": "Block Id",
+            "type": "string"
+          },
+          "censored": {
+            "title": "Censored",
+            "type": "boolean"
+          },
+          "computed_ms": {
+            "title": "Computed Ms",
+            "type": "integer"
+          },
+          "features": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/OutcomeFeatures"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "latency_s": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "observada; null si pending/censored/device_off",
+            "title": "Latency S"
+          },
+          "rules_version": {
+            "const": "outcome@1",
+            "default": "outcome@1",
+            "title": "Rules Version",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "started",
+              "censored",
+              "device_off"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "work_run_start_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Work Run Start Ms"
+          }
+        },
+        "required": [
+          "block_id",
+          "status",
+          "censored",
+          "computed_ms"
+        ],
+        "title": "BlockOutcome",
+        "type": "object"
+      },
+      "BlockStatus": {
+        "enum": [
+          "planned",
+          "confirmed",
+          "running",
+          "started",
+          "censored",
+          "device_off",
+          "cancelled"
+        ],
+        "title": "BlockStatus",
+        "type": "string"
+      },
+      "BlockUpdate": {
+        "additionalProperties": false,
+        "description": "Solo mientras el bloque está `planned`.",
+        "properties": {
+          "planned_minutes": {
+            "anyOf": [
+              {
+                "maximum": 240.0,
+                "minimum": 15.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Planned Minutes"
+          },
+          "planned_start_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Planned Start Ms"
+          },
+          "target": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Target"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "task_kind": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TaskKind"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "task_label": {
+            "anyOf": [
+              {
+                "maxLength": 120,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Label"
+          },
+          "work_matchers": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/WorkMatcher"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Work Matchers"
+          }
+        },
+        "title": "BlockUpdate",
+        "type": "object"
+      },
+      "BlockView": {
+        "additionalProperties": false,
+        "description": "Lo que la API le muestra a la app. La condición se oculta hasta la hora del bloque.",
+        "properties": {
+          "aborted": {
+            "default": false,
+            "title": "Aborted",
+            "type": "boolean"
+          },
+          "arm_revealed": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Arm"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "null hasta planned_start_ms (salvo primer_paso)"
+          },
+          "block_id": {
+            "pattern": "^blk_[0-9a-f]{12}$",
+            "title": "Block Id",
+            "type": "string"
+          },
+          "created_ms": {
+            "title": "Created Ms",
+            "type": "integer"
+          },
+          "experiment_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Experiment Id"
+          },
+          "first_step": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "LOCAL.",
+            "title": "First Step"
+          },
+          "local_date": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "title": "Local Date",
+            "type": "string"
+          },
+          "needs_first_step": {
+            "default": false,
+            "description": "true si le tocó primer_paso y falta escribirlo",
+            "title": "Needs First Step",
+            "type": "boolean"
+          },
+          "planned_minutes": {
+            "maximum": 240.0,
+            "minimum": 15.0,
+            "title": "Planned Minutes",
+            "type": "integer"
+          },
+          "planned_start_ms": {
+            "title": "Planned Start Ms",
+            "type": "integer"
+          },
+          "status": {
+            "$ref": "#/components/schemas/BlockStatus"
+          },
+          "target": {
+            "$ref": "#/components/schemas/Target"
+          },
+          "task_kind": {
+            "$ref": "#/components/schemas/TaskKind"
+          },
+          "task_label": {
+            "description": "LOCAL. Nunca va al journal.",
+            "maxLength": 120,
+            "title": "Task Label",
+            "type": "string"
+          },
+          "work_matchers": {
+            "items": {
+              "$ref": "#/components/schemas/WorkMatcher"
+            },
+            "minItems": 1,
+            "title": "Work Matchers",
+            "type": "array"
+          }
+        },
+        "required": [
+          "local_date",
+          "planned_start_ms",
+          "planned_minutes",
+          "task_kind",
+          "task_label",
+          "target",
+          "work_matchers",
+          "block_id",
+          "status",
+          "created_ms"
+        ],
+        "title": "BlockView",
+        "type": "object"
+      },
+      "Category": {
+        "enum": [
+          "work",
+          "distraction",
+          "other",
+          "none"
+        ],
+        "title": "Category",
+        "type": "string"
+      },
+      "ConfirmDay": {
+        "additionalProperties": false,
+        "properties": {
+          "local_date": {
+            "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+            "title": "Local Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "local_date"
+        ],
+        "title": "ConfirmDay",
+        "type": "object"
+      },
+      "CouncilRun": {
+        "additionalProperties": false,
+        "description": "Evento `council_run`: todo lo que el consejo miró, incluido lo que vetó.",
+        "properties": {
+          "chosen_experiment_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chosen Experiment Id"
+          },
+          "fallback_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fallback Reason"
+          },
+          "llm_used": {
+            "title": "Llm Used",
+            "type": "boolean"
+          },
+          "models": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "description": "{\"scout\": \"...\", \"red_team\": \"...\"}",
+            "title": "Models",
+            "type": "object"
+          },
+          "n_blocks_in_snapshot": {
+            "title": "N Blocks In Snapshot",
+            "type": "integer"
+          },
+          "proposals": {
+            "items": {
+              "$ref": "#/components/schemas/ProposalRecord"
+            },
+            "title": "Proposals",
+            "type": "array"
+          },
+          "ran_ms": {
+            "title": "Ran Ms",
+            "type": "integer"
+          },
+          "run_id": {
+            "pattern": "^run_[0-9a-f]{12}$",
+            "title": "Run Id",
+            "type": "string"
+          },
+          "snapshot_sha256": {
+            "title": "Snapshot Sha256",
+            "type": "string"
+          }
+        },
+        "required": [
+          "run_id",
+          "ran_ms",
+          "snapshot_sha256",
+          "n_blocks_in_snapshot",
+          "proposals",
+          "chosen_experiment_id",
+          "llm_used"
+        ],
+        "title": "CouncilRun",
+        "type": "object"
+      },
+      "ExperimentProgress": {
+        "additionalProperties": false,
+        "description": "Vista del experimento en curso. NO incluye el efecto hasta llegar al N (anti-espiar).",
+        "properties": {
+          "created_ms": {
+            "title": "Created Ms",
+            "type": "integer"
+          },
+          "experiment_id": {
+            "title": "Experiment Id",
+            "type": "string"
+          },
+          "intervention": {
+            "$ref": "#/components/schemas/Arm"
+          },
+          "moderator": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Moderator"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "n_control_done": {
+            "title": "N Control Done",
+            "type": "integer"
+          },
+          "n_per_arm": {
+            "title": "N Per Arm",
+            "type": "integer"
+          },
+          "n_treatment_done": {
+            "title": "N Treatment Done",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "running",
+              "closed"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "experiment_id",
+          "intervention",
+          "moderator",
+          "n_per_arm",
+          "n_control_done",
+          "n_treatment_done",
+          "status",
+          "created_ms"
+        ],
+        "title": "ExperimentProgress",
+        "type": "object"
+      },
+      "ExperimentRecord": {
+        "additionalProperties": false,
+        "properties": {
+          "preregistration": {
+            "$ref": "#/components/schemas/Preregistration"
+          },
+          "resolution": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Resolution"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "preregistration",
+          "resolution"
+        ],
+        "title": "ExperimentRecord",
+        "type": "object"
+      },
+      "FirstStep": {
+        "additionalProperties": false,
+        "properties": {
+          "text": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "title": "FirstStep",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "Health": {
+        "additionalProperties": false,
+        "properties": {
+          "contracts": {
+            "title": "Contracts",
+            "type": "string"
+          },
+          "journal_seq": {
+            "title": "Journal Seq",
+            "type": "integer"
+          },
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          },
+          "version": {
+            "title": "Version",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ok",
+          "version",
+          "contracts",
+          "journal_seq"
+        ],
+        "title": "Health",
+        "type": "object"
+      },
+      "Hypothesis": {
+        "additionalProperties": false,
+        "properties": {
+          "cited_block_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Cited Block Ids",
+            "type": "array"
+          },
+          "expected_ratio": {
+            "description": "latencia tratamiento / control esperada",
+            "exclusiveMinimum": 0.0,
+            "maximum": 1.5,
+            "title": "Expected Ratio",
+            "type": "number"
+          },
+          "intervention": {
+            "$ref": "#/components/schemas/Arm"
+          },
+          "moderator": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Moderator"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "rationale": {
+            "maxLength": 600,
+            "title": "Rationale",
+            "type": "string"
+          }
+        },
+        "required": [
+          "intervention",
+          "expected_ratio",
+          "rationale"
+        ],
+        "title": "Hypothesis",
+        "type": "object"
+      },
+      "JournalVerify": {
+        "additionalProperties": false,
+        "properties": {
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "n_events": {
+            "title": "N Events",
+            "type": "integer"
+          },
+          "ok": {
+            "title": "Ok",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "ok",
+          "n_events"
+        ],
+        "title": "JournalVerify",
+        "type": "object"
+      },
+      "LedgerEntry": {
+        "additionalProperties": false,
+        "properties": {
+          "alpha": {
+            "description": "posterior Beta: 1 + apoyados",
+            "exclusiveMinimum": 0.0,
+            "title": "Alpha",
+            "type": "number"
+          },
+          "beta": {
+            "description": "posterior Beta: 1 + no apoyados",
+            "exclusiveMinimum": 0.0,
+            "title": "Beta",
+            "type": "number"
+          },
+          "intervention": {
+            "$ref": "#/components/schemas/Arm"
+          },
+          "n_resolved": {
+            "title": "N Resolved",
+            "type": "integer"
+          },
+          "n_supported": {
+            "title": "N Supported",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "intervention",
+          "alpha",
+          "beta",
+          "n_resolved",
+          "n_supported"
+        ],
+        "title": "LedgerEntry",
+        "type": "object"
+      },
+      "Moderator": {
+        "additionalProperties": false,
+        "properties": {
+          "kind": {
+            "enum": [
+              "time_of_day",
+              "task_kind"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "value": {
+            "description": "TimeOfDay o TaskKind según kind",
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind",
+          "value"
+        ],
+        "title": "Moderator",
+        "type": "object"
+      },
+      "OutcomeFeatures": {
+        "additionalProperties": false,
+        "description": "Variables derivadas por bloque para el snapshot del consejo. Sin títulos.",
+        "properties": {
+          "distraction_s_before_start": {
+            "minimum": 0.0,
+            "title": "Distraction S Before Start",
+            "type": "integer"
+          },
+          "first_category": {
+            "$ref": "#/components/schemas/Category",
+            "description": "categoría de la primera ventana tras planned_start"
+          },
+          "pre_start_switches": {
+            "description": "cambios de proceso en primer plano antes del arranque/censura",
+            "minimum": 0.0,
+            "title": "Pre Start Switches",
+            "type": "integer"
+          },
+          "sensor_coverage": {
+            "description": "fracción de la ventana con muestras del sensor",
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "title": "Sensor Coverage",
+            "type": "number"
+          },
+          "started_early": {
+            "description": "ya estaba trabajando a la hora planeada (latencia recortada a 0)",
+            "title": "Started Early",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "pre_start_switches",
+          "first_category",
+          "distraction_s_before_start",
+          "sensor_coverage",
+          "started_early"
+        ],
+        "title": "OutcomeFeatures",
+        "type": "object"
+      },
+      "OutcomeRules": {
+        "additionalProperties": false,
+        "description": "Reglas de la métrica primaria. Se citan por `rules_version` en cada outcome y preregistro.\nCambiarlas es un contrato nuevo (`outcome@2`), nunca una edición silenciosa.",
+        "properties": {
+          "censor_s": {
+            "default": 5400,
+            "title": "Censor S",
+            "type": "integer"
+          },
+          "gap_tolerance_s": {
+            "default": 60,
+            "title": "Gap Tolerance S",
+            "type": "integer"
+          },
+          "idle_max_s": {
+            "default": 120,
+            "title": "Idle Max S",
+            "type": "integer"
+          },
+          "rules_version": {
+            "const": "outcome@1",
+            "default": "outcome@1",
+            "title": "Rules Version",
+            "type": "string"
+          },
+          "work_run_s": {
+            "default": 900,
+            "title": "Work Run S",
+            "type": "integer"
+          }
+        },
+        "title": "OutcomeRules",
+        "type": "object"
+      },
+      "OverlayState": {
+        "additionalProperties": false,
+        "description": "Lo que la app dibuja en el overlay. La app lo consulta cada ~1 s.",
+        "properties": {
+          "block_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Block Id"
+          },
+          "kind": {
+            "anyOf": [
+              {
+                "enum": [
+                  "countdown",
+                  "first_step"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Kind"
+          },
+          "planned_start_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Planned Start Ms"
+          },
+          "task_label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Task Label"
+          },
+          "text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Text"
+          },
+          "visible": {
+            "title": "Visible",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "visible"
+        ],
+        "title": "OverlayState",
+        "type": "object"
+      },
+      "Preregistration": {
+        "additionalProperties": false,
+        "description": "Evento `preregistration`. Se escribe ANTES del primer sorteo del experimento.",
+        "properties": {
+          "alpha": {
+            "exclusiveMaximum": 0.5,
+            "exclusiveMinimum": 0.0,
+            "title": "Alpha",
+            "type": "number"
+          },
+          "arms": {
+            "description": "(control, tratamiento)",
+            "maxItems": 2,
+            "minItems": 2,
+            "prefixItems": [
+              {
+                "$ref": "#/components/schemas/Arm"
+              },
+              {
+                "$ref": "#/components/schemas/Arm"
+              }
+            ],
+            "title": "Arms",
+            "type": "array"
+          },
+          "council_version": {
+            "title": "Council Version",
+            "type": "string"
+          },
+          "created_ms": {
+            "title": "Created Ms",
+            "type": "integer"
+          },
+          "experiment_id": {
+            "pattern": "^exp_[0-9a-f]{12}$",
+            "title": "Experiment Id",
+            "type": "string"
+          },
+          "hypothesis": {
+            "$ref": "#/components/schemas/Hypothesis"
+          },
+          "limitations": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Limitations",
+            "type": "array"
+          },
+          "n_per_arm": {
+            "minimum": 4.0,
+            "title": "N Per Arm",
+            "type": "integer"
+          },
+          "outcome_rules": {
+            "$ref": "#/components/schemas/OutcomeRules"
+          },
+          "primary_metric": {
+            "const": "latency_median_censored",
+            "default": "latency_median_censored",
+            "title": "Primary Metric",
+            "type": "string"
+          },
+          "randomization": {
+            "const": "permuted_blocks_4@1",
+            "default": "permuted_blocks_4@1",
+            "title": "Randomization",
+            "type": "string"
+          },
+          "red_team": {
+            "$ref": "#/components/schemas/RedTeamReport"
+          },
+          "seed_commitment": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Seed Commitment",
+            "type": "string"
+          },
+          "source": {
+            "enum": [
+              "scout",
+              "allocator_fallback",
+              "exploration_vetoed"
+            ],
+            "title": "Source",
+            "type": "string"
+          },
+          "test": {
+            "const": "permutation_median_diff_one_sided@1",
+            "default": "permutation_median_diff_one_sided@1",
+            "title": "Test",
+            "type": "string"
+          }
+        },
+        "required": [
+          "experiment_id",
+          "created_ms",
+          "hypothesis",
+          "arms",
+          "outcome_rules",
+          "n_per_arm",
+          "alpha",
+          "seed_commitment",
+          "source",
+          "red_team",
+          "council_version"
+        ],
+        "title": "Preregistration",
+        "type": "object"
+      },
+      "ProposalRecord": {
+        "additionalProperties": false,
+        "properties": {
+          "hypothesis": {
+            "$ref": "#/components/schemas/Hypothesis"
+          },
+          "red_team": {
+            "$ref": "#/components/schemas/RedTeamReport"
+          },
+          "source": {
+            "enum": [
+              "scout",
+              "allocator_fallback"
+            ],
+            "title": "Source",
+            "type": "string"
+          }
+        },
+        "required": [
+          "hypothesis",
+          "source",
+          "red_team"
+        ],
+        "title": "ProposalRecord",
+        "type": "object"
+      },
+      "RedTeamReport": {
+        "additionalProperties": false,
+        "properties": {
+          "premortem": {
+            "default": "",
+            "description": "del LLM; sin poder de veto",
+            "maxLength": 1200,
+            "title": "Premortem",
+            "type": "string"
+          },
+          "tools": {
+            "items": {
+              "$ref": "#/components/schemas/ToolVerdict"
+            },
+            "title": "Tools",
+            "type": "array"
+          },
+          "verdict": {
+            "enum": [
+              "pass",
+              "veto"
+            ],
+            "title": "Verdict",
+            "type": "string"
+          }
+        },
+        "required": [
+          "verdict",
+          "tools"
+        ],
+        "title": "RedTeamReport",
+        "type": "object"
+      },
+      "Report": {
+        "additionalProperties": false,
+        "description": "Reporte exportable (compartible con un profesional). Sin títulos ni textos del usuario.",
+        "properties": {
+          "disclaimer": {
+            "default": "Ajustes de flujo de trabajo medidos sobre una sola persona. No es tratamiento ni consejo médico.",
+            "title": "Disclaimer",
+            "type": "string"
+          },
+          "experiments": {
+            "items": {
+              "$ref": "#/components/schemas/ExperimentRecord"
+            },
+            "title": "Experiments",
+            "type": "array"
+          },
+          "generated_ms": {
+            "title": "Generated Ms",
+            "type": "integer"
+          },
+          "journal": {
+            "$ref": "#/components/schemas/JournalVerify"
+          },
+          "ledger": {
+            "items": {
+              "$ref": "#/components/schemas/LedgerEntry"
+            },
+            "title": "Ledger",
+            "type": "array"
+          },
+          "veto_regret": {
+            "$ref": "#/components/schemas/VetoRegret"
+          }
+        },
+        "required": [
+          "generated_ms",
+          "journal",
+          "experiments",
+          "ledger",
+          "veto_regret"
+        ],
+        "title": "Report",
+        "type": "object"
+      },
+      "Resolution": {
+        "additionalProperties": false,
+        "description": "Evento `resolution`. Revela la semilla: sha256(seed) debe igualar el compromiso.",
+        "properties": {
+          "aborted_blocks": {
+            "title": "Aborted Blocks",
+            "type": "integer"
+          },
+          "alpha": {
+            "title": "Alpha",
+            "type": "number"
+          },
+          "censored_control": {
+            "title": "Censored Control",
+            "type": "integer"
+          },
+          "censored_treatment": {
+            "title": "Censored Treatment",
+            "type": "integer"
+          },
+          "excluded_device_off": {
+            "title": "Excluded Device Off",
+            "type": "integer"
+          },
+          "experiment_id": {
+            "title": "Experiment Id",
+            "type": "string"
+          },
+          "median_control_s": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Control S"
+          },
+          "median_treatment_s": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Median Treatment S"
+          },
+          "n_control": {
+            "title": "N Control",
+            "type": "integer"
+          },
+          "n_treatment": {
+            "title": "N Treatment",
+            "type": "integer"
+          },
+          "p_value": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "P Value"
+          },
+          "ratio": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ratio"
+          },
+          "resolved_ms": {
+            "title": "Resolved Ms",
+            "type": "integer"
+          },
+          "seed_revealed": {
+            "pattern": "^[0-9a-f]{64}$",
+            "title": "Seed Revealed",
+            "type": "string"
+          },
+          "verdict": {
+            "enum": [
+              "supported",
+              "not_supported",
+              "insufficient"
+            ],
+            "title": "Verdict",
+            "type": "string"
+          }
+        },
+        "required": [
+          "experiment_id",
+          "resolved_ms",
+          "verdict",
+          "n_control",
+          "n_treatment",
+          "median_control_s",
+          "median_treatment_s",
+          "ratio",
+          "p_value",
+          "alpha",
+          "censored_control",
+          "censored_treatment",
+          "excluded_device_off",
+          "aborted_blocks",
+          "seed_revealed"
+        ],
+        "title": "Resolution",
+        "type": "object"
+      },
+      "RuntimeStatus": {
+        "additionalProperties": false,
+        "properties": {
+          "active_arm_revealed": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Arm"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "active_block_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Active Block Id"
+          },
+          "emergency_released": {
+            "default": false,
+            "title": "Emergency Released",
+            "type": "boolean"
+          },
+          "interventions_applied": {
+            "items": {
+              "$ref": "#/components/schemas/Arm"
+            },
+            "title": "Interventions Applied",
+            "type": "array"
+          },
+          "next_block_start_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Next Block Start Ms"
+          }
+        },
+        "required": [
+          "active_block_id",
+          "active_arm_revealed",
+          "interventions_applied",
+          "next_block_start_ms"
+        ],
+        "title": "RuntimeStatus",
+        "type": "object"
+      },
+      "Settings": {
+        "additionalProperties": false,
+        "properties": {
+          "browser_processes": {
+            "default": [
+              "chrome.exe",
+              "msedge.exe",
+              "firefox.exe",
+              "brave.exe",
+              "opera.exe"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "title": "Browser Processes",
+            "type": "array"
+          },
+          "distraction_processes": {
+            "default": [
+              "WhatsApp.exe",
+              "Discord.exe",
+              "Telegram.exe",
+              "Steam.exe"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "title": "Distraction Processes",
+            "type": "array"
+          },
+          "distraction_title_patterns": {
+            "default": [
+              "youtube",
+              "netflix",
+              "tiktok",
+              "instagram",
+              "facebook",
+              "twitter",
+              "x.com",
+              "reddit",
+              "twitch"
+            ],
+            "items": {
+              "type": "string"
+            },
+            "title": "Distraction Title Patterns",
+            "type": "array"
+          },
+          "exploration_fraction": {
+            "default": 0.1,
+            "maximum": 0.5,
+            "minimum": 0.0,
+            "title": "Exploration Fraction",
+            "type": "number"
+          },
+          "family_alpha": {
+            "default": 0.05,
+            "exclusiveMaximum": 0.5,
+            "exclusiveMinimum": 0.0,
+            "title": "Family Alpha",
+            "type": "number"
+          },
+          "high_friction_max_fraction": {
+            "default": 0.5,
+            "exclusiveMinimum": 0.0,
+            "maximum": 1.0,
+            "title": "High Friction Max Fraction",
+            "type": "number"
+          },
+          "ollama_base_url": {
+            "default": "http://localhost:11434/v1",
+            "title": "Ollama Base Url",
+            "type": "string"
+          },
+          "raw_retention_days": {
+            "default": 14,
+            "maximum": 365.0,
+            "minimum": 1.0,
+            "title": "Raw Retention Days",
+            "type": "integer"
+          },
+          "red_team_model": {
+            "default": "",
+            "title": "Red Team Model",
+            "type": "string"
+          },
+          "scout_model": {
+            "default": "",
+            "title": "Scout Model",
+            "type": "string"
+          },
+          "whitelist_processes": {
+            "default": [],
+            "items": {
+              "type": "string"
+            },
+            "title": "Whitelist Processes",
+            "type": "array"
+          }
+        },
+        "title": "Settings",
+        "type": "object"
+      },
+      "Target": {
+        "additionalProperties": false,
+        "description": "LOCAL. Qué abre la intervención `abrir_trabajo`.",
+        "properties": {
+          "kind": {
+            "enum": [
+              "file",
+              "app",
+              "url",
+              "none"
+            ],
+            "title": "Kind",
+            "type": "string"
+          },
+          "value": {
+            "default": "",
+            "maxLength": 1024,
+            "title": "Value",
+            "type": "string"
+          }
+        },
+        "required": [
+          "kind"
+        ],
+        "title": "Target",
+        "type": "object"
+      },
+      "TaskKind": {
+        "enum": [
+          "escritura",
+          "lectura",
+          "estudio",
+          "programacion",
+          "admin",
+          "otro"
+        ],
+        "title": "TaskKind",
+        "type": "string"
+      },
+      "ToolVerdict": {
+        "additionalProperties": false,
+        "properties": {
+          "detail": {
+            "maxLength": 400,
+            "title": "Detail",
+            "type": "string"
+          },
+          "name": {
+            "enum": [
+              "power",
+              "confounders",
+              "multiplicity",
+              "verifier",
+              "constitution"
+            ],
+            "title": "Name",
+            "type": "string"
+          },
+          "passed": {
+            "title": "Passed",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "name",
+          "passed",
+          "detail"
+        ],
+        "title": "ToolVerdict",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      },
+      "VetoRegret": {
+        "additionalProperties": false,
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/ExperimentRecord"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "n_explored": {
+            "title": "N Explored",
+            "type": "integer"
+          },
+          "n_replicated": {
+            "title": "N Replicated",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "n_explored",
+          "n_replicated",
+          "items"
+        ],
+        "title": "VetoRegret",
+        "type": "object"
+      },
+      "WorkMatcher": {
+        "additionalProperties": false,
+        "description": "LOCAL. Una ventana cuenta como trabajo si CUALQUIER matcher coincide\n(subcadena, sin distinguir mayúsculas).",
+        "properties": {
+          "field": {
+            "enum": [
+              "process",
+              "title"
+            ],
+            "title": "Field",
+            "type": "string"
+          },
+          "pattern": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Pattern",
+            "type": "string"
+          }
+        },
+        "required": [
+          "field",
+          "pattern"
+        ],
+        "title": "WorkMatcher",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "title": "Consejo N-de-1",
+    "version": "n-de-1@0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/activity/pause": {
+      "post": {
+        "description": "Pausa de privacidad: el sensor no registra nada durante `minutes`.",
+        "operationId": "activity_pause_activity_pause_post",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "minutes",
+            "required": true,
+            "schema": {
+              "maximum": 480,
+              "minimum": 1,
+              "title": "Minutes",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-NDE1-Token",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "X-Nde1-Token",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActivitySummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Activity Pause",
+        "tags": [
+          "A: sensor y resultado"
+        ]
+      }
+    },
+    "/activity/resume": {
+      "post": {
+        "operationId": "activity_resume_activity_resume_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-NDE1-Token",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "X-Nde1-Token",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActivitySummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Activity Resume",
+        "tags": [
+          "A: sensor y resultado"
+        ]
+      }
+    },
+    "/activity/today": {
+      "get": {
+        "operationId": "activity_today_activity_today_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-NDE1-Token",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "X-Nde1-Token",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ActivitySummary"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Activity Today",
+        "tags": [
+          "A: sensor y resultado"
+        ]
+      }
+    },
+    "/blocks": {
+      "get": {
+        "operationId": "list_blocks_blocks_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "date",
+            "required": true,
+            "schema": {
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "title": "Date",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-NDE1-Token",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "X-Nde1-Token",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/BlockView"
+                  },
+                  "title": "Response List Blocks Blocks Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List Blocks",
+        "tags": [
+          "B: runtime e intervenciones"
+        ]
+      },
+      "post": {
+        "operationId": "create_block_blocks_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-NDE1-Token",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "X-Nde1-Token",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BlockCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BlockView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create Block",
+        "tags": [
+          "B: runtime e intervenciones"
+        ]
+      }
+    },
+    "/blocks/confirm": {
+      "post": {
+        "description": "Confirma los bloques `planned` del día: sortea y sella las condiciones en el journal.",
+        "operationId": "confirm_day_blocks_confirm_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-NDE1-Token",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "X-Nde1-Token",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ConfirmDay"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/BlockView"
+                  },
+                  "title": "Response Confirm Day Blocks Confirm Post",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Confirm Day",
+        "tags": [
+          "B: runtime e intervenciones"
+        ]
+      }
+    },
+    "/blocks/{block_id}": {
+      "delete": {
+        "description": "Solo bloques `planned` (queda `cancelled`); uno confirmado se aborta, no se cancela.",
+        "operationId": "cancel_block_blocks__block_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "block_id",
+            "required": true,
+            "schema": {
+              "title": "Block Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-NDE1-Token",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "X-Nde1-Token",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BlockView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Cancel Block",
+        "tags": [
+          "B: runtime e intervenciones"
+        ]
+      },
+      "patch": {
+        "description": "Solo bloques `planned`; 409 si ya está confirmado.",
+        "operationId": "update_block_blocks__block_id__patch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "block_id",
+            "required": true,
+            "schema": {
+              "title": "Block Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-NDE1-Token",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "X-Nde1-Token",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BlockUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BlockView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update Block",
+        "tags": [
+          "B: runtime e intervenciones"
+        ]
+      }
+    },
+    "/blocks/{block_id}/abort": {
+      "post": {
+        "description": "\"Hoy no\": revierte intervenciones y lo registra. El bloque sigue en el análisis (ITT).",
+        "operationId": "abort_block_blocks__block_id__abort_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "block_id",
+            "required": true,
+            "schema": {
+              "title": "Block Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-NDE1-Token",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "X-Nde1-Token",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BlockView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Abort Block",
+        "tags": [
+          "B: runtime e intervenciones"
+        ]
+      }
+    },
+    "/blocks/{block_id}/first_step": {
+      "post": {
+        "operationId": "set_first_step_blocks__block_id__first_step_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "block_id",
+            "required": true,
+            "schema": {
+              "title": "Block Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-NDE1-Token",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "X-Nde1-Token",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FirstStep"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BlockView"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Set First Step",
+        "tags": [
+          "B: runtime e intervenciones"
+        ]
+      }
+    },
+    "/council/run": {
+      "post": {
+        "description": "Reunión manual del consejo (además de la semanal automática).",
+        "operationId": "run_council_council_run_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-NDE1-Token",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "X-Nde1-Token",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CouncilRun"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Run Council",
+        "tags": [
+          "C: consejo y estadística"
+        ]
+      }
+    },
+    "/council/runs": {
+      "get": {
+        "operationId": "council_runs_council_runs_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-NDE1-Token",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "X-Nde1-Token",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/CouncilRun"
+                  },
+                  "title": "Response Council Runs Council Runs Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Council Runs",
+        "tags": [
+          "C: consejo y estadística"
+        ]
+      }
+    },
+    "/experiments": {
+      "get": {
+        "operationId": "experiments_experiments_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-NDE1-Token",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "X-Nde1-Token",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ExperimentRecord"
+                  },
+                  "title": "Response Experiments Experiments Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Experiments",
+        "tags": [
+          "C: consejo y estadística"
+        ]
+      }
+    },
+    "/experiments/current": {
+      "get": {
+        "description": "Progreso del experimento en curso, SIN efecto hasta llegar al N. null si no hay.",
+        "operationId": "current_experiment_experiments_current_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-NDE1-Token",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "X-Nde1-Token",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/ExperimentProgress"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ],
+                  "title": "Response Current Experiment Experiments Current Get"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Current Experiment",
+        "tags": [
+          "C: consejo y estadística"
+        ]
+      }
+    },
+    "/health": {
+      "get": {
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health",
+        "tags": [
+          "0: columna"
+        ]
+      }
+    },
+    "/journal/verify": {
+      "get": {
+        "operationId": "journal_verify_journal_verify_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-NDE1-Token",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "X-Nde1-Token",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/JournalVerify"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Journal Verify",
+        "tags": [
+          "0: columna"
+        ]
+      }
+    },
+    "/ledger": {
+      "get": {
+        "operationId": "ledger_ledger_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-NDE1-Token",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "X-Nde1-Token",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/LedgerEntry"
+                  },
+                  "title": "Response Ledger Ledger Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Ledger",
+        "tags": [
+          "C: consejo y estadística"
+        ]
+      }
+    },
+    "/outcomes": {
+      "get": {
+        "description": "Outcomes finales del journal en el rango de fechas locales (inclusive).",
+        "operationId": "outcomes_outcomes_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "from_date",
+            "required": true,
+            "schema": {
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "title": "From Date",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "to_date",
+            "required": true,
+            "schema": {
+              "pattern": "^\\d{4}-\\d{2}-\\d{2}$",
+              "title": "To Date",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "X-NDE1-Token",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "X-Nde1-Token",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/BlockOutcome"
+                  },
+                  "title": "Response Outcomes Outcomes Get",
+                  "type": "array"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Outcomes",
+        "tags": [
+          "A: sensor y resultado"
+        ]
+      }
+    },
+    "/report": {
+      "get": {
+        "operationId": "report_report_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-NDE1-Token",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "X-Nde1-Token",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Report"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Report",
+        "tags": [
+          "C: consejo y estadística"
+        ]
+      }
+    },
+    "/runtime/emergency_release": {
+      "post": {
+        "description": "Salida de emergencia: restaura todas las ventanas minimizadas y no vuelve a minimizar\nen el bloque actual.",
+        "operationId": "emergency_release_runtime_emergency_release_post",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-NDE1-Token",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "X-Nde1-Token",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuntimeStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Emergency Release",
+        "tags": [
+          "B: runtime e intervenciones"
+        ]
+      }
+    },
+    "/runtime/overlay": {
+      "get": {
+        "operationId": "overlay_runtime_overlay_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-NDE1-Token",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "X-Nde1-Token",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OverlayState"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Overlay",
+        "tags": [
+          "B: runtime e intervenciones"
+        ]
+      }
+    },
+    "/runtime/status": {
+      "get": {
+        "operationId": "status_runtime_status_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-NDE1-Token",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "X-Nde1-Token",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RuntimeStatus"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Status",
+        "tags": [
+          "B: runtime e intervenciones"
+        ]
+      }
+    },
+    "/settings": {
+      "get": {
+        "operationId": "get_settings_settings_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-NDE1-Token",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "X-Nde1-Token",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Settings"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Settings",
+        "tags": [
+          "0: columna"
+        ]
+      },
+      "put": {
+        "operationId": "put_settings_settings_put",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-NDE1-Token",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "X-Nde1-Token",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/Settings"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Settings"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Put Settings",
+        "tags": [
+          "0: columna"
+        ]
+      }
+    },
+    "/veto_regret": {
+      "get": {
+        "operationId": "veto_regret_veto_regret_get",
+        "parameters": [
+          {
+            "in": "header",
+            "name": "X-NDE1-Token",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "X-Nde1-Token",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VetoRegret"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Veto Regret",
+        "tags": [
+          "C: consejo y estadística"
+        ]
+      }
+    }
+  }
+}

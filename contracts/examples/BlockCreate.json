@@ -1,0 +1,21 @@
+{
+  "local_date": "2026-09-29",
+  "planned_start_ms": 1790686800000,
+  "planned_minutes": 50,
+  "task_kind": "escritura",
+  "task_label": "Tesis cap. 3",
+  "target": {
+    "kind": "file",
+    "value": "C:\\Users\\ejemplo\\Documents\\tesis\\cap3.docx"
+  },
+  "work_matchers": [
+    {
+      "field": "process",
+      "pattern": "WINWORD.EXE"
+    },
+    {
+      "field": "title",
+      "pattern": "cap3"
+    }
+  ]
+}

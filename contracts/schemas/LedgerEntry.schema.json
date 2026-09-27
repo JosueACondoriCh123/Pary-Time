@@ -1,0 +1,53 @@
+{
+  "$defs": {
+    "Arm": {
+      "description": "Condición de un bloque. `control` = sin intervención.",
+      "enum": [
+        "control",
+        "abrir_trabajo",
+        "primer_paso",
+        "retrasar_distracciones",
+        "cuenta_regresiva"
+      ],
+      "title": "Arm",
+      "type": "string"
+    }
+  },
+  "$id": "https://n-de-1.local/contracts/LedgerEntry.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "alpha": {
+      "description": "posterior Beta: 1 + apoyados",
+      "exclusiveMinimum": 0,
+      "title": "Alpha",
+      "type": "number"
+    },
+    "beta": {
+      "description": "posterior Beta: 1 + no apoyados",
+      "exclusiveMinimum": 0,
+      "title": "Beta",
+      "type": "number"
+    },
+    "intervention": {
+      "$ref": "#/$defs/Arm"
+    },
+    "n_resolved": {
+      "title": "N Resolved",
+      "type": "integer"
+    },
+    "n_supported": {
+      "title": "N Supported",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "intervention",
+    "alpha",
+    "beta",
+    "n_resolved",
+    "n_supported"
+  ],
+  "title": "LedgerEntry",
+  "type": "object"
+}

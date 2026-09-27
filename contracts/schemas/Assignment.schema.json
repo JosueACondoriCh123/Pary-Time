@@ -1,0 +1,66 @@
+{
+  "$defs": {
+    "Arm": {
+      "description": "Condición de un bloque. `control` = sin intervención.",
+      "enum": [
+        "control",
+        "abrir_trabajo",
+        "primer_paso",
+        "retrasar_distracciones",
+        "cuenta_regresiva"
+      ],
+      "title": "Arm",
+      "type": "string"
+    }
+  },
+  "$id": "https://n-de-1.local/contracts/Assignment.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "arm": {
+      "$ref": "#/$defs/Arm"
+    },
+    "assigned_ms": {
+      "title": "Assigned Ms",
+      "type": "integer"
+    },
+    "block_id": {
+      "title": "Block Id",
+      "type": "string"
+    },
+    "draw_index": {
+      "anyOf": [
+        {
+          "minimum": 0,
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "posición en la secuencia sorteada",
+      "title": "Draw Index"
+    },
+    "experiment_id": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "null = línea base (siempre control)",
+      "title": "Experiment Id"
+    }
+  },
+  "required": [
+    "block_id",
+    "arm",
+    "assigned_ms"
+  ],
+  "title": "Assignment",
+  "type": "object"
+}

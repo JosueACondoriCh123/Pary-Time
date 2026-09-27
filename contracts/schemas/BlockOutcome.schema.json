@@ -1,0 +1,134 @@
+{
+  "$defs": {
+    "Category": {
+      "enum": [
+        "work",
+        "distraction",
+        "other",
+        "none"
+      ],
+      "title": "Category",
+      "type": "string"
+    },
+    "OutcomeFeatures": {
+      "additionalProperties": false,
+      "description": "Variables derivadas por bloque para el snapshot del consejo. Sin títulos.",
+      "properties": {
+        "distraction_s_before_start": {
+          "minimum": 0,
+          "title": "Distraction S Before Start",
+          "type": "integer"
+        },
+        "first_category": {
+          "$ref": "#/$defs/Category",
+          "description": "categoría de la primera ventana tras planned_start"
+        },
+        "pre_start_switches": {
+          "description": "cambios de proceso en primer plano antes del arranque/censura",
+          "minimum": 0,
+          "title": "Pre Start Switches",
+          "type": "integer"
+        },
+        "sensor_coverage": {
+          "description": "fracción de la ventana con muestras del sensor",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Sensor Coverage",
+          "type": "number"
+        },
+        "started_early": {
+          "description": "ya estaba trabajando a la hora planeada (latencia recortada a 0)",
+          "title": "Started Early",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "pre_start_switches",
+        "first_category",
+        "distraction_s_before_start",
+        "sensor_coverage",
+        "started_early"
+      ],
+      "title": "OutcomeFeatures",
+      "type": "object"
+    }
+  },
+  "$id": "https://n-de-1.local/contracts/BlockOutcome.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Resultado de un bloque. Lo calcula `core.sensing.outcome.evaluate_block` (Frente A);\nel runtime (Frente B) lo escribe al journal como evento `outcome` cuando es final.",
+  "properties": {
+    "block_id": {
+      "title": "Block Id",
+      "type": "string"
+    },
+    "censored": {
+      "title": "Censored",
+      "type": "boolean"
+    },
+    "computed_ms": {
+      "title": "Computed Ms",
+      "type": "integer"
+    },
+    "features": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/OutcomeFeatures"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "latency_s": {
+      "anyOf": [
+        {
+          "type": "number"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "description": "observada; null si pending/censored/device_off",
+      "title": "Latency S"
+    },
+    "rules_version": {
+      "const": "outcome@1",
+      "default": "outcome@1",
+      "title": "Rules Version",
+      "type": "string"
+    },
+    "status": {
+      "enum": [
+        "pending",
+        "started",
+        "censored",
+        "device_off"
+      ],
+      "title": "Status",
+      "type": "string"
+    },
+    "work_run_start_ms": {
+      "anyOf": [
+        {
+          "type": "integer"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Work Run Start Ms"
+    }
+  },
+  "required": [
+    "block_id",
+    "status",
+    "censored",
+    "computed_ms"
+  ],
+  "title": "BlockOutcome",
+  "type": "object"
+}

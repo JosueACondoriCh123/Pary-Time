@@ -1,0 +1,85 @@
+{
+  "$defs": {
+    "Arm": {
+      "description": "Condición de un bloque. `control` = sin intervención.",
+      "enum": [
+        "control",
+        "abrir_trabajo",
+        "primer_paso",
+        "retrasar_distracciones",
+        "cuenta_regresiva"
+      ],
+      "title": "Arm",
+      "type": "string"
+    },
+    "Moderator": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "time_of_day",
+            "task_kind"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "value": {
+          "description": "TimeOfDay o TaskKind según kind",
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "value"
+      ],
+      "title": "Moderator",
+      "type": "object"
+    }
+  },
+  "$id": "https://n-de-1.local/contracts/Hypothesis.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "properties": {
+    "cited_block_ids": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Cited Block Ids",
+      "type": "array"
+    },
+    "expected_ratio": {
+      "description": "latencia tratamiento / control esperada",
+      "exclusiveMinimum": 0,
+      "maximum": 1.5,
+      "title": "Expected Ratio",
+      "type": "number"
+    },
+    "intervention": {
+      "$ref": "#/$defs/Arm"
+    },
+    "moderator": {
+      "anyOf": [
+        {
+          "$ref": "#/$defs/Moderator"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null
+    },
+    "rationale": {
+      "maxLength": 600,
+      "title": "Rationale",
+      "type": "string"
+    }
+  },
+  "required": [
+    "intervention",
+    "expected_ratio",
+    "rationale"
+  ],
+  "title": "Hypothesis",
+  "type": "object"
+}

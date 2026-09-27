@@ -1,0 +1,574 @@
+{
+  "$defs": {
+    "Arm": {
+      "description": "Condición de un bloque. `control` = sin intervención.",
+      "enum": [
+        "control",
+        "abrir_trabajo",
+        "primer_paso",
+        "retrasar_distracciones",
+        "cuenta_regresiva"
+      ],
+      "title": "Arm",
+      "type": "string"
+    },
+    "ExperimentRecord": {
+      "additionalProperties": false,
+      "properties": {
+        "preregistration": {
+          "$ref": "#/$defs/Preregistration"
+        },
+        "resolution": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Resolution"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "preregistration",
+        "resolution"
+      ],
+      "title": "ExperimentRecord",
+      "type": "object"
+    },
+    "Hypothesis": {
+      "additionalProperties": false,
+      "properties": {
+        "cited_block_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Cited Block Ids",
+          "type": "array"
+        },
+        "expected_ratio": {
+          "description": "latencia tratamiento / control esperada",
+          "exclusiveMinimum": 0,
+          "maximum": 1.5,
+          "title": "Expected Ratio",
+          "type": "number"
+        },
+        "intervention": {
+          "$ref": "#/$defs/Arm"
+        },
+        "moderator": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Moderator"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "rationale": {
+          "maxLength": 600,
+          "title": "Rationale",
+          "type": "string"
+        }
+      },
+      "required": [
+        "intervention",
+        "expected_ratio",
+        "rationale"
+      ],
+      "title": "Hypothesis",
+      "type": "object"
+    },
+    "JournalVerify": {
+      "additionalProperties": false,
+      "properties": {
+        "error": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "title": "Error"
+        },
+        "n_events": {
+          "title": "N Events",
+          "type": "integer"
+        },
+        "ok": {
+          "title": "Ok",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "ok",
+        "n_events"
+      ],
+      "title": "JournalVerify",
+      "type": "object"
+    },
+    "LedgerEntry": {
+      "additionalProperties": false,
+      "properties": {
+        "alpha": {
+          "description": "posterior Beta: 1 + apoyados",
+          "exclusiveMinimum": 0,
+          "title": "Alpha",
+          "type": "number"
+        },
+        "beta": {
+          "description": "posterior Beta: 1 + no apoyados",
+          "exclusiveMinimum": 0,
+          "title": "Beta",
+          "type": "number"
+        },
+        "intervention": {
+          "$ref": "#/$defs/Arm"
+        },
+        "n_resolved": {
+          "title": "N Resolved",
+          "type": "integer"
+        },
+        "n_supported": {
+          "title": "N Supported",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "intervention",
+        "alpha",
+        "beta",
+        "n_resolved",
+        "n_supported"
+      ],
+      "title": "LedgerEntry",
+      "type": "object"
+    },
+    "Moderator": {
+      "additionalProperties": false,
+      "properties": {
+        "kind": {
+          "enum": [
+            "time_of_day",
+            "task_kind"
+          ],
+          "title": "Kind",
+          "type": "string"
+        },
+        "value": {
+          "description": "TimeOfDay o TaskKind según kind",
+          "title": "Value",
+          "type": "string"
+        }
+      },
+      "required": [
+        "kind",
+        "value"
+      ],
+      "title": "Moderator",
+      "type": "object"
+    },
+    "OutcomeRules": {
+      "additionalProperties": false,
+      "description": "Reglas de la métrica primaria. Se citan por `rules_version` en cada outcome y preregistro.\nCambiarlas es un contrato nuevo (`outcome@2`), nunca una edición silenciosa.",
+      "properties": {
+        "censor_s": {
+          "default": 5400,
+          "title": "Censor S",
+          "type": "integer"
+        },
+        "gap_tolerance_s": {
+          "default": 60,
+          "title": "Gap Tolerance S",
+          "type": "integer"
+        },
+        "idle_max_s": {
+          "default": 120,
+          "title": "Idle Max S",
+          "type": "integer"
+        },
+        "rules_version": {
+          "const": "outcome@1",
+          "default": "outcome@1",
+          "title": "Rules Version",
+          "type": "string"
+        },
+        "work_run_s": {
+          "default": 900,
+          "title": "Work Run S",
+          "type": "integer"
+        }
+      },
+      "title": "OutcomeRules",
+      "type": "object"
+    },
+    "Preregistration": {
+      "additionalProperties": false,
+      "description": "Evento `preregistration`. Se escribe ANTES del primer sorteo del experimento.",
+      "properties": {
+        "alpha": {
+          "exclusiveMaximum": 0.5,
+          "exclusiveMinimum": 0,
+          "title": "Alpha",
+          "type": "number"
+        },
+        "arms": {
+          "description": "(control, tratamiento)",
+          "maxItems": 2,
+          "minItems": 2,
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/Arm"
+            },
+            {
+              "$ref": "#/$defs/Arm"
+            }
+          ],
+          "title": "Arms",
+          "type": "array"
+        },
+        "council_version": {
+          "title": "Council Version",
+          "type": "string"
+        },
+        "created_ms": {
+          "title": "Created Ms",
+          "type": "integer"
+        },
+        "experiment_id": {
+          "pattern": "^exp_[0-9a-f]{12}$",
+          "title": "Experiment Id",
+          "type": "string"
+        },
+        "hypothesis": {
+          "$ref": "#/$defs/Hypothesis"
+        },
+        "limitations": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Limitations",
+          "type": "array"
+        },
+        "n_per_arm": {
+          "minimum": 4,
+          "title": "N Per Arm",
+          "type": "integer"
+        },
+        "outcome_rules": {
+          "$ref": "#/$defs/OutcomeRules"
+        },
+        "primary_metric": {
+          "const": "latency_median_censored",
+          "default": "latency_median_censored",
+          "title": "Primary Metric",
+          "type": "string"
+        },
+        "randomization": {
+          "const": "permuted_blocks_4@1",
+          "default": "permuted_blocks_4@1",
+          "title": "Randomization",
+          "type": "string"
+        },
+        "red_team": {
+          "$ref": "#/$defs/RedTeamReport"
+        },
+        "seed_commitment": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Seed Commitment",
+          "type": "string"
+        },
+        "source": {
+          "enum": [
+            "scout",
+            "allocator_fallback",
+            "exploration_vetoed"
+          ],
+          "title": "Source",
+          "type": "string"
+        },
+        "test": {
+          "const": "permutation_median_diff_one_sided@1",
+          "default": "permutation_median_diff_one_sided@1",
+          "title": "Test",
+          "type": "string"
+        }
+      },
+      "required": [
+        "experiment_id",
+        "created_ms",
+        "hypothesis",
+        "arms",
+        "outcome_rules",
+        "n_per_arm",
+        "alpha",
+        "seed_commitment",
+        "source",
+        "red_team",
+        "council_version"
+      ],
+      "title": "Preregistration",
+      "type": "object"
+    },
+    "RedTeamReport": {
+      "additionalProperties": false,
+      "properties": {
+        "premortem": {
+          "default": "",
+          "description": "del LLM; sin poder de veto",
+          "maxLength": 1200,
+          "title": "Premortem",
+          "type": "string"
+        },
+        "tools": {
+          "items": {
+            "$ref": "#/$defs/ToolVerdict"
+          },
+          "title": "Tools",
+          "type": "array"
+        },
+        "verdict": {
+          "enum": [
+            "pass",
+            "veto"
+          ],
+          "title": "Verdict",
+          "type": "string"
+        }
+      },
+      "required": [
+        "verdict",
+        "tools"
+      ],
+      "title": "RedTeamReport",
+      "type": "object"
+    },
+    "Resolution": {
+      "additionalProperties": false,
+      "description": "Evento `resolution`. Revela la semilla: sha256(seed) debe igualar el compromiso.",
+      "properties": {
+        "aborted_blocks": {
+          "title": "Aborted Blocks",
+          "type": "integer"
+        },
+        "alpha": {
+          "title": "Alpha",
+          "type": "number"
+        },
+        "censored_control": {
+          "title": "Censored Control",
+          "type": "integer"
+        },
+        "censored_treatment": {
+          "title": "Censored Treatment",
+          "type": "integer"
+        },
+        "excluded_device_off": {
+          "title": "Excluded Device Off",
+          "type": "integer"
+        },
+        "experiment_id": {
+          "title": "Experiment Id",
+          "type": "string"
+        },
+        "median_control_s": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Median Control S"
+        },
+        "median_treatment_s": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Median Treatment S"
+        },
+        "n_control": {
+          "title": "N Control",
+          "type": "integer"
+        },
+        "n_treatment": {
+          "title": "N Treatment",
+          "type": "integer"
+        },
+        "p_value": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "P Value"
+        },
+        "ratio": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "title": "Ratio"
+        },
+        "resolved_ms": {
+          "title": "Resolved Ms",
+          "type": "integer"
+        },
+        "seed_revealed": {
+          "pattern": "^[0-9a-f]{64}$",
+          "title": "Seed Revealed",
+          "type": "string"
+        },
+        "verdict": {
+          "enum": [
+            "supported",
+            "not_supported",
+            "insufficient"
+          ],
+          "title": "Verdict",
+          "type": "string"
+        }
+      },
+      "required": [
+        "experiment_id",
+        "resolved_ms",
+        "verdict",
+        "n_control",
+        "n_treatment",
+        "median_control_s",
+        "median_treatment_s",
+        "ratio",
+        "p_value",
+        "alpha",
+        "censored_control",
+        "censored_treatment",
+        "excluded_device_off",
+        "aborted_blocks",
+        "seed_revealed"
+      ],
+      "title": "Resolution",
+      "type": "object"
+    },
+    "ToolVerdict": {
+      "additionalProperties": false,
+      "properties": {
+        "detail": {
+          "maxLength": 400,
+          "title": "Detail",
+          "type": "string"
+        },
+        "name": {
+          "enum": [
+            "power",
+            "confounders",
+            "multiplicity",
+            "verifier",
+            "constitution"
+          ],
+          "title": "Name",
+          "type": "string"
+        },
+        "passed": {
+          "title": "Passed",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "name",
+        "passed",
+        "detail"
+      ],
+      "title": "ToolVerdict",
+      "type": "object"
+    },
+    "VetoRegret": {
+      "additionalProperties": false,
+      "properties": {
+        "items": {
+          "items": {
+            "$ref": "#/$defs/ExperimentRecord"
+          },
+          "title": "Items",
+          "type": "array"
+        },
+        "n_explored": {
+          "title": "N Explored",
+          "type": "integer"
+        },
+        "n_replicated": {
+          "title": "N Replicated",
+          "type": "integer"
+        }
+      },
+      "required": [
+        "n_explored",
+        "n_replicated",
+        "items"
+      ],
+      "title": "VetoRegret",
+      "type": "object"
+    }
+  },
+  "$id": "https://n-de-1.local/contracts/Report.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Reporte exportable (compartible con un profesional). Sin títulos ni textos del usuario.",
+  "properties": {
+    "disclaimer": {
+      "default": "Ajustes de flujo de trabajo medidos sobre una sola persona. No es tratamiento ni consejo médico.",
+      "title": "Disclaimer",
+      "type": "string"
+    },
+    "experiments": {
+      "items": {
+        "$ref": "#/$defs/ExperimentRecord"
+      },
+      "title": "Experiments",
+      "type": "array"
+    },
+    "generated_ms": {
+      "title": "Generated Ms",
+      "type": "integer"
+    },
+    "journal": {
+      "$ref": "#/$defs/JournalVerify"
+    },
+    "ledger": {
+      "items": {
+        "$ref": "#/$defs/LedgerEntry"
+      },
+      "title": "Ledger",
+      "type": "array"
+    },
+    "veto_regret": {
+      "$ref": "#/$defs/VetoRegret"
+    }
+  },
+  "required": [
+    "generated_ms",
+    "journal",
+    "experiments",
+    "ledger",
+    "veto_regret"
+  ],
+  "title": "Report",
+  "type": "object"
+}

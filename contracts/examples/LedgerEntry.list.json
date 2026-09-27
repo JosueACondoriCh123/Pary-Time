@@ -1,0 +1,30 @@
+[
+  {
+    "intervention": "retrasar_distracciones",
+    "alpha": 2.0,
+    "beta": 1.0,
+    "n_resolved": 1,
+    "n_supported": 1
+  },
+  {
+    "intervention": "abrir_trabajo",
+    "alpha": 1.0,
+    "beta": 1.0,
+    "n_resolved": 0,
+    "n_supported": 0
+  },
+  {
+    "intervention": "primer_paso",
+    "alpha": 1.0,
+    "beta": 1.0,
+    "n_resolved": 0,
+    "n_supported": 0
+  },
+  {
+    "intervention": "cuenta_regresiva",
+    "alpha": 1.0,
+    "beta": 1.0,
+    "n_resolved": 0,
+    "n_supported": 0
+  }
+]
