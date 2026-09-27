@@ -73,11 +73,14 @@ def assert_demo_dir(path: Path, roots: list[Path] | None = None) -> Path:
 
 
 def prepare(data_dir: Path, start_in_ms: int, arm: Arm, now_ms: int | None = None,
-            roots: list[Path] | None = None):
+            roots: list[Path] | None = None, label: str = "Demo en vivo",
+            first_step: str | None = None):
     """Crea el bloque confirmado. El brazo es el pedido: no sale de la lotería."""
     path = assert_demo_dir(data_dir, roots)
     if start_in_ms < 0:
         raise DemoDirError("--in no puede ser negativo")
+    if first_step and arm != Arm.primer_paso:
+        raise DemoDirError("--first-step solo vale con --arm primer_paso")
     lock = LoopLock(path / "core.lock")
     try:
         lock.acquire()
@@ -99,7 +102,7 @@ def prepare(data_dir: Path, start_in_ms: int, arm: Arm, now_ms: int | None = Non
                 planned_start_ms=start,
                 planned_minutes=25,
                 task_kind=TaskKind.otro,
-                task_label="Demo en vivo",
+                task_label=label,
                 target=Target(kind="none"),
                 work_matchers=[WorkMatcher(field="process", pattern="nde1-demo")],
             ))
@@ -114,6 +117,8 @@ def prepare(data_dir: Path, start_in_ms: int, arm: Arm, now_ms: int | None = Non
             append_typed(ctx.journal, "assignment", Assignment(
                 block_id=block.block_id, experiment_id=None, arm=arm, draw_index=None, assigned_ms=now,
             ))
+            if first_step:
+                service.store.set_first_step(block.block_id, first_step)
             view = service._view(service.store.get(block.block_id))
         finally:
             service.stop()
@@ -127,10 +132,13 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--data-dir", type=Path, required=True)
     parser.add_argument("--in", dest="start_in", required=True)
     parser.add_argument("--arm", required=True)
+    parser.add_argument("--label", default="Demo en vivo")
+    parser.add_argument("--first-step", default=None)
     args = parser.parse_args(argv)
     try:
         arm = Arm(args.arm)
-        view = prepare(args.data_dir, parse_in(args.start_in), arm)
+        view = prepare(args.data_dir, parse_in(args.start_in), arm, label=args.label,
+                       first_step=args.first_step)
     except (DemoDirError, ValueError) as exc:
         print(exc, file=sys.stderr)
         return 2
