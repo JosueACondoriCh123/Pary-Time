@@ -68,3 +68,6 @@ Adelantado mientras B1 trabaja. Todo va en archivos que el brief de B1 le prohí
 - **Estudio de potencia (semillas 1 a 10):** 9 de 10 apoyados con efecto ×0.5; ningún apoyado sin efecto.
 - **`demo-data`:** `--seed 11 --llm cache`, apoyado, con el consejo real. README público, capturas y guiones en `docs/hackathon/`.
 - **Pendiente:** `check_private.py` (A), el ensayo en vivo con WhatsApp y YouTube abiertos (Josué), el video, y hacer público el repo (Josué).
+- **Cierre de la hackathon (2026-09-27):**
+  - `check_private.py --history` da 0 errores. Los dos falsos positivos quedaron en la allowlist con su motivo: el email público de un mantenedor de npm en `package-lock.json` y la ruta falsa a propósito de `test_soak.py`. Quedan 33 avisos: rutas `C:\Users\HP` en los docs de coordinación (solo exponen el nombre de usuario de Windows) e imágenes, revisadas a mano.
+  - Hubo una edición directa en el working tree de `main` sobre `app/electron/main.ts` (endurecimiento del overlay, `isDestroyed`), que entró en `faffef2`. Se aceptó, pero cada agente tiene que escribir en su worktree.

@@ -67,6 +67,7 @@ class Council:
     client_factory: ClientFactory
     now_ms: Callable[[], int] = lambda: int(time.time() * 1000)
     new_id: Callable[[], str] = _hex12       # inyectable: la exploración se siembra con el run_id
+    new_seed: Callable[[], str] = lambda: secrets.token_hex(32)   # inyectable solo para simular reproducible
 
     def run(self) -> CouncilRun:
         s = self.settings()
@@ -139,7 +140,7 @@ class Council:
             return record(proposals, llm_used=llm_used, reason=reason or "todas las hipótesis fueron vetadas")
 
         # 4. Preregistro sellado ANTES del primer sorteo.
-        exp_id, seed = f"exp_{self.new_id()}", secrets.token_hex(32)
+        exp_id, seed = f"exp_{self.new_id()}", self.new_seed()
         self.seeds.save(exp_id, seed)
         run = record(proposals, chosen=exp_id, llm_used=llm_used, reason=reason)
         prereg = Preregistration(

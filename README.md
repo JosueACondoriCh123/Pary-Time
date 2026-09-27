@@ -28,9 +28,9 @@ se puede compartir con un profesional.
 |---|---|
 | ![Consejo](docs/hackathon/img/consejo.png) | ![Resultados](docs/hackathon/img/resultados.png) |
 
-*Capturas sobre datos SINTÉTICOS (`npm run shots`). A la izquierda, el verificador veta 3 hipótesis de Qwen por
-cifras inventadas ("47% de censura en lectura": era 0%). A la derecha, la semilla revelada coincide con el hash
-publicado antes del primer sorteo.*
+*Capturas sobre datos SINTÉTICOS (`npm run shots`). A la izquierda, el Scout propone 3 hipótesis, las 5
+herramientas del Red Team las revisan y se preregistra la elegida (N = 21 aunque el modelo prometa un efecto que
+pediría menos). A la derecha, la semilla revelada coincide con el hash publicado antes del primer sorteo.*
 
 ## Qué lo hace distinto
 Búsqueda del 2026-09-26, sin pretensión de exhaustividad:
@@ -52,27 +52,33 @@ mitad de tiempo).
 | | Resultado |
 |---|---|
 | Línea base | 1 semana de bloques de control |
-| Consejo | el Scout propone 3 hipótesis y las 3 pasan; se elige `cuenta_regresiva`, la de menor fricción |
+| Consejo | el Scout propone `primer_paso` (ratio 0.45), pasa el verificador y el Red Team, y se preregistra |
 | Preregistro | N = 21 por brazo (todo el presupuesto de 3 semanas), α = 0.024 (alpha-investing), hash de la semilla |
-| Resolución | latencia mediana **14.2 → 9.0 min**, ratio geométrico **0.53** (el efecto verdadero era 0.5), **p = 0.002 < α** |
-| Segunda reunión | el verificador veta las 3 hipótesis nuevas de Qwen por cifras inventadas; entra el respaldo |
-| Journal | 270 eventos, `verify` ok; cada asignación coincide con la semilla revelada |
+| Resolución | latencia mediana **13.8 → 11.0 min**, ratio dentro de franja **0.68**, **p = 0.021 < α = 0.024**: apoyado |
+| Segunda reunión | 3 hipótesis nuevas del Scout; se elige `cuenta_regresiva` y queda en curso |
+| Journal | 268 eventos, `verify` ok; cada asignación coincide con la semilla revelada |
 
 **Estudio de potencia** (`--llm off`, semillas 1 a 10, el mismo código):
 
 | Efecto verdadero | Apoyado |
 |---|---|
-| ×0.5 (con la intervención, la mitad de tiempo) | **9 de 10** (se diseñó para ≥ 80%) |
+| ×0.5 (con la intervención, la mitad de tiempo) | **8 de 10** (se diseñó para 80%) |
 | ×1.0 (sin efecto) | **0 de 5** (ningún falso descubrimiento) |
 
-La semilla 7 es el caso que falla con efecto real: la mediana baja de 18 a 6 min, p = 0.038, pero α es 0.024 y el
-veredicto preregistrado dice "no apoyado". El sistema no se autoengaña para darte una buena noticia.
+Las semillas 1 y 7 son los 2 de 10 que fallan con efecto real: la latencia baja, pero el test preregistrado con
+su α no alcanza y el veredicto dice "no apoyado". Es la potencia prometida, no un error: el sistema no se autoengaña
+para darte una buena noticia.
 
-**El simulador encontró un error nuestro.** El primer test preregistrado comparaba medianas agrupadas. Con mañanas
-lentas y tardes rápidas la latencia es bimodal, y la mediana caía en el hueco entre los dos grupos: un efecto
-verdadero de ×0.5 se medía como 0.88 (p = 0.27). Lo reemplazamos por un test que permuta **dentro de cada franja
-horaria** y compara la media de log-latencia (`permutation_meanlog_diff_stratified@2`). Mejor que te lo diga un
-simulador y no tu primer experimento real.
+**El simulador encontró tres errores nuestros**, antes de que le pasen a una persona real:
+1. **Medianas agrupadas:** el primer test comparaba medianas de todos los bloques juntos. Con mañanas lentas y tardes
+   rápidas la latencia es bimodal, y la mediana caía en el hueco entre los dos grupos: un ×0.5 verdadero se medía
+   como 0.88 (p = 0.27).
+2. **Desbalance por franja:** los bloques alternan mañana y tarde, y el sorteo en bloques de 4 puede cargar el
+   tratamiento de mañanas lentas. La media agrupada mezclaba franja con efecto (ratio 0.92 con un ×0.5 real). El test
+   actual (`permutation_meanlog_diff_stratified@2`) permuta **dentro de cada franja** y promedia las diferencias
+   **dentro de franja**, con pesos tipo Mantel-Haenszel.
+3. **Sorteo no reproducible:** la semilla del consejo salía de `secrets`, que es correcto en uso real pero hacía
+   irreproducible la simulación. Ahora es inyectable, y en la simulación está sembrada.
 
 ## Corrida real del consejo (Ollama local, RTX 4050 6 GB)
 - Qwen propuso 3 hipótesis en 37 s y Granite escribió el pre-mortem en 39 s. Las respuestas quedaron grabadas en

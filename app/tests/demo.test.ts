@@ -19,7 +19,7 @@ describe("frase del resultado", () => {
 
   it("apoyada: p < α", () => {
     expect(effectSentence({ ...res, ratio: 0.5, p_value: 0.01, alpha: 0.024 }, "Retrasar distracciones")).toBe(
-      "Con “Retrasar distracciones” arrancaste en la mitad de tiempo (p = 0.010 < α = 0.024): en vos, funciona.",
+      "Según el test preregistrado, con “Retrasar distracciones” arrancaste en la mitad de tiempo (p = 0.010 < α = 0.024): en vos, funciona.",
     );
   });
 

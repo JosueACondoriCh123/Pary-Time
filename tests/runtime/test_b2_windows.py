@@ -91,3 +91,89 @@ def test_a_dead_window_is_not_restored_after_a_crash(tmp_path, tk_window):
     assert saved_hwnd == hwnd and ops.pid_of(hwnd) == saved_pid
     assert not ops.restore(hwnd, saved_pid + 1)          # PID distinto: no la toca
     assert ops.is_minimized(hwnd)
+
+
+def _kill(proc):
+    if proc.poll() is None:
+        proc.kill()
+        proc.wait(10)
+
+
+def _launch(data_dir):
+    import os
+    env = os.environ.copy()
+    env.pop("NDE1_NO_DESKTOP", None)
+    env["NDE1_TOKEN"] = "t" * 43
+    root = str(__import__("pathlib").Path(__file__).resolve().parents[2])
+    return subprocess.Popen(
+        [sys.executable, "-m", "core", "--port", "0", "--data-dir", str(data_dir)],
+        cwd=root, env=env, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL, text=True,
+    )
+
+
+def test_terminate_process_then_relaunch_restores_and_journals_recovery(tmp_path, tk_window):
+    """Mata el núcleo con TerminateProcess y, al relanzarlo, la ventana propia vuelve y el journal dice recovery."""
+    from core.contracts import Assignment, BlockConfirmed, BlockCreate, Target, TaskKind, WorkMatcher
+    from core.interfaces import AppContext
+    from core.journal import Journal, append_typed
+    from core.runtime import build
+
+    title, hwnd, ops = tk_window
+    settings = settings_for(title)
+    (tmp_path / "settings.json").write_text(settings.model_dump_json(), encoding="utf-8")
+    now = time.time_ns() // 1_000_000
+    ctx = AppContext(Journal(tmp_path / "journal.jsonl"), lambda: settings, tmp_path)
+
+    class Clock:
+        def now_ms(self):
+            return now
+
+    service = build(ctx, Clock())
+    try:
+        created = service.create_block(BlockCreate(
+            local_date="2026-09-27", planned_start_ms=now - 3_000, planned_minutes=25,
+            task_kind=TaskKind.otro, task_label="caida", target=Target(kind="none"),
+            work_matchers=[WorkMatcher(field="process", pattern="nde1-demo")],
+        ))
+        service.store.mark_confirmed(created.block_id)
+        block = service.store.get(created.block_id).block
+        append_typed(ctx.journal, "block_confirmed", BlockConfirmed(
+            block_id=block.block_id, local_date=block.local_date, planned_start_ms=block.planned_start_ms,
+            planned_minutes=block.planned_minutes, task_kind=block.task_kind))
+        service.store.save_assignment(block.block_id, Arm.retrasar_distracciones, None, None, now)
+        append_typed(ctx.journal, "assignment", Assignment(
+            block_id=block.block_id, arm=Arm.retrasar_distracciones, experiment_id=None,
+            draw_index=None, assigned_ms=now))
+    finally:
+        service.stop()
+
+    first = _launch(tmp_path)
+    try:
+        minimized = False
+        for _ in range(80):
+            if ops.is_minimized(hwnd):
+                minimized = True
+                break
+            time.sleep(0.25)
+        assert minimized, "el núcleo no minimizó la ventana de prueba"
+    finally:
+        _kill(first)
+
+    second = _launch(tmp_path)
+    try:
+        recovered = None
+        deadline = time.time() + 20
+        while time.time() < deadline:
+            recovered = next((event["payload"] for event in Journal(tmp_path / "journal.jsonl").events()
+                              if event["kind"] == "intervention" and event["payload"]["reason"] == "recovery"),
+                             None)
+            if recovered:
+                break
+            time.sleep(0.25)
+        assert recovered is not None
+        assert recovered["action"] == "reverted" and recovered["n_windows"] >= 1
+        assert ops.pid_of(hwnd) is not None
+    finally:
+        _kill(second)
+    assert Journal(tmp_path / "journal.jsonl").verify() > 0
+

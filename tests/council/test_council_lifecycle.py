@@ -63,6 +63,8 @@ def simulate_runtime(journal, exps, n_blocks, treat_latency, control_latency, st
         bid = write_block(journal, start_index + k, day.replace(hour=9 if k % 2 == 0 else 15), "escritura", lat,
                           "other", arm=arm, experiment_id=exp.experiment_id, draw_index=k)
         exps.after_outcome(JournalView.load(journal).outcomes[bid])
+        if exp.experiment_id in JournalView.load(journal).resolutions:
+            break                                   # con N impar, los bloques de 4 pueden necesitar alguno más
     return exp
 
 
@@ -74,10 +76,10 @@ def test_full_lifecycle_resolves_at_n_and_reveals_the_committed_seed(council, ba
     prog = exps.progress()
     assert prog.n_control_done == prog.n_treatment_done == 0
     assert not {"p_value", "ratio", "median_control_s"} & set(prog.model_dump())     # sin efecto antes del N
-    simulate_runtime(baseline, exps, 2 * n, treat_latency=lambda k: 300.0 + k, control_latency=lambda k: 1500.0 + k)
+    simulate_runtime(baseline, exps, 2 * n + 8, treat_latency=lambda k: 300.0 + k, control_latency=lambda k: 1500.0 + k)
     view = JournalView.load(baseline)
     r = view.resolutions[exp.experiment_id]
-    assert r.verdict == "supported" and r.n_control == r.n_treatment == n
+    assert r.verdict == "supported" and min(r.n_control, r.n_treatment) == n
     assert seed_commitment(r.seed_revealed) == view.prereg(exp.experiment_id).seed_commitment
     assert exps.active() is None and exps.progress() is None
     led = {e.intervention: e for e in exps.ledger()}
@@ -90,7 +92,7 @@ def test_no_effect_is_not_supported(council, baseline):
     c.run()
     n = exps.active().n_per_arm
     same = lambda k: 900.0 + 37 * (k % 11)                   # nulo de verdad: la condición no cambia nada
-    simulate_runtime(baseline, exps, 2 * n, treat_latency=same, control_latency=same)
+    simulate_runtime(baseline, exps, 2 * n + 8, treat_latency=same, control_latency=same)
     r = list(JournalView.load(baseline).resolutions.values())[0]
     assert r.verdict == "not_supported" and r.p_value > r.alpha
 

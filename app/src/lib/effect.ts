@@ -17,7 +17,8 @@ export function effectSentence(res: Resolution, armLabel: string): string {
   if (res.verdict === "insufficient" || res.ratio === null || res.p_value === null) {
     return `Datos insuficientes para concluir algo sobre “${armLabel}”.`;
   }
-  const what = `Con “${armLabel}” arrancaste ${ratioWords(res.ratio)}`;
+  // El ratio es el efecto del test preregistrado (estratificado), no el cociente de las medianas crudas.
+  const what = `Según el test preregistrado, con “${armLabel}” arrancaste ${ratioWords(res.ratio)}`;
   if (res.verdict === "supported") {
     return `${what} (p = ${fmt(res.p_value)} < α = ${fmt(res.alpha)}): en vos, funciona.`;
   }

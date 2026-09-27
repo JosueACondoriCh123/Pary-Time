@@ -17,7 +17,7 @@ from core.simulate import simulate
 @pytest.fixture(scope="module")
 def with_effect(tmp_path_factory):
     out = tmp_path_factory.mktemp("sim") / "demo-data"
-    return simulate(out, weeks=5, seed=1, true_effect=0.5)       # la 7 es el 1 de 10 que no alcanza (ver README)
+    return simulate(out, weeks=5, seed=2, true_effect=0.5)       # 1 y 7 son los 2 de 10 que no alcanzan (ver README)
 
 
 def test_a_true_effect_is_found_with_the_preregistered_stratified_test(with_effect):

@@ -43,7 +43,7 @@ Cerrá la app. `npm run demo` (sobre `demo-data`) → **Experimento** → **Reun
   > porque necesitaría 5 semanas."
 - Si hay un ❌ del verificador:
   > "El modelo inventó una cifra y lo atrapamos."
-- En `demo-data` ya se ve en la segunda reunión: Qwen dijo "47% de censura en lectura" y era 0%.
+- Si no aparece, contá el caso real del README: Qwen escribió "47% de censura en lectura" y era 0%. El verificador lo vetó.
 - El preregistro muestra el hash de la semilla.
   > "Esto se sella **antes** del primer sorteo."
 
@@ -52,12 +52,12 @@ Eso también es parte del diseño.
 
 ## 4. Resultados de 5 semanas simuladas (40 s)
 **Resultados** → el experimento resuelto:
-- `cuenta_regresiva`: latencia mediana **14.2 → 9.0 min**, ratio **0.53**, **p = 0.002 < α = 0.024**;
+- `primer_paso`: latencia mediana **13.8 → 11.0 min**, ratio **0.68**, **p = 0.021 < α = 0.024**;
 - **"✅ el sorteo no se tocó"**: sha256 de la semilla revelada igual al compromiso, calculado en tu navegador;
 - el ledger y el veto regret.
 
-> "Estas 5 semanas las generó el **código real** con reloj acelerado y un efecto verdadero de 0.5. Recuperamos 0.53.
-> En 10 semillas lo detecta 9 veces, y con efecto cero no descubre nada. Además el simulador nos encontró un error: nuestro primer test perdía el efecto
+> "Estas 5 semanas las generó el **código real** con reloj acelerado y un efecto verdadero conocido. En 10 semillas
+> lo detecta 8 veces, que es la potencia para la que se diseñó, y con efecto cero no descubre nada. Además el simulador nos encontró un error: nuestro primer test perdía el efecto
 > al mezclar mañanas y tardes. Lo cambiamos antes de usarlo con una persona real."
 
 ## 5. Privacidad y límites (20 s)

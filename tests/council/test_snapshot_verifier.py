@@ -49,13 +49,15 @@ def test_prompt_size_is_capped_whatever_the_baseline_length(journal):
 def test_a_percentage_must_be_a_percentage_of_the_snapshot_not_any_number(baseline):
     """Caso real de qwen3.5:4b: "50% de escritura censurados" pasaba porque el 50 existía en otro lado."""
     snap = build_snapshot(JournalView.load(baseline))
-    count = snap.data["facts"]["all"]["n"]                       # un conteo, no un porcentaje
-    pcts = {v for g in snap.data["facts"].values() if isinstance(g, dict)
-            for f in ([g] if "n" in g else g.values()) for k, v in f.items() if k.startswith("pct_")}
-    assert count not in pcts
+    from core.council.verifier import allowed_numbers
+    pool = allowed_numbers(snap, hyp("x"))["pct_censored"]
+    # un conteo del snapshot que no está a menos de 1 punto de ningún % de censura (ni de su complemento)
+    counts = sorted({f["n"] for g in snap.data["facts"].values() if isinstance(g, dict)
+                     for f in ([g] if "n" in g else g.values())})
+    count = next(c for c in counts if all(abs(c - v) > 1 for v in pool))
     v = verify(hyp(f"El {count}% de los bloques se censuró."), snap)
     assert not v.passed and f"{count}%" in v.detail
-    assert verify(hyp(f"Hubo {count} bloques en la línea base."), snap).passed
+    assert verify(hyp(f"Hubo {count} bloques en ese grupo."), snap).passed
 
 
 def test_minutes_must_be_latencies_or_minutes_of_the_snapshot(baseline):
@@ -91,3 +93,11 @@ def test_equivalent_forms_of_real_numbers_are_not_inventions(baseline):
     ok = hyp(f"La primera ventana es distracción con fracción {frac}; el {comp}% de las mañanas no queda censurado. "
              "Bloquear apps hasta completar 15 min.")
     assert verify(ok, snap).passed, verify(ok, snap).detail
+
+
+def test_a_percentage_rounded_differently_is_not_an_invention(baseline):
+    """Caso real: el modelo calculó 8/13 = 61.5% y escribió 61; el snapshot guarda 62."""
+    snap = build_snapshot(JournalView.load(baseline))
+    pct = snap.data["facts"]["by_time_of_day"]["morning"]["pct_first_is_distraction"]
+    assert verify(hyp(f"La primera ventana es distracción en el {pct - 1}% de las mañanas."), snap).passed
+    assert not verify(hyp(f"La primera ventana es distracción en el {pct - 7}% de las mañanas."), snap).passed
