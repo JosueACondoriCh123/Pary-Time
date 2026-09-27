@@ -47,10 +47,10 @@ class SpanCompressor:
     Clock jumps never manufacture long stretches of work. After a backward jump,
     observations are ignored until wall time catches up to the persisted end.
     """
-    def __init__(self):
+    def __init__(self, not_before_ms: int | None = None):
         self._last: Sample | None = None
         self._current: ActivitySpan | None = None
-        self._high_water: int | None = None
+        self._high_water = not_before_ms
 
     def feed(self, sample: Sample) -> list[ActivitySpan]:
         updates: list[ActivitySpan] = []
@@ -143,7 +143,9 @@ class WindowsReader:
             return "?", "", True, True
         self.user.CloseDesktop(desktop)
         hwnd = self.gui.GetForegroundWindow()
-        idle = input_is_idle(self.api.GetTickCount(), self.api.GetLastInputInfo())
+        # Read input first: a keystroke between the calls must not look like a DWORD wrap.
+        last_input_ms = self.api.GetLastInputInfo()
+        idle = input_is_idle(self.api.GetTickCount(), last_input_ms)
         if not hwnd:
             return "?", "", idle, False
         _, pid = self.process.GetWindowThreadProcessId(hwnd)
@@ -157,7 +159,7 @@ class Sampler:
     def __init__(self, store: SpanStore, settings: Callable[[], Settings]):
         self.store, self.settings = store, settings
         self._reader: WindowsReader | None = None
-        self._compressor = SpanCompressor()
+        self._compressor: SpanCompressor | None = None
         self._lock = threading.RLock()
         self._stop = threading.Event()
         self._thread: threading.Thread | None = None
@@ -199,6 +201,23 @@ class Sampler:
         for span in spans:
             self.store.write(span)
 
+    def _ingest(self, sample: Sample) -> None:
+        """Persist an observation; also used to replay recorded samples against real SQLite.
+
+        Initialize lazily so building an app or exporting contracts opens no database.
+        The previous process may have persisted times later than the current wall clock.
+        """
+        with self._lock:
+            if self._compressor is None:
+                self._compressor = SpanCompressor(not_before_ms=self.store.latest_end_ms())
+            self._persist(self._compressor.feed(sample))
+            self.store.mark_sample(sample.wall_ms)
+            self._last_ok_mono = sample.monotonic_s
+
+    def _close_span(self) -> None:
+        if self._compressor is not None:
+            self._persist(self._compressor.close(time.time_ns() // 1_000_000, time.monotonic()))
+
     def maintain(self, wall_ms: int, monotonic_s: float) -> None:
         today = date.fromtimestamp(wall_ms / 1000)
         days = self.settings().raw_retention_days
@@ -218,9 +237,7 @@ class Sampler:
                     self._reader = WindowsReader()
                 state = self._reader.read()
             sample = Sample(wall_ms, mono, *state)
-            self._persist(self._compressor.feed(sample))
-            self.store.mark_sample(wall_ms)
-            self._last_ok_mono = mono
+            self._ingest(sample)
 
     def pause(self, minutes: int) -> None:
         if not 1 <= minutes <= 480:
@@ -231,12 +248,11 @@ class Sampler:
             self._pause_deadline = mono + minutes * 60
             self._pause_loaded = True
             self.store.set_metadata("paused_until_ms", self._paused_until_ms)
-            self._persist(self._compressor.feed(Sample(wall_ms, mono, "__paused__", "", True)))
-            self.store.mark_sample(wall_ms)
+            self._ingest(Sample(wall_ms, mono, "__paused__", "", True))
 
     def resume(self) -> None:
         with self._lock:
-            self._persist(self._compressor.close(time.time_ns() // 1_000_000, time.monotonic()))
+            self._close_span()
             self._paused_until_ms = self._pause_deadline = None
             self._pause_loaded = True
             self.store.set_metadata("paused_until_ms", None)
@@ -273,5 +289,5 @@ class Sampler:
             if self._thread.is_alive():
                 raise RuntimeError("activity sampler did not stop")
         with self._lock:
-            self._persist(self._compressor.close(time.time_ns() // 1_000_000, time.monotonic()))
+            self._close_span()
             self._thread = None

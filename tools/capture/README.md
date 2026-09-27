@@ -32,6 +32,27 @@ matchers, nunca nombres, rutas ni textos personales. `--settings ruta/settings.j
 permite usar los patrones personalizados del usuario. El sanitizador no sobrescribe
 archivos existentes ni imprime títulos, incluso si una línea tiene errores.
 
+## Reproducir un resultado de bloque
+
+Con la traza sanitizada y el bloque real en formato `Block` (incluidos sus matchers):
+
+```powershell
+..\.venv\Scripts\python.exe tools/capture/replay.py tests/fixtures/traces/dia1.jsonl --block data/runtime/bloque.json --output data/runtime/resultado.json
+```
+
+La salida es un `BlockOutcome`: no incluye títulos, matchers ni etiquetas de tarea.
+Por defecto, `now_ms` es el fin observado de la traza. Una captura corta queda
+`pending`; no se adelanta el reloj para fabricar una censura. Para reproducir una
+evaluación realizada en un instante conocido, agregá `--now-ms <epoch_en_ms>`.
+Usá `--settings ruta/settings.json` si el bloque empleó ajustes personalizados.
+
+Después de revisar el resultado, `--expect ruta/resultado.json` compara exactamente
+el resultado y devuelve código 1 si cambia. Esto permite convertir las futuras
+trazas reales de 2–3 días en regresiones reproducibles. El bloque local contiene
+textos privados: guardalo bajo `data/runtime/` (ignorado), no entre los fixtures.
+La sanitización y el replay rechazan tramos invertidos, desordenados o solapados
+antes de crear la salida; los huecos por suspensión sí son válidos.
+
 Para una prueba breve usá un nombre nuevo y `--seconds 5`. No confundas esa prueba
 con la captura de 2–3 días que requiere la validación del proyecto.
 
@@ -43,7 +64,9 @@ con la captura de 2–3 días que requiere la validación del proyecto.
   detectar un hueco se extrapola como máximo un segundo desde la última observación.
 - Huecos de más de 5 segundos o saltos entre reloj monotónico y reloj civil no se
   convierten en trabajo continuo. Tras un salto hacia atrás se omiten observaciones
-  hasta alcanzar el último timestamp guardado, evitando solapamientos.
+  hasta alcanzar el último timestamp guardado, incluso si se reinicia el proceso.
+  Los tramos persistidos solo pueden extenderse conservando su estado: no se pueden
+  acortar ni reclasificar por accidente.
 - No se manipulan ventanas, teclado ni mouse. La captura observa la ventana activa
   en cualquier monitor. Un proceso inaccesible se registra como `?`.
 - Los errores de muestreo se omiten y se informa solo su clase. Bajo `outcome@1`, los
