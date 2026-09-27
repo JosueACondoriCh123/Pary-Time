@@ -6,7 +6,7 @@
 | **C: Consejo y estadística** | Claude (sesión principal) | `n-de-1` / `main` | `core/council/`, `core/stats/`, `tests/council/`, `tests/stats/`, `data/cassettes/` |
 | **A: Sensor y resultado** | Externo 1 | `n-de-1/n-de-1-frente-a` / `frente-a` | `core/sensing/`, `tools/capture/`, `tests/sensing/`, `tests/fixtures/traces/`, y en la Fase 3 solo `packaging/sidecar.spec` |
 | **B1: Bloques y sorteo** | Externo 2 (ver `brief-b1.md`) | `n-de-1/n-de-1-frente-b` / `frente-b` | `core/runtime/`, `tests/runtime/` |
-| **B2: Scheduler e intervenciones** | Claude, cuando B1 esté mergeado | `n-de-1` / `main` | `core/runtime/`, `tests/runtime/` |
+| **B2: Scheduler e intervenciones** | Claude (hecho, 2026-09-27) | `n-de-1` / `main` | `core/runtime/`, `tests/runtime/` |
 | **D: App Electron** | Claude | `n-de-1/n-de-1-frente-d` / `frente-d` | `app/`, `packaging/` (salvo `sidecar.spec`) |
 
 ## Cambio de reparto (2026-09-26)

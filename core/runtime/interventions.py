@@ -68,6 +68,8 @@ def open_target(target: Target, opener: Opener | None = None) -> str | None:
 
 
 def _startfile(value: str) -> None:
+    if no_desktop():
+        raise OSError("NDE1_NO_DESKTOP: no se abren archivos reales")
     os.startfile(value)          # archivo, app o URL con la app predeterminada de Windows
 
 
@@ -154,7 +156,14 @@ class NoWindows:
         return False
 
 
+def no_desktop() -> bool:
+    """NDE1_NO_DESKTOP=1 (lo fija la suite de tests): no tocar ventanas ni abrir archivos reales."""
+    return os.environ.get("NDE1_NO_DESKTOP") == "1"
+
+
 def default_window_ops() -> WindowOps:
+    if no_desktop():
+        return NoWindows()
     try:
         return Win32Ops()
     except Exception as e:                                   # sin pywin32 o fuera de Windows

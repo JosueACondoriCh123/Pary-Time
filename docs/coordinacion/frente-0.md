@@ -47,3 +47,13 @@ Adelantado mientras B1 trabaja. Todo va en archivos que el brief de B1 le prohí
 - `core/runtime/overlay.py`: cuenta regresiva desde P − 3 min y primer paso. Se oculta con 60 s seguidos de trabajo.
 - Tests: `tests/runtime/test_b2_scheduler.py` (13) y `tests/runtime/test_b2_windows.py` (2, con una ventana Tk real, incluida una caída).
 - **Pendiente para el merge de B1:** adaptar `BlockRepo` al store real, conectar en `routes.py` las 4 rutas de Claude (`abort`, `overlay`, `status`, `emergency_release`) y armar el scheduler en `build(ctx)`.
+
+## Hito 1 (2026-09-27): completo
+- B1 mergeado (`merge frente-b`). B2 conectado al store real:
+  - `BlockStore.pending/set_status/set_aborted`;
+  - el adaptador `StoreRepo`;
+  - el scheduler armado en `RuntimeService.start()`, que primero recupera ventanas y después arranca el tick;
+  - las rutas `abort` (404/409), `overlay`, `status` y `emergency_release`.
+- Ya no quedan stubs 501. El test de stubs se reemplazó por `test_full_app_plans_confirms_runs_and_aborts_a_block_end_to_end`, que corre por HTTP con los 4 frentes montados.
+- `tests/conftest.py` fija `NDE1_NO_DESKTOP=1`: ningún test minimiza ventanas reales ni abre archivos. Solo `test_b2_windows.py` usa `Win32Ops`, y sobre su propia ventana Tk.
+- **La línea base real puede empezar:** planificar y confirmar bloques desde la app. Sin experimento activo, todo bloque es control y solo se mide.

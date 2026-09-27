@@ -1,4 +1,5 @@
-"""Frente B: runtime e intervenciones. Dueño: agente externo 2 (ver docs/coordinacion/brief-b1.md).
+"""Frente B: runtime e intervenciones. B1 (bloques y sorteo): externo 2. B2 (scheduler, intervenciones,
+overlay y recuperación): Claude.
 
 Contrato de `build(ctx)`: devuelve un servicio con `.router`, `.start()` y `.stop()`.
 La fase 1 guarda bloques, confirma el día y sella `block_confirmed` + `assignment`.
@@ -15,8 +16,35 @@ from core.contracts import (Arm, Assignment, Block, BlockConfirmed, BlockCreate,
 from core.interfaces import AppContext
 from core.journal import append_typed
 
+from .intervention_state import InterventionState
+from .interventions import WindowOps, default_window_ops
 from .routes import build_router
+from .scheduler import BlockNotActive, Scheduler
 from .store import BlockConflict, BlockInvalid, BlockNotFound, BlockStore, StoredBlock
+
+
+class StoreRepo:
+    """Adapta el `BlockStore` de B1 al protocolo `BlockRepo` del scheduler (B2)."""
+
+    def __init__(self, store: BlockStore):
+        self.store = store
+
+    def pending(self) -> list[Block]:
+        return [r.block for r in self.store.pending()]
+
+    def get(self, block_id: str) -> Block | None:
+        r = self.store.get(block_id)
+        return r.block if r else None
+
+    def arm(self, block_id: str) -> Arm | None:
+        r = self.store.get(block_id)
+        return r.arm if r else None
+
+    def set_status(self, block_id: str, status: BlockStatus) -> None:
+        self.store.set_status(block_id, status)
+
+    def set_aborted(self, block_id: str) -> None:
+        self.store.set_aborted(block_id)
 
 
 class SystemClock:
@@ -25,17 +53,41 @@ class SystemClock:
 
 
 class RuntimeService:
-    def __init__(self, ctx: AppContext, clock: SystemClock | None = None):
+    def __init__(self, ctx: AppContext, clock: SystemClock | None = None, windows: WindowOps | None = None):
         self.ctx = ctx
         self.clock = clock or SystemClock()
         self.store = BlockStore(ctx.data_dir / "runtime.sqlite")
+        self.scheduler = Scheduler(ctx, StoreRepo(self.store),
+                                   InterventionState(ctx.data_dir / "interventions.sqlite"),
+                                   windows or default_window_ops(), now_ms=self.clock.now_ms)
         self.router = build_router(self)
 
     def start(self) -> None:
-        return None
+        self.scheduler.start()              # restaura ventanas de una caída y arranca el tick
 
     def stop(self) -> None:
+        self.scheduler.stop()
         self.store.close()
+
+    # ---------------------------------------------------------------- B2: rutas de Claude
+
+    def abort_block(self, block_id: str) -> BlockView:
+        if self.store.get(block_id) is None:
+            raise BlockNotFound()
+        try:
+            self.scheduler.abort(block_id)
+        except BlockNotActive:
+            raise BlockConflict("solo se aborta un bloque confirmado que todavía no terminó") from None
+        return self._view(self.store.get(block_id))
+
+    def overlay(self):
+        return self.scheduler.overlay()
+
+    def status(self):
+        return self.scheduler.status()
+
+    def emergency_release(self):
+        return self.scheduler.emergency_release()
 
     def list_blocks(self, local_date: str) -> list[BlockView]:
         return [self._view(record) for record in self.store.list_day(local_date)]
@@ -138,5 +190,5 @@ def _draw_count(journal, experiment_id: str) -> int:
                and event["payload"].get("experiment_id") == experiment_id)
 
 
-def build(ctx: AppContext, clock: SystemClock | None = None) -> RuntimeService:
-    return RuntimeService(ctx, clock)
+def build(ctx: AppContext, clock: SystemClock | None = None, windows: WindowOps | None = None) -> RuntimeService:
+    return RuntimeService(ctx, clock, windows)

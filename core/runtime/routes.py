@@ -3,7 +3,6 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Query
 
-from core._stub import not_implemented
 from core.contracts import (BlockCreate, BlockUpdate, BlockView, ConfirmDay, FirstStep, OverlayState,
                             RuntimeStatus)
 
@@ -44,21 +43,21 @@ def build_router(service) -> APIRouter:
     @router.post("/blocks/{block_id}/abort", response_model=BlockView)
     def abort_block(block_id: str):
         """"Hoy no": revierte intervenciones y lo registra. El bloque sigue en el análisis (ITT)."""
-        not_implemented("B")
+        return _call(service.abort_block, block_id)
 
     @router.get("/runtime/overlay", response_model=OverlayState)
     def overlay():
-        not_implemented("B")
+        return service.overlay()
 
     @router.get("/runtime/status", response_model=RuntimeStatus)
     def status():
-        not_implemented("B")
+        return service.status()
 
     @router.post("/runtime/emergency_release", response_model=RuntimeStatus)
     def emergency_release():
         """Salida de emergencia: restaura todas las ventanas minimizadas y no vuelve a minimizar
         en el bloque actual."""
-        not_implemented("B")
+        return service.emergency_release()
 
     return router
 

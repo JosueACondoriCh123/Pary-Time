@@ -187,6 +187,31 @@ class BlockStore:
             row = db.execute("SELECT * FROM blocks WHERE block_id=?", (block_id,)).fetchone()
         return _record(row)
 
+    # ---------------------------------------------------------------- B2 (scheduler)
+
+    def pending(self) -> list[StoredBlock]:
+        """Bloques `confirmed` o `running` de cualquier fecha, en orden de inicio."""
+        with self._lock:
+            rows = self._connect().execute(
+                "SELECT * FROM blocks WHERE status IN (?, ?) ORDER BY planned_start_ms, block_id",
+                (BlockStatus.confirmed.value, BlockStatus.running.value)).fetchall()
+        return [_record(row) for row in rows]
+
+    def set_status(self, block_id: str, status: BlockStatus) -> None:
+        with self._lock:
+            db = self._connect()
+            with db:
+                if db.execute("UPDATE blocks SET status=? WHERE block_id=?",
+                              (status.value, block_id)).rowcount != 1:
+                    raise BlockNotFound()
+
+    def set_aborted(self, block_id: str) -> None:
+        with self._lock:
+            db = self._connect()
+            with db:
+                if db.execute("UPDATE blocks SET aborted=1 WHERE block_id=?", (block_id,)).rowcount != 1:
+                    raise BlockNotFound()
+
 
 def _block_values(block: Block) -> tuple:
     matchers = json.dumps([item.model_dump(mode="json") for item in block.work_matchers],
