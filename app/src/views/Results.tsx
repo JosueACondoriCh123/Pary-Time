@@ -101,7 +101,10 @@ function ExperimentCard({ rec, seedOk }: { rec: ExperimentRecord; seedOk: boolea
         <p className="disclaimer">{ANTI_SPY}</p>
       ) : (
         <>
-          <p className={`verdict big ${res.verdict}`}>{VERDICT_LABEL[res.verdict]}</p>
+          <div className="verdict-row">
+            <p className={`verdict big ${res.verdict}`}>{VERDICT_LABEL[res.verdict]}</p>
+            <SeedBadge ok={seedOk} />
+          </div>
           <p className="effect">{effectSentence(res, ARM_LABEL[h.intervention])}</p>
           <MedianBars
             control={res.median_control_s}
@@ -156,9 +159,19 @@ function MedianBars(props: { control: number | null; treatment: number | null; l
       {row("Sin intervención", props.control, "")}
       {row(props.label, props.treatment, "treat")}
       <span />
-      <span className="muted small">Mediana de cuánto tardaste en arrancar</span>
+      <span className="muted small">Medianas crudas de cuánto tardaste en arrancar (el test compara por franja horaria)</span>
       <span />
     </div>
+  );
+}
+
+/** Sello arriba de todo, visible sin scroll; la prueba paso a paso va más abajo. */
+function SeedBadge({ ok }: { ok: boolean | undefined }) {
+  if (ok === undefined) return <span className="seed-badge pending">verificando el sorteo…</span>;
+  return (
+    <a className={`seed-badge ${ok ? "ok" : "bad"}`} href="#seed-proof">
+      {ok ? "✅ el sorteo no se tocó" : "❌ el sorteo no verifica"}
+    </a>
   );
 }
 
@@ -175,7 +188,7 @@ function SeedProof(props: { commitment: string; committedMs: number; seed: strin
   }, [props.seed]);
   const state = props.ok === undefined ? "pending" : props.ok ? "ok" : "bad";
   return (
-    <div className={`seed-proof ${state}`}>
+    <div className={`seed-proof ${state}`} id="seed-proof">
       <h3>¿Se tocó el sorteo?</h3>
       <ol>
         <li>
