@@ -3,26 +3,27 @@
 > Solo el dueño del frente escribe este archivo. Actualizalo al terminar cada tarea.
 
 ## Estado
-- Fase actual: 1 entregada (2026-09-27). Scheduler, intervenciones, overlay y recuperación quedan para Claude (B2).
+- Fase actual: hackathon, demo en vivo (2026-09-27). B1 y B2 ya están en la rama. Esta tanda es la confiabilidad del guion en vivo.
 
 ## Hecho
-- `core/runtime/store.py`: SQLite en `data_dir/runtime.sqlite` con el bloque completo (campos LOCAL incluidos) y la asignación (`arm`, `experiment_id`, `draw_index`, `assigned_ms`). Una conexión con lock; los textos no salen de esta base.
-- Rutas `GET/POST/PATCH/DELETE /blocks`, `POST /blocks/confirm` y `POST /blocks/{id}/first_step`. `block_id = blk_` + 12 hex. Editar o cancelar solo en `planned` (si no, 409); cancelar deja `cancelled`.
-- Al confirmar, cada bloque `planned` del día (orden `planned_start_ms`) pasa a `confirmed`, escribe `block_confirmed` y enseguida `assignment`. Con experimento elegible, el brazo sale de `permuted_arm` y `draw_index` es la cantidad de `assignment` ya sellados de ese experimento. Sin experimento, o si el bloque no es elegible: `control`, `experiment_id` y `draw_index` en null, sin consumir índice.
-- `arm_revealed` queda en null hasta `planned_start_ms`. `primer_paso` se revela al confirmar y `needs_first_step` es true hasta `POST /blocks/{id}/first_step`. El reloj es el `clock` que recibe `build(ctx, clock)`; por defecto `time.time_ns()`.
-- `abort`, `/runtime/overlay`, `/runtime/status` y `/runtime/emergency_release` siguen en 501.
+- `tools/demo_live.py --data-dir demo-live --in 2m --arm retrasar_distracciones` crea un bloque confirmado con el brazo **forzado**. No llama a `permuted_arm`. Escribe `DATA_LABEL=sintetico` y se niega a usar `data/` del repo, la carpeta de la app instalada, un journal sin marcador, o un directorio cuyo núcleo sigue abierto.
+- En un directorio sintético, `retrasar_distracciones` muestra la cuenta regresiva (`arrancás en m:ss`) desde 3 min antes. Sin el marcador, ese brazo no muestra overlay.
+- WhatsApp de escritorio en esta compu es `WhatsApp.Root.exe` (no `WhatsApp.exe`) y puede estar cloaked. También entra `ApplicationFrameHost.exe` si el título dice WhatsApp, y un Chrome/Edge cloaked cuyo título ya es YouTube. La lista blanca de `whatsapp.exe` cubre esa familia. outcome@1 y el sorteo no se tocaron.
+- El overlay de Electron vuelve a pedir `screen-saver` al mostrarse y cada 1 s, para quedar arriba de un video a pantalla completa. La ventana sigue siendo de D; el cambio está en `app/electron/main.ts`.
 
 ## En curso
 
 ## Bloqueos
-- `pytest -q` del repo falla en `tests/integration/test_app.py::test_front_stubs_answer_501_until_implemented[get-/activity/today]`: el Frente A ya responde 200 y el test de la columna sigue esperando 501. No es código de B (`/runtime/status` sigue en 501). Lo tiene que actualizar el Frente 0.
+- Al ensayar, WhatsApp estaba en la bandeja (ninguna ventana visible). No lo abrí: volver a esconderlo sería `SW_HIDE`, y eso está prohibido. Con la ventana abierta, el filtro nuevo la toma.
+- YouTube no estaba abierto en Chrome ni en Edge. El caso cloaked + título `YouTube` queda cubierto por test, no por una ventana real.
 
 ## Pedidos de contrato
 <!-- Formato: fecha · qué cambiar exactamente · por qué. El Frente 0 responde acá abajo de cada pedido. -->
+- 2026-09-27 · `Settings.distraction_processes` incluye `WhatsApp.exe` y no `WhatsApp.Root.exe`. Lo resolví solo en la selección de ventanas de la intervención, sin cambiar el contrato ni `categorize`, para no mover outcome@1. Si el Frente 0 quiere el nombre nuevo en el default, es un pedido aparte.
 
 ## Cómo probar lo entregado
 ```powershell
 ..\.venv\Scripts\python -m pytest tests/runtime -q
-..\.venv\Scripts\python tools/export_contracts.py --check
+..\.venv\Scripts\python tools/demo_live.py --data-dir demo-live --in 2m --arm retrasar_distracciones
 ```
-`tests/runtime`: 8 tests. Cubren CRUD y 409/404, sorteo contra `permuted_arm`, `draw_index` entre dos días, línea base y bloques no elegibles, el par `block_confirmed` + `assignment`, privacidad del journal, revelación con reloj manual y `first_step`.
+Después, la app con `NDE1_DATA_DIR` en ese `demo-live`. El overlay aparece enseguida; a los 2 min se minimizan WhatsApp (ventana abierta) y YouTube en Chrome o Edge. "Salida de emergencia" los restaura.
