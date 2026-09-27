@@ -3,10 +3,12 @@
 > Solo el dueño del frente escribe este archivo. Actualizalo al terminar cada tarea.
 
 ## Estado
-- 2026-09-26: implementación de Fases 1 y 2 disponible; validación con trazas largas reales pendiente.
-- Fase 3: sidecar construido y probado en Windows después de integrar C. Listo para revisión/merge del Frente 0.
+- 2026-09-27: Fase 2 reforzada con recuperación del sensor, regresión real breve y replay de trazas.
+  Sigue pendiente la validación con 2–3 días reales de Josué; no se da por cumplida con la captura breve.
+- La entrega inicial `a060e33` ya fue integrada por el Frente 0 (Hito 1).
+- Fase 3: sidecar reconstruido con las correcciones de Fase 2 y verificado en Windows.
 - Worktree real: `C:\Users\HP\Documents\n-de-1\n-de-1-frente-a`, rama `frente-a`.
-- Integrado `main` hasta `4f6ab9d`, incluida la entrega de C; reparada la referencia Git que seguía apuntando a la carpeta hermana.
+- Base de esta continuación: `main@121b372`, con A, C, D y las cuatro respuestas del Frente 0 incorporadas.
 
 ## Hecho
 - Sensor a 1 Hz con Win32, cierre de handles, nombres de proceso mediante acceso limitado, títulos acotados,
@@ -26,13 +28,26 @@
   `console=True` mantiene stdout para `NDE1_READY`; Electron lo debe lanzar con `windowsHide: true`.
   También se incluyen los prompts Markdown de C; sin esos recursos el consejo empaquetado no podría leerlos.
 
+## Refuerzos de la Fase 2 (2026-09-27)
+- Al reiniciar, el compresor recupera el último fin persistido desde SQLite. Si el reloj retrocedió,
+  espera a alcanzar ese límite: no inserta filas solapadas ni sustituye trabajo ya observado.
+- SQLite acepta extensiones de un tramo manteniendo su estado; rechaza acortarlo o reclasificarlo.
+- La lectura de inactividad obtiene primero `GetLastInputInfo` y después `GetTickCount`, para que un
+  input entre ambas llamadas no se interprete como un desbordamiento del contador DWORD.
+- Se verifica el borrado al arrancar también sobre los bytes del SQLite, usando un título sintético.
+- `tools/capture/replay.py` evalúa un bloque local contra una traza y emite únicamente `BlockOutcome`.
+  Usa el fin observado como `now_ms` por defecto; permite comparar con un resultado revisado usando `--expect`.
+- Sanitización y replay comparten validación cronológica: rechazan tramos invertidos, desordenados o
+  solapados sin publicar el contenido privado ni dejar un fixture parcial.
+- Captura real de Windows de 20 segundos, sanitizada sin keep-list: `phase2-windows-20260927.jsonl`.
+  Contiene inactividad, no arranque de trabajo. Su resultado revisado es `pending` para un bloque de prueba.
+  La procedencia y el alcance se documentan en `tests/fixtures/traces/README.md`.
+
 ## En curso
 - Ninguna captura prolongada en ejecución. Siguiente hito: trazas reales y revisión del Frente 0.
 
 ## Bloqueos
 - Faltan las trazas de 2–3 días de Josué. Los fixtures sintéticos no sustituyen esa validación.
-- La suite general tiene una expectativa de Fase 0 obsoleta: `tests/integration/test_app.py` parametriza
-  `/activity/today` como stub 501; A ya responde 200. Se deja intacta por pertenecer al Frente 0.
 
 ## Pedidos de contrato
 <!-- Formato: fecha · qué cambiar exactamente · por qué. El Frente 0 responde acá abajo de cada pedido. -->
@@ -64,15 +79,16 @@
   equipo apagado: no se agregó un estado fuera de contrato.
 
 ## Cómo probar lo entregado
-- Resultados sobre `main@4f6ab9d` + A: **158 passed, 3 skipped, 1 failed**, por el stub obsoleto descrito arriba.
-  Los skips son dos pruebas de Ollama optativas y el smoke del ejecutable, que se habilita por variable de entorno.
+- Suite general de esta continuación: **175 passed, 2 skipped**, sin fallos.
+  Los skips son la prueba live de Ollama y el smoke del ejecutable, que se habilitan explícitamente.
 - `tools/export_contracts.py --check`: correcto. No se editaron contratos desde A.
-- Frente A: **62 pruebas aprobadas**, contando el smoke del ejecutable habilitado explícitamente.
-  El sidecar reconstruido con C pasó arranque HTTP, verificación del journal, interrupción/reinicio,
-  conservación de pausa y presencia de los prompts. La prueba usa una carpeta temporal y no deja procesos activos.
+- Frente A en fuentes: **76 passed, 1 skipped**. La regresión real breve está incluida.
+  Smoke del sidecar final: **1 passed**, con arranque HTTP, journal, interrupción/reinicio, pausa y prompts,
+  sobre una carpeta temporal, sin dejar procesos activos. Se inspeccionó además el bytecode empaquetado
+  para confirmar que contiene el último orden de lectura de inactividad.
 - Desde esta subcarpeta: `..\.venv\Scripts\python.exe -m pytest -q tests/sensing`.
 - Contratos: `..\.venv\Scripts\python.exe tools/export_contracts.py --check`.
-- Suite completa: `..\.venv\Scripts\python.exe -m pytest -q` (ver expectativa 501 pendiente arriba).
+- Suite completa: `..\.venv\Scripts\python.exe -m pytest -q`.
 - Captura y sanitización: ver `tools/capture/README.md`. No se deja captura de días ejecutándose sin supervisión.
 - Empaquetado: `python -m PyInstaller --noconfirm packaging/sidecar.spec` en un entorno con PyInstaller.
 - En este worktree se instaló PyInstaller 6.22.3 solo bajo `.venv/Lib/site-packages` (ignorado), sin tocar
@@ -80,7 +96,7 @@
 
 ```powershell
 $env:PYTHONPATH = (Resolve-Path .venv/Lib/site-packages).Path
-..\.venv\Scripts\python.exe -m PyInstaller --noconfirm packaging/sidecar.spec
+..\.venv\Scripts\python.exe -m PyInstaller --noconfirm --workpath build/phase2-final packaging/sidecar.spec
 $env:NDE1_SIDECAR_EXE = (Resolve-Path dist/nde1-core/nde1-core.exe).Path
 ..\.venv\Scripts\python.exe -m pytest tests/sensing/test_sidecar.py -o addopts='' -q
 ```

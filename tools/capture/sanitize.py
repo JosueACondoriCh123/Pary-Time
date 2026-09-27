@@ -11,6 +11,7 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from core.contracts import ActivitySpan, Settings
+from tools.capture.trace import load_trace
 
 
 def sanitize_span(span: ActivitySpan, keep: list[str], settings: Settings) -> ActivitySpan:
@@ -29,18 +30,7 @@ def sanitize_file(source: Path, destination: Path, keep: list[str], settings: Se
     if destination.name.endswith(".raw.jsonl"):
         raise ValueError("sanitized output must not use the raw suffix")
     # Validate all rows before creating the result: no partial fixtures after bad input.
-    sanitized = []
-    with source.open(encoding="utf-8-sig") as stream:
-        for number, line in enumerate(stream, 1):
-            if not line.strip():
-                continue
-            try:
-                span = ActivitySpan.model_validate_json(line)
-                if span.end_ms <= span.start_ms:
-                    raise ValueError()
-            except (ValueError, TypeError):
-                raise ValueError(f"invalid activity span at line {number}") from None
-            sanitized.append(sanitize_span(span, keep, settings))
+    sanitized = [sanitize_span(span, keep, settings) for span in load_trace(source)]
     destination.parent.mkdir(parents=True, exist_ok=True)
     with destination.open("x", encoding="utf-8", newline="\n") as output:
         for span in sanitized:

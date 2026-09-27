@@ -39,6 +39,21 @@ def test_extensions_and_no_overlapping_rows(tmp_path):
         store.close()
 
 
+@pytest.mark.parametrize("replacement", [span(0, 5), span(0, 20, "Discord.exe", ""),
+                                          span(0, 20, idle=True), span(0, 20, title="tesis")])
+def test_persisted_observations_cannot_be_shortened_or_reclassified(tmp_path, replacement):
+    store = SpanStore(tmp_path / "activity.sqlite")
+    try:
+        original = span(0, 10)
+        store.write(original)
+        with pytest.raises(ValueError, match="may only be extended"):
+            store.write(replacement)
+        assert store.spans(P, P + 30000) == [original]
+        assert store.latest_end_ms() == P + 10000
+    finally:
+        store.close()
+
+
 def test_retention_clips_old_rows_and_does_not_resurrect_them(tmp_path):
     store = SpanStore(tmp_path / "activity.sqlite")
     try:

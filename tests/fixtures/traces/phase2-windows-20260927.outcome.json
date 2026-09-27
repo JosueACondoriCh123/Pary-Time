@@ -1,0 +1,16 @@
+{
+  "block_id": "blk_a1b2c3d4e5f6",
+  "status": "pending",
+  "latency_s": null,
+  "censored": false,
+  "work_run_start_ms": null,
+  "features": {
+    "pre_start_switches": 0,
+    "first_category": "other",
+    "distraction_s_before_start": 0,
+    "sensor_coverage": 0.003703703703703704,
+    "started_early": false
+  },
+  "rules_version": "outcome@1",
+  "computed_ms": 1790506465886
+}

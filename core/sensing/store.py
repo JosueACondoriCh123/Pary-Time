@@ -49,6 +49,12 @@ class SpanStore:
                 ).fetchone()
                 if overlap:
                     raise ValueError("activity spans must not overlap")
+                existing = db.execute(
+                    "SELECT end_ms,process,title,idle,locked FROM spans WHERE start_ms=?", (start,),
+                ).fetchone()
+                if existing and (span.end_ms < existing[0]
+                                 or (span.process, span.title, span.idle, span.locked) != existing[1:]):
+                    raise ValueError("persisted activity may only be extended without changing its state")
                 db.execute("""INSERT INTO spans VALUES (?, ?, ?, ?, ?, ?)
                     ON CONFLICT(start_ms) DO UPDATE SET end_ms=excluded.end_ms,
                         process=excluded.process, title=excluded.title,
@@ -64,6 +70,13 @@ class SpanStore:
 
     def last_sample_ms(self) -> int | None:
         return self.metadata("last_sample_ms")
+
+    def latest_end_ms(self) -> int | None:
+        """Recovery boundary for a new compressor, including after a wall-clock rollback."""
+        with self._lock:
+            row = self._connect().execute(
+                "SELECT end_ms FROM spans ORDER BY end_ms DESC LIMIT 1").fetchone()
+            return row[0] if row else None
 
     def metadata(self, key: str) -> int | None:
         with self._lock:

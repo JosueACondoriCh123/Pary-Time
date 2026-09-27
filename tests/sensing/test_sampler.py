@@ -60,6 +60,43 @@ def test_backward_clock_jump_never_produces_overlaps():
     assert rows == [span(100, 101), span(102, 103)]
 
 
+def test_clock_rollback_after_restart_does_not_overwrite_recorded_work(tmp_path):
+    path = tmp_path / "activity.sqlite"
+    store = SpanStore(path)
+    store.write(span(100, 110))
+    store.mark_sample(P + 110000)
+    store.close()
+    reopened = SpanStore(path)
+    sampler = Sampler(reopened, Settings)
+    try:
+        # Replay a new process starting before a persisted span, then catching up.
+        for index, seconds in enumerate((50, 51, 100, 101, 109, 110, 111)):
+            sampler._ingest(sample(seconds, index, process="notepad.exe", title=""))
+        rows = reopened.spans(P, P + 120000)
+        assert rows == [span(100, 110), span(110, 111, "notepad.exe", "")]
+        assert reopened.last_sample_ms() == P + 111000
+    finally:
+        reopened.close()
+
+
+def test_restarted_sensor_preserves_the_unobserved_gap(tmp_path):
+    path = tmp_path / "activity.sqlite"
+    store = SpanStore(path)
+    first = Sampler(store, Settings)
+    first._ingest(sample(0))
+    first._ingest(sample(1))
+    # Simulate process loss by reopening the persisted DB without flushing the compressor.
+    store.close()
+    reopened = SpanStore(path)
+    second = Sampler(reopened, Settings)
+    try:
+        second._ingest(sample(500, 0))
+        second._ingest(sample(501, 1))
+        assert reopened.spans(P, P + 600000) == [span(0, 1), span(500, 501)]
+    finally:
+        reopened.close()
+
+
 def test_shutdown_after_suspend_does_not_fill_the_suspend():
     rows = replay([sample(0), sample(1)], (3600, 3600))
     assert rows == [span(0, 2)]
@@ -113,6 +150,30 @@ def test_privacy_pause_survives_a_sidecar_restart(tmp_path):
         assert reopened.metadata("paused_until_ms") is None
     finally:
         reopened.close()
+
+
+def test_startup_retention_removes_expired_rows_and_raw_title_bytes(tmp_path):
+    from core.contracts import ActivitySpan
+    now = time.time_ns() // 1_000_000
+    day = 86400000
+    path = tmp_path / "activity.sqlite"
+    marker = "expired-synthetic-window-caption"
+    store = SpanStore(path)
+    store.write(ActivitySpan(start_ms=now - 20 * day, end_ms=now - 19 * day,
+                             process="notepad.exe", title=marker, idle=False))
+    store.close()
+    reopened = SpanStore(path)
+    sampler = Sampler(reopened, Settings)
+    try:
+        sampler.pause(1)  # No native titles are read during this test.
+        sampler.start()
+        assert reopened.spans(now - 30 * day, now - day) == []
+    finally:
+        sampler.stop()
+        reopened.close()
+    # Compare a boolean, so a failing assertion cannot dump private SQLite contents.
+    old_caption_remains = marker.encode() in path.read_bytes()
+    assert old_caption_remains is False
 
 
 @pytest.mark.windows
