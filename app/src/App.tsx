@@ -2,6 +2,7 @@ import { useEffect, useState, type ReactNode } from "react";
 import type { NavTarget } from "./bridge";
 import { FIXTURES, useCore, useLoad } from "./core";
 import { Experiment } from "./views/Experiment";
+import { History } from "./views/History";
 import { Planner } from "./views/Planner";
 import { ReportView } from "./views/ReportView";
 import { Results } from "./views/Results";
@@ -10,6 +11,7 @@ import { Today } from "./views/Today";
 
 const NAV: { id: NavTarget; label: string }[] = [
   { id: "today", label: "Hoy" },
+  { id: "history", label: "Mi tiempo" },
   { id: "planner", label: "Planificar" },
   { id: "experiment", label: "Experimento" },
   { id: "results", label: "Resultados" },
@@ -19,6 +21,7 @@ const NAV: { id: NavTarget; label: string }[] = [
 
 const VIEWS: Record<NavTarget, () => ReactNode> = {
   today: () => <Today />,
+  history: () => <History />,
   planner: () => <Planner />,
   experiment: () => <Experiment />,
   results: () => <Results />,

@@ -117,6 +117,9 @@ class AppContext:
     evaluate_block: EvaluateBlock | None = None
     categorize: Categorize | None = None
     experiments: ExperimentProvider | None = None
+    # Bloques (no cancelados) de un día local, con sus reglas de trabajo LOCALES. Lo arma core/app.py desde el
+    # store del runtime; lo usa core/insights para saber qué tiempo fue "trabajo en bloques".
+    blocks_on: Callable[[str], list[Block]] | None = None
 
 
 class FrontService(Protocol):

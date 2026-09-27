@@ -1,0 +1,23 @@
+{
+  "$id": "https://n-de-1.local/contracts/SiteUsage.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Solo el patrón de distracción que coincidió (p.ej. \"youtube\"), nunca el título.",
+  "properties": {
+    "minutes": {
+      "title": "Minutes",
+      "type": "integer"
+    },
+    "site": {
+      "maxLength": 60,
+      "title": "Site",
+      "type": "string"
+    }
+  },
+  "required": [
+    "site",
+    "minutes"
+  ],
+  "title": "SiteUsage",
+  "type": "object"
+}

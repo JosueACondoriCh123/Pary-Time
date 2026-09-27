@@ -109,6 +109,7 @@ export function fixturesApi(): Api {
       return delay(settings);
     },
     activityToday: () => delay(example("ActivitySummary")),
+    activityHistory: () => delay(example("ActivityHistory")),
     pauseSensor: (minutes) =>
       delay({ ...example<object>("ActivitySummary"), paused_until_ms: Date.now() + minutes * 60_000 } as never),
     resumeSensor: () => delay(example("ActivitySummary")),

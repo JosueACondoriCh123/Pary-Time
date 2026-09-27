@@ -1,0 +1,225 @@
+{
+  "$defs": {
+    "AppUsage": {
+      "additionalProperties": false,
+      "description": "Por proceso (nombre del ejecutable). Nunca títulos de ventana.",
+      "properties": {
+        "category": {
+          "description": "categoría donde más tiempo pasó",
+          "enum": [
+            "work",
+            "distraction",
+            "other",
+            "idle",
+            "paused"
+          ],
+          "title": "Category",
+          "type": "string"
+        },
+        "minutes": {
+          "title": "Minutes",
+          "type": "integer"
+        },
+        "process": {
+          "maxLength": 260,
+          "title": "Process",
+          "type": "string"
+        },
+        "share": {
+          "description": "fracción del tiempo activo del rango",
+          "maximum": 1,
+          "minimum": 0,
+          "title": "Share",
+          "type": "number"
+        }
+      },
+      "required": [
+        "process",
+        "minutes",
+        "share",
+        "category"
+      ],
+      "title": "AppUsage",
+      "type": "object"
+    },
+    "DayUsage": {
+      "additionalProperties": false,
+      "properties": {
+        "active_minutes": {
+          "description": "work + distraction + other",
+          "title": "Active Minutes",
+          "type": "integer"
+        },
+        "local_date": {
+          "title": "Local Date",
+          "type": "string"
+        },
+        "minutes_by_category": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "description": "claves de UsageCategory",
+          "title": "Minutes By Category",
+          "type": "object"
+        }
+      },
+      "required": [
+        "local_date",
+        "minutes_by_category",
+        "active_minutes"
+      ],
+      "title": "DayUsage",
+      "type": "object"
+    },
+    "HourUsage": {
+      "additionalProperties": false,
+      "properties": {
+        "hour": {
+          "description": "hora local del día",
+          "maximum": 23,
+          "minimum": 0,
+          "title": "Hour",
+          "type": "integer"
+        },
+        "minutes_by_category": {
+          "additionalProperties": {
+            "type": "integer"
+          },
+          "title": "Minutes By Category",
+          "type": "object"
+        }
+      },
+      "required": [
+        "hour",
+        "minutes_by_category"
+      ],
+      "title": "HourUsage",
+      "type": "object"
+    },
+    "SiteUsage": {
+      "additionalProperties": false,
+      "description": "Solo el patrón de distracción que coincidió (p.ej. \"youtube\"), nunca el título.",
+      "properties": {
+        "minutes": {
+          "title": "Minutes",
+          "type": "integer"
+        },
+        "site": {
+          "maxLength": 60,
+          "title": "Site",
+          "type": "string"
+        }
+      },
+      "required": [
+        "site",
+        "minutes"
+      ],
+      "title": "SiteUsage",
+      "type": "object"
+    }
+  },
+  "$id": "https://n-de-1.local/contracts/ActivityHistory.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Agregados del rango [from_date, to_date] (fechas locales, inclusive). Hasta `retention_days` hacia atrás:\nlos tramos crudos del sensor se borran después (privacidad).",
+  "properties": {
+    "active_minutes": {
+      "title": "Active Minutes",
+      "type": "integer"
+    },
+    "apps": {
+      "description": "las 15 con más tiempo activo",
+      "items": {
+        "$ref": "#/$defs/AppUsage"
+      },
+      "title": "Apps",
+      "type": "array"
+    },
+    "days": {
+      "items": {
+        "$ref": "#/$defs/DayUsage"
+      },
+      "title": "Days",
+      "type": "array"
+    },
+    "distraction_share": {
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Distraction Share",
+      "type": "number"
+    },
+    "from_date": {
+      "title": "From Date",
+      "type": "string"
+    },
+    "generated_ms": {
+      "title": "Generated Ms",
+      "type": "integer"
+    },
+    "hours": {
+      "description": "24 franjas, sumadas sobre todos los días del rango",
+      "items": {
+        "$ref": "#/$defs/HourUsage"
+      },
+      "title": "Hours",
+      "type": "array"
+    },
+    "longest_focus_min": {
+      "description": "tramo más largo en una misma app sin inactividad",
+      "title": "Longest Focus Min",
+      "type": "integer"
+    },
+    "retention_days": {
+      "title": "Retention Days",
+      "type": "integer"
+    },
+    "sites": {
+      "items": {
+        "$ref": "#/$defs/SiteUsage"
+      },
+      "title": "Sites",
+      "type": "array"
+    },
+    "switches_per_hour": {
+      "description": "cambios de app por hora activa",
+      "title": "Switches Per Hour",
+      "type": "number"
+    },
+    "to_date": {
+      "title": "To Date",
+      "type": "string"
+    },
+    "totals": {
+      "additionalProperties": {
+        "type": "integer"
+      },
+      "title": "Totals",
+      "type": "object"
+    },
+    "work_share": {
+      "description": "trabajo dentro de bloques declarados / tiempo activo",
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Work Share",
+      "type": "number"
+    }
+  },
+  "required": [
+    "from_date",
+    "to_date",
+    "days",
+    "hours",
+    "apps",
+    "sites",
+    "totals",
+    "active_minutes",
+    "distraction_share",
+    "work_share",
+    "longest_focus_min",
+    "switches_per_hour",
+    "retention_days",
+    "generated_ms"
+  ],
+  "title": "ActivityHistory",
+  "type": "object"
+}

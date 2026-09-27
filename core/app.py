@@ -12,7 +12,7 @@ from pathlib import Path
 from fastapi import Depends, FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
-from core import council, runtime, sensing
+from core import council, insights, runtime, sensing
 from core.contracts import CONTRACTS_VERSION, Health, JournalVerify, Settings
 from core.interfaces import AppContext
 from core.journal import AGENT_VERSION, Journal, JournalError, LoopLock, append_typed
@@ -58,7 +58,9 @@ def create_app(data_dir: Path, token: str | None = None) -> FastAPI:
     s_c = council.build(ctx)
     ctx.experiments = s_c.experiments
     s_b = runtime.build(ctx)
-    services = [s_a, s_c, s_b]            # arranque en este orden, parada al revés
+    ctx.blocks_on = lambda day: [r.block for r in s_b.store.list_day(day) if r.block.status.value != "cancelled"]
+    s_i = insights.build(ctx)
+    services = [s_a, s_c, s_b, s_i]       # arranque en este orden, parada al revés
 
     @asynccontextmanager
     async def lifespan(app: FastAPI):

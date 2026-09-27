@@ -1,0 +1,44 @@
+{
+  "$id": "https://n-de-1.local/contracts/AppUsage.schema.json",
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "additionalProperties": false,
+  "description": "Por proceso (nombre del ejecutable). Nunca títulos de ventana.",
+  "properties": {
+    "category": {
+      "description": "categoría donde más tiempo pasó",
+      "enum": [
+        "work",
+        "distraction",
+        "other",
+        "idle",
+        "paused"
+      ],
+      "title": "Category",
+      "type": "string"
+    },
+    "minutes": {
+      "title": "Minutes",
+      "type": "integer"
+    },
+    "process": {
+      "maxLength": 260,
+      "title": "Process",
+      "type": "string"
+    },
+    "share": {
+      "description": "fracción del tiempo activo del rango",
+      "maximum": 1,
+      "minimum": 0,
+      "title": "Share",
+      "type": "number"
+    }
+  },
+  "required": [
+    "process",
+    "minutes",
+    "share",
+    "category"
+  ],
+  "title": "AppUsage",
+  "type": "object"
+}
