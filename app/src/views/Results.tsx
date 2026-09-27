@@ -3,11 +3,13 @@ import { useEffect, useState } from "react";
 import type { ExperimentRecord, LedgerEntry } from "../contracts";
 import { useLoad } from "../core";
 import { betaCurve, betaMean } from "../lib/beta";
-import { ARM_LABEL, moderatorText } from "../lib/labels";
+import { effectSentence } from "../lib/effect";
+import { ARM_LABEL } from "../lib/labels";
 import { VERDICT_LABEL } from "../lib/report";
-import { verifySeed } from "../lib/seed";
+import { hexToBytes, sha256Hex, verifySeed } from "../lib/seed";
 import { dateTime, duration } from "../lib/time";
 import { Card, Disclaimer, ErrorNote } from "../ui";
+import { hypothesisText } from "./Council";
 import { ANTI_SPY } from "./Experiment";
 
 /** Verifica la semilla de cada experimento resuelto. Clave: experiment_id. */
@@ -94,29 +96,27 @@ function ExperimentCard({ rec, seedOk }: { rec: ExperimentRecord; seedOk: boolea
   return (
     <Card>
       <p className="muted small">Preregistrado el {dateTime(pre.created_ms)}</p>
-      <h2>
-        {ARM_LABEL[h.intervention]} <span className="muted">{moderatorText(h.moderator)}</span>
-      </h2>
-      <p className="muted small">{h.rationale}</p>
+      <h2>{hypothesisText(h)}</h2>
       {!res ? (
         <p className="disclaimer">{ANTI_SPY}</p>
       ) : (
         <>
-          <p className={`verdict ${res.verdict}`}>{VERDICT_LABEL[res.verdict]}</p>
+          <p className={`verdict big ${res.verdict}`}>{VERDICT_LABEL[res.verdict]}</p>
+          <p className="effect">{effectSentence(res, ARM_LABEL[h.intervention])}</p>
+          <MedianBars
+            control={res.median_control_s}
+            treatment={res.median_treatment_s}
+            label={ARM_LABEL[h.intervention]}
+          />
+          <p className="pline">
+            p = <strong>{res.p_value?.toFixed(3) ?? "—"}</strong>{" "}
+            {res.p_value !== null && res.p_value <= res.alpha ? "≤" : ">"} α = {res.alpha.toFixed(3)}
+            <span className="muted small"> · test de permutación preregistrado, a una cola</span>
+          </p>
           <dl className="kv">
-            <dt>Mediana sin intervención</dt>
-            <dd>{res.median_control_s === null ? "—" : duration(res.median_control_s)}</dd>
-            <dt>Mediana con intervención</dt>
-            <dd>{res.median_treatment_s === null ? "—" : duration(res.median_treatment_s)}</dd>
-            <dt>Ratio</dt>
-            <dd>{res.ratio?.toFixed(2) ?? "—"}</dd>
-            <dt>p / α</dt>
-            <dd>
-              {res.p_value?.toFixed(3) ?? "—"} / {res.alpha.toFixed(3)}
-            </dd>
             <dt>Bloques</dt>
             <dd>
-              {res.n_control} sin, {res.n_treatment} con
+              {res.n_control} sin intervención, {res.n_treatment} con
             </dd>
             <dt>No arrancaron en 90 min</dt>
             <dd>
@@ -126,18 +126,81 @@ function ExperimentCard({ rec, seedOk }: { rec: ExperimentRecord; seedOk: boolea
             <dd>{res.excluded_device_off}</dd>
             <dt>“Hoy no” (cuentan igual)</dt>
             <dd>{res.aborted_blocks}</dd>
-            <dt>Semilla</dt>
-            <dd className={seedOk === false ? "fail" : seedOk ? "pass" : "muted"}>
-              {seedOk === undefined
-                ? "verificando…"
-                : seedOk
-                  ? "✓ coincide con el compromiso preregistrado"
-                  : "✗ NO coincide con el compromiso"}
-            </dd>
           </dl>
+          <SeedProof
+            commitment={pre.seed_commitment}
+            committedMs={pre.created_ms}
+            seed={res.seed_revealed}
+            resolvedMs={res.resolved_ms}
+            ok={seedOk}
+          />
         </>
       )}
     </Card>
+  );
+}
+
+function MedianBars(props: { control: number | null; treatment: number | null; label: string }) {
+  const max = Math.max(props.control ?? 0, props.treatment ?? 0, 1);
+  const row = (name: string, v: number | null, cls: string) => (
+    <>
+      <span>{name}</span>
+      <div className="bar big" aria-hidden>
+        <span className={cls} style={{ width: `${v === null ? 0 : (v / max) * 100}%` }} />
+      </div>
+      <strong>{v === null ? "—" : duration(v)}</strong>
+    </>
+  );
+  return (
+    <div className="progress medians">
+      {row("Sin intervención", props.control, "")}
+      {row(props.label, props.treatment, "treat")}
+      <span />
+      <span className="muted small">Mediana de cuánto tardaste en arrancar</span>
+      <span />
+    </div>
+  );
+}
+
+/** La prueba de que el sorteo no se tocó, paso por paso, con el hash recalculado en esta compu. */
+function SeedProof(props: { commitment: string; committedMs: number; seed: string; resolvedMs: number; ok?: boolean }) {
+  const [computed, setComputed] = useState<string | null>(null);
+  useEffect(() => {
+    let alive = true;
+    const bytes = hexToBytes(props.seed);
+    if (bytes) void sha256Hex(bytes).then((h) => alive && setComputed(h));
+    return () => {
+      alive = false;
+    };
+  }, [props.seed]);
+  const state = props.ok === undefined ? "pending" : props.ok ? "ok" : "bad";
+  return (
+    <div className={`seed-proof ${state}`}>
+      <h3>¿Se tocó el sorteo?</h3>
+      <ol>
+        <li>
+          <span className="muted small">
+            Antes del primer sorteo ({dateTime(props.committedMs)}) se publicó solo el hash:
+          </span>
+          <code className="hash">{props.commitment}</code>
+        </li>
+        <li>
+          <span className="muted small">Al terminar ({dateTime(props.resolvedMs)}) se reveló la semilla:</span>
+          <code className="hash">{props.seed}</code>
+        </li>
+        <li>
+          <span className="muted small">sha256 de la semilla, calculado ahora en esta compu:</span>
+          <code className="hash">{computed ?? "calculando…"}</code>
+        </li>
+      </ol>
+      <p className="seed-verdict">
+        {state === "pending"
+          ? "Verificando…"
+          : state === "ok"
+            ? "✅ El sorteo no se tocó: la condición de cada bloque salió de una semilla fijada de antemano."
+            : "❌ No coinciden: el sorteo no se puede verificar."}
+      </p>
+    </div>
   );
 }
 
