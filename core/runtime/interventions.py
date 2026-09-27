@@ -2,13 +2,18 @@
 
 Reglas (brief-b / constitución):
   * Se MINIMIZA (SW_MINIMIZE), nunca se oculta ni se cierra nada.
-  * Nunca se toca un proceso de `whitelist_processes`.
-  * Revertir restaura SOLO las ventanas que minimizamos y que siguen existiendo e iconificadas.
+  * Nunca se toca un proceso de `whitelist_processes`, la propia app, el núcleo ni el escritorio.
+  * Revertir restaura SOLO las ventanas que minimizamos, que siguen siendo del MISMO proceso (los hwnd se
+    reciclan: sin ese chequeo se podría restaurar una ventana ajena) y que siguen minimizadas.
   * `abrir_trabajo` abre el objetivo y al revertir no hace nada: nunca se cierra el trabajo de la persona.
+
+El filtro de ventanas reales (sin dueño, sin estilo de herramienta, no *cloaked*), la verificación por PID y la
+lista de procesos protegidos se portaron de la rama `frente-b2` (otra sesión de Claude, 2026-09-27).
 """
 from __future__ import annotations
 
 import logging
+import ntpath
 import os
 import sys
 from dataclasses import dataclass
@@ -20,10 +25,15 @@ from core.interfaces import Categorize
 
 log = logging.getLogger(__name__)
 
+# Nunca se minimizan: la propia app (empaquetada y en desarrollo), el núcleo y el escritorio de Windows.
+PROTECTED_PROCESSES = frozenset({"consejo n-de-1.exe", "nde1-core.exe", "electron.exe", "explorer.exe"})
+
 
 @dataclass(frozen=True)
 class WinInfo:
+    """Ventana top-level visible. `title` es LOCAL: nunca va al journal ni a los logs."""
     hwnd: int
+    pid: int
     process: str
     title: str
 
@@ -31,17 +41,19 @@ class WinInfo:
 class WindowOps(Protocol):
     def windows(self) -> list[WinInfo]: ...
     def minimize(self, hwnd: int) -> bool: ...
-    def restore(self, hwnd: int) -> bool: ...
-    def exists(self, hwnd: int) -> bool: ...
+    def restore(self, hwnd: int, pid: int) -> bool:
+        """Restaura solo si la ventana existe, sigue siendo de `pid` y está minimizada."""
+        ...
     def is_minimized(self, hwnd: int) -> bool: ...
 
 
 def select_distractions(windows: list[WinInfo], settings: Settings, categorize: Categorize) -> list[WinInfo]:
-    """Ventanas que `categorize` (Frente A) considera distracción, fuera de la lista blanca."""
-    white = {p.lower() for p in settings.whitelist_processes}
+    """Ventanas que `categorize` (Frente A) considera distracción, fuera de la lista blanca y de lo protegido."""
+    white = {p.lower() for p in settings.whitelist_processes} | PROTECTED_PROCESSES
+    me = os.getpid()
     out = []
     for w in windows:
-        if w.process.lower() in white:
+        if w.process.lower() in white or w.pid == me:
             continue
         span = ActivitySpan(start_ms=0, end_ms=0, process=w.process[:260], title=w.title[:512], idle=False)
         if categorize(span, None, settings) == Category.distraction:
@@ -67,6 +79,11 @@ def open_target(target: Target, opener: Opener | None = None) -> str | None:
         return f"no se pudo abrir el objetivo ({type(e).__name__})"
 
 
+def no_desktop() -> bool:
+    """NDE1_NO_DESKTOP=1 (lo fija la suite de tests): no tocar ventanas ni abrir archivos reales."""
+    return os.environ.get("NDE1_NO_DESKTOP") == "1"
+
+
 def _startfile(value: str) -> None:
     if no_desktop():
         raise OSError("NDE1_NO_DESKTOP: no se abren archivos reales")
@@ -75,8 +92,12 @@ def _startfile(value: str) -> None:
 
 # ---------------------------------------------------------------- Win32
 
+_GW_OWNER, _GWL_EXSTYLE, _WS_EX_TOOLWINDOW, _DWMWA_CLOAKED = 4, -20, 0x00000080, 14
+
+
 class Win32Ops:
-    """Ventanas top-level visibles con título. Solo lectura + minimizar/restaurar."""
+    """Lo que se ve en la barra de tareas: ventanas top-level visibles, sin dueño, que no son de herramientas
+    ni están *cloaked* (UWP suspendidas u otro escritorio virtual). Solo minimizar/restaurar."""
 
     def __init__(self):
         if sys.platform != "win32":
@@ -87,53 +108,72 @@ class Win32Ops:
         import win32process
         self._ctypes, self._con, self._gui, self._proc = ctypes, win32con, win32gui, win32process
 
-    def _process_name(self, hwnd: int) -> str:
+    def _process_name(self, pid: int) -> str:
         ctypes = self._ctypes
-        try:
-            _, pid = self._proc.GetWindowThreadProcessId(hwnd)
-            k32 = ctypes.windll.kernel32
-            h = k32.OpenProcess(0x1000, False, pid)          # PROCESS_QUERY_LIMITED_INFORMATION
-            if not h:
-                return "?"
-            try:
-                buf = ctypes.create_unicode_buffer(1024)
-                size = ctypes.c_ulong(len(buf))
-                if not k32.QueryFullProcessImageNameW(h, 0, buf, ctypes.byref(size)):
-                    return "?"
-                return Path(buf.value).name
-            finally:
-                k32.CloseHandle(h)
-        except Exception:                                    # proceso que murió entre medio, permisos
+        k32 = ctypes.windll.kernel32
+        h = k32.OpenProcess(0x1000, False, pid)          # PROCESS_QUERY_LIMITED_INFORMATION
+        if not h:
             return "?"
+        try:
+            buf = ctypes.create_unicode_buffer(1024)
+            size = ctypes.c_ulong(len(buf))
+            return ntpath.basename(buf.value) if k32.QueryFullProcessImageNameW(h, 0, buf, ctypes.byref(size)) else "?"
+        finally:
+            k32.CloseHandle(h)
+
+    def _cloaked(self, hwnd: int) -> bool:
+        ctypes = self._ctypes
+        value = ctypes.c_int(0)
+        try:
+            ctypes.windll.dwmapi.DwmGetWindowAttribute(hwnd, _DWMWA_CLOAKED, ctypes.byref(value),
+                                                       ctypes.sizeof(value))
+        except Exception:
+            return False
+        return value.value != 0
 
     def windows(self) -> list[WinInfo]:
         found: list[WinInfo] = []
 
-        def cb(hwnd, _):
-            if self._gui.IsWindowVisible(hwnd) and self._gui.GetWindowText(hwnd):
-                found.append(WinInfo(hwnd, self._process_name(hwnd), self._gui.GetWindowText(hwnd)))
+        def visit(hwnd, _):
+            try:
+                gui = self._gui
+                if not gui.IsWindowVisible(hwnd) or gui.GetWindow(hwnd, _GW_OWNER):
+                    return True
+                if gui.GetWindowLong(hwnd, _GWL_EXSTYLE) & _WS_EX_TOOLWINDOW or self._cloaked(hwnd):
+                    return True
+                title = gui.GetWindowText(hwnd)
+                if title:
+                    _, pid = self._proc.GetWindowThreadProcessId(hwnd)
+                    found.append(WinInfo(hwnd, pid, self._process_name(pid), title[:512]))
+            except Exception as exc:                     # una ventana que se cierra durante el recorrido
+                log.debug("ventana ignorada: %s", type(exc).__name__)
             return True
 
-        self._gui.EnumWindows(cb, None)
+        self._gui.EnumWindows(visit, None)
         return found
 
+    def pid_of(self, hwnd: int) -> int | None:
+        if not self._gui.IsWindow(hwnd):
+            return None
+        try:
+            return self._proc.GetWindowThreadProcessId(hwnd)[1]
+        except Exception:
+            return None
+
     def minimize(self, hwnd: int) -> bool:
-        if not self.exists(hwnd) or self.is_minimized(hwnd):
+        if not self._gui.IsWindow(hwnd) or self.is_minimized(hwnd):
             return False
         self._gui.ShowWindow(hwnd, self._con.SW_MINIMIZE)
         return True
 
-    def restore(self, hwnd: int) -> bool:
-        if not self.exists(hwnd) or not self.is_minimized(hwnd):
-            return False
+    def restore(self, hwnd: int, pid: int) -> bool:
+        if self.pid_of(hwnd) != pid or not self.is_minimized(hwnd):
+            return False                                  # otro proceso (hwnd reciclado), cerrada o ya abierta
         self._gui.ShowWindow(hwnd, self._con.SW_RESTORE)
         return True
 
-    def exists(self, hwnd: int) -> bool:
-        return bool(self._gui.IsWindow(hwnd))
-
     def is_minimized(self, hwnd: int) -> bool:
-        return bool(self._gui.IsIconic(hwnd))
+        return bool(self._gui.IsWindow(hwnd) and self._gui.IsIconic(hwnd))
 
 
 class NoWindows:
@@ -146,19 +186,11 @@ class NoWindows:
     def minimize(self, hwnd: int) -> bool:
         return False
 
-    def restore(self, hwnd: int) -> bool:
-        return False
-
-    def exists(self, hwnd: int) -> bool:
+    def restore(self, hwnd: int, pid: int) -> bool:
         return False
 
     def is_minimized(self, hwnd: int) -> bool:
         return False
-
-
-def no_desktop() -> bool:
-    """NDE1_NO_DESKTOP=1 (lo fija la suite de tests): no tocar ventanas ni abrir archivos reales."""
-    return os.environ.get("NDE1_NO_DESKTOP") == "1"
 
 
 def default_window_ops() -> WindowOps:

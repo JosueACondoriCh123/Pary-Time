@@ -159,9 +159,20 @@ def test_journal_never_carries_labels_targets_or_first_steps(tmp_path):
 
 
 def test_distraction_selection_respects_the_whitelist():
-    wins = [WinInfo(1, "WhatsApp.exe", "WhatsApp"), WinInfo(2, "chrome.exe", "YouTube - Google Chrome"),
-            WinInfo(3, "chrome.exe", "Overleaf - Google Chrome"), WinInfo(4, "WINWORD.EXE", "cap3.docx - Word")]
+    wins = [WinInfo(1, 11, "WhatsApp.exe", "WhatsApp"), WinInfo(2, 12, "chrome.exe", "YouTube - Google Chrome"),
+            WinInfo(3, 12, "chrome.exe", "Overleaf - Google Chrome"), WinInfo(4, 13, "WINWORD.EXE", "cap3.docx - Word")]
     picked = select_distractions(wins, Settings(), categorize)
     assert [w.hwnd for w in picked] == [1, 2]
     s = Settings(whitelist_processes=["whatsapp.exe"])
     assert [w.hwnd for w in select_distractions(wins, s, categorize)] == [2]
+
+
+def test_our_own_app_the_core_and_the_desktop_are_never_distractions():
+    import os
+    from core.runtime.interventions import PROTECTED_PROCESSES
+    s = Settings(distraction_processes=["Consejo N-de-1.exe", "explorer.exe", "python.exe"],
+                 browser_processes=["electron.exe"], distraction_title_patterns=["consejo"])
+    wins = [WinInfo(1, 21, "Consejo N-de-1.exe", "Consejo N-de-1"), WinInfo(2, 22, "electron.exe", "Consejo N-de-1"),
+            WinInfo(3, 23, "explorer.exe", "Descargas"), WinInfo(4, os.getpid(), "python.exe", "núcleo")]
+    assert select_distractions(wins, s, categorize) == []
+    assert "nde1-core.exe" in PROTECTED_PROCESSES

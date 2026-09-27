@@ -160,9 +160,13 @@ class Scheduler:
     def _minimize_new(self, b: Block) -> int:
         n = 0
         for w in select_distractions(self.win.windows(), self.ctx.settings(), self.ctx.categorize):
+            if self.win.is_minimized(w.hwnd):
+                continue
+            self.state.add_minimized(b.block_id, w.hwnd, w.pid, w.process)      # persistir antes de tocar
             if self.win.minimize(w.hwnd):
-                self.state.add_minimized(b.block_id, w.hwnd, w.process)
                 n += 1
+            else:
+                self.state.forget_minimized(b.block_id, w.hwnd)
         return n
 
     def _reminimize(self, b: Block, now: int, *, first: bool) -> None:
@@ -173,7 +177,7 @@ class Scheduler:
             self._event(b, Arm.retrasar_distracciones, "reapplied", "recovery" if first else "block_start", now, n)
 
     def _restore_windows(self, block_id: str) -> int:
-        n = sum(self.win.restore(h) for h in self.state.minimized(block_id))
+        n = sum(self.win.restore(hwnd, pid) for hwnd, pid in self.state.minimized(block_id))
         self.state.mark_restored(block_id)
         return n
 

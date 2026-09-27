@@ -14,6 +14,17 @@ Quedan dos agentes externos. El externo 2 hace solo la Fase 1 de B (`brief-b1.md
 Claude toma D en `n-de-1-frente-d` y, después del merge de B1, el resto de B (scheduler, intervenciones,
 overlay y recuperación). `brief-b.md` y `brief-d.md` quedan como especificación completa de cada frente.
 
+## Aviso (2026-09-27): B2 ya está en `main`; la rama `frente-b2` quedó reemplazada
+Dos sesiones de Claude hicieron B2 en paralelo sin saberlo. La versión de `main` (Frente 0) está completa e integrada: scheduler, rutas, recuperación y tests con ventanas reales.
+
+De `frente-b2` se **portaron** a `main`:
+- el filtro de ventanas reales (sin dueño, sin estilo de herramienta, no *cloaked*);
+- la restauración verificada por PID, por el reciclaje de hwnd;
+- los procesos protegidos (la propia app, el núcleo y `explorer.exe`);
+- la persistencia antes de minimizar.
+
+**No mergear `frente-b2`:** sus `interventions.py` y `overlay.py` chocan con los de `main`. Si esa sesión tiene algo más, que lo anote en `frente-d.md` y el Frente 0 lo porta. Antes de empezar un frente nuevo, confirmar en esta tabla quién lo tiene.
+
 ## Reglas
 1. **Solo escribís en tus carpetas.** Si necesitás algo fuera, lo pedís en tu `frente-X.md`.
 2. **Los contratos están congelados:** `core/contracts.py`, `core/interfaces.py`, las firmas de `routes.py`,

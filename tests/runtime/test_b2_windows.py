@@ -52,14 +52,14 @@ def test_delay_distractions_minimizes_only_our_window_and_restores_it(tmp_path, 
     time.sleep(0.3)
     assert ops.is_minimized(hwnd)
     assert events(ctx, "intervention")[0]["payload"]["n_windows"] == 1
-    ops.restore(hwnd)                                     # la persona la vuelve a abrir
+    ops.restore(hwnd, ops.pid_of(hwnd))                   # la persona la vuelve a abrir
     time.sleep(0.3)
     sched.tick(P + 2000)
     time.sleep(0.3)
     assert ops.is_minimized(hwnd)                         # se re-minimiza
     sched.abort(b.block_id, P + MIN)
     time.sleep(0.3)
-    assert not ops.is_minimized(hwnd) and ops.exists(hwnd)   # restaurada, nunca cerrada
+    assert not ops.is_minimized(hwnd) and ops.pid_of(hwnd) is not None   # restaurada, nunca cerrada
 
 
 def test_a_crash_with_a_minimized_window_is_undone_on_restart(tmp_path, tk_window):
@@ -77,3 +77,17 @@ def test_a_crash_with_a_minimized_window_is_undone_on_restart(tmp_path, tk_windo
     assert not ops.is_minimized(hwnd)
     last = events(ctx, "intervention")[-1]["payload"]
     assert (last["action"], last["reason"], last["n_windows"]) == ("reverted", "recovery", 1)
+
+
+def test_a_dead_window_is_not_restored_after_a_crash(tmp_path, tk_window):
+    """Si la ventana minimizada murió antes de la recuperación, su hwnd puede reciclarse: no se restaura nada."""
+    title, hwnd, ops = tk_window
+    b = block(1)
+    sched, ctx, repo = make(tmp_path, [b], {b.block_id: Arm.retrasar_distracciones}, windows=ops,
+                            settings=settings_for(title))
+    sched.tick(P)
+    time.sleep(0.3)
+    [(saved_hwnd, saved_pid)] = sched.state.minimized(b.block_id)
+    assert saved_hwnd == hwnd and ops.pid_of(hwnd) == saved_pid
+    assert not ops.restore(hwnd, saved_pid + 1)          # PID distinto: no la toca
+    assert ops.is_minimized(hwnd)

@@ -21,6 +21,7 @@ CREATE TABLE IF NOT EXISTS application (
 CREATE TABLE IF NOT EXISTS minimized (
   block_id TEXT NOT NULL,
   hwnd INTEGER NOT NULL,
+  pid INTEGER NOT NULL DEFAULT 0,
   process TEXT NOT NULL,
   restored INTEGER NOT NULL DEFAULT 0,
   PRIMARY KEY (block_id, hwnd)
@@ -75,13 +76,19 @@ class InterventionState:
 
     # ---------------------------------------------------------------- ventanas minimizadas
 
-    def add_minimized(self, block_id: str, hwnd: int, process: str) -> None:
-        self._run("""INSERT INTO minimized (block_id, hwnd, process) VALUES (?, ?, ?)
-                     ON CONFLICT(block_id, hwnd) DO UPDATE SET restored = 0""", (block_id, hwnd, process))
+    def add_minimized(self, block_id: str, hwnd: int, pid: int, process: str) -> None:
+        """Se anota ANTES de minimizar: si el núcleo muere entre medio, la recuperación igual la restaura."""
+        self._run("""INSERT INTO minimized (block_id, hwnd, pid, process) VALUES (?, ?, ?, ?)
+                     ON CONFLICT(block_id, hwnd) DO UPDATE SET pid = excluded.pid, restored = 0""",
+                  (block_id, hwnd, pid, process))
 
-    def minimized(self, block_id: str) -> list[int]:
-        return [r[0] for r in self._run(
-            "SELECT hwnd FROM minimized WHERE block_id = ? AND restored = 0", (block_id,))]
+    def forget_minimized(self, block_id: str, hwnd: int) -> None:
+        self._run("DELETE FROM minimized WHERE block_id = ? AND hwnd = ?", (block_id, hwnd))
+
+    def minimized(self, block_id: str) -> list[tuple[int, int]]:
+        """(hwnd, pid) minimizados por nosotros y todavía no restaurados."""
+        return [(r[0], r[1]) for r in self._run(
+            "SELECT hwnd, pid FROM minimized WHERE block_id = ? AND restored = 0", (block_id,))]
 
     def mark_restored(self, block_id: str) -> None:
         self._run("UPDATE minimized SET restored = 1 WHERE block_id = ?", (block_id,))
