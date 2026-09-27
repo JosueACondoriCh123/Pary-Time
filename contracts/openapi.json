@@ -601,6 +601,16 @@
             "title": "Contracts",
             "type": "string"
           },
+          "data_label": {
+            "default": "real",
+            "description": "`sintetico` si data_dir tiene el marcador DATA_LABEL (demo): la app muestra la franja",
+            "enum": [
+              "real",
+              "sintetico"
+            ],
+            "title": "Data Label",
+            "type": "string"
+          },
           "journal_seq": {
             "title": "Journal Seq",
             "type": "integer"
@@ -1304,7 +1314,8 @@
               "msedge.exe",
               "firefox.exe",
               "brave.exe",
-              "opera.exe"
+              "opera.exe",
+              "ApplicationFrameHost.exe"
             ],
             "items": {
               "type": "string"
@@ -1335,7 +1346,10 @@
               "twitter",
               "x.com",
               "reddit",
-              "twitch"
+              "twitch",
+              "whatsapp",
+              "discord",
+              "telegram"
             ],
             "items": {
               "type": "string"

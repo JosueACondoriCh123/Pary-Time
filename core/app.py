@@ -88,7 +88,7 @@ def create_app(data_dir: Path, token: str | None = None) -> FastAPI:
         for last in journal.events():
             pass
         return Health(ok=True, version=AGENT_VERSION, contracts=CONTRACTS_VERSION,
-                      journal_seq=last["seq"] if last else 0)
+                      journal_seq=last["seq"] if last else 0, data_label=data_label(data_dir))
 
     guarded = [Depends(auth)]
 
@@ -113,6 +113,14 @@ def create_app(data_dir: Path, token: str | None = None) -> FastAPI:
     for s in services:
         app.include_router(s.router, dependencies=guarded)
     return app
+
+
+def data_label(data_dir: Path) -> str:
+    """`sintetico` si el data_dir es de demo: archivo DATA_LABEL con ese texto (lo escribe core.simulate)."""
+    try:
+        return "sintetico" if (data_dir / "DATA_LABEL").read_text(encoding="utf-8").strip() == "sintetico" else "real"
+    except FileNotFoundError:
+        return "real"
 
 
 def ready_line(port: int) -> str:

@@ -20,7 +20,7 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-CONTRACTS_VERSION = "contracts@1"
+CONTRACTS_VERSION = "contracts@1.1"
 
 
 class _Model(BaseModel):
@@ -392,8 +392,12 @@ class Report(_Model):
 class Settings(_Model):
     distraction_processes: list[str] = ["WhatsApp.exe", "Discord.exe", "Telegram.exe", "Steam.exe"]
     distraction_title_patterns: list[str] = ["youtube", "netflix", "tiktok", "instagram", "facebook",
-                                             "twitter", "x.com", "reddit", "twitch"]
-    browser_processes: list[str] = ["chrome.exe", "msedge.exe", "firefox.exe", "brave.exe", "opera.exe"]
+                                             "twitter", "x.com", "reddit", "twitch", "whatsapp", "discord",
+                                             "telegram"]
+    # Procesos "anfitriones": se decide por el título. ApplicationFrameHost.exe es el dueño de las ventanas de
+    # las apps UWP de la Tienda (WhatsApp de escritorio, por ejemplo): por nombre de proceso nunca coincidirían.
+    browser_processes: list[str] = ["chrome.exe", "msedge.exe", "firefox.exe", "brave.exe", "opera.exe",
+                                    "ApplicationFrameHost.exe"]
     whitelist_processes: list[str] = []
     raw_retention_days: int = Field(14, ge=1, le=365)
     high_friction_max_fraction: float = Field(0.5, gt=0, le=1)
@@ -409,6 +413,8 @@ class Health(_Model):
     version: str
     contracts: str
     journal_seq: int
+    data_label: Literal["real", "sintetico"] = Field(
+        "real", description="`sintetico` si data_dir tiene el marcador DATA_LABEL (demo): la app muestra la franja")
 
 
 # ---------------------------------------------------------------- journal

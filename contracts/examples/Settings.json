@@ -14,14 +14,18 @@
     "twitter",
     "x.com",
     "reddit",
-    "twitch"
+    "twitch",
+    "whatsapp",
+    "discord",
+    "telegram"
   ],
   "browser_processes": [
     "chrome.exe",
     "msedge.exe",
     "firefox.exe",
     "brave.exe",
-    "opera.exe"
+    "opera.exe",
+    "ApplicationFrameHost.exe"
   ],
   "whitelist_processes": [],
   "raw_retention_days": 14,

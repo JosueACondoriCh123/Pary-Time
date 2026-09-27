@@ -12,8 +12,9 @@ nunca del estado interno del runtime.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import date, datetime
 from pathlib import Path
+from random import Random
 from typing import Callable, Protocol
 
 from fastapi import APIRouter
@@ -64,6 +65,16 @@ EvaluateBlock = Callable[[Block, list[ActivitySpan], int, Settings], BlockOutcom
 # devuelve `work` (sin bloque no se sabe qué es trabajo). El runtime la usa para esconder el overlay
 # en cuanto la ventana activa es trabajo.
 Categorize = Callable[[ActivitySpan, Block | None, Settings], Category]
+
+
+# synth_day(day, blocks, profile, rng, latency_scale) -> list[ActivitySpan]. Frente A (`tools/capture/synth.py`), solo para
+# DEMO y tests: tramos SINTÉTICOS realistas de un día local `day` alrededor de los `blocks` de ese día, con
+# `profile` ("tdah_mananas" por defecto: mañanas que arrancan en distracción, tardes más rápidas, algún
+# apagado y alguna pausa) y un `random.Random` sembrado (misma semilla, mismos tramos). Los tramos no se solapan,
+# están en orden y usan procesos/títulos genéricos (nunca datos reales). `latency_scale` ({block_id: factor})
+# multiplica la latencia de arranque de ese bloque (p.ej. 0.5 = con la intervención arranca en la mitad): así la
+# simulación tiene un efecto verdadero conocido. Lo consume `core.simulate` (Frente C).
+SynthDay = Callable[[date, list[Block], str, Random, "dict[str, float] | None"], list[ActivitySpan]]
 
 
 # ------------------------------------------------------------ Frente C → B

@@ -102,3 +102,13 @@ def test_council_routes_are_live_and_hide_effects_without_an_experiment(client):
 def test_sensing_routes_are_live(client):
     r = client.get("/activity/today", headers=auth())
     assert r.status_code == 200 and set(r.json()) >= {"local_date", "minutes_by_category", "sensor_running"}
+
+
+def test_health_reports_synthetic_data_when_the_marker_exists(tmp_path):
+    (tmp_path / "DATA_LABEL").write_text("sintetico\n", encoding="utf-8")
+    with TestClient(create_app(tmp_path, TOKEN)) as cl:
+        assert cl.get("/health").json()["data_label"] == "sintetico"
+
+
+def test_health_defaults_to_real_data(client):
+    assert client.get("/health").json()["data_label"] == "real"

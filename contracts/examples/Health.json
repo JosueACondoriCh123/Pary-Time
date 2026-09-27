@@ -1,6 +1,7 @@
 {
   "ok": true,
   "version": "n-de-1@0.1.0",
-  "contracts": "contracts@1",
-  "journal_seq": 412
+  "contracts": "contracts@1.1",
+  "journal_seq": 412,
+  "data_label": "real"
 }

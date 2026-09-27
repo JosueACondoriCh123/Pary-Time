@@ -7,6 +7,16 @@
       "title": "Contracts",
       "type": "string"
     },
+    "data_label": {
+      "default": "real",
+      "description": "`sintetico` si data_dir tiene el marcador DATA_LABEL (demo): la app muestra la franja",
+      "enum": [
+        "real",
+        "sintetico"
+      ],
+      "title": "Data Label",
+      "type": "string"
+    },
     "journal_seq": {
       "title": "Journal Seq",
       "type": "integer"
