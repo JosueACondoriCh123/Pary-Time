@@ -5,6 +5,7 @@ import { httpApi } from "./api";
 import type { OverlayState } from "./contracts";
 import { FIXTURES } from "./core";
 import { overlayContent } from "./lib/overlay";
+import "./fonts";
 import "./styles.css";
 
 const HIDDEN: OverlayState = { visible: false };

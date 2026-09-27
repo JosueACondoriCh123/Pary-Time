@@ -84,7 +84,7 @@ function createMainWindow() {
     minWidth: 760,
     minHeight: 560,
     title: "Consejo N-de-1",
-    backgroundColor: "#101318",
+    backgroundColor: "#0d0628",
     icon: trayIcon(64),
     show: !process.argv.includes("--hidden"),
     autoHideMenuBar: true,

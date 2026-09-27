@@ -239,9 +239,9 @@ function LedgerCurve({ entry }: { entry: LedgerEntry }) {
         </span>
       </p>
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" height={H} role="img" aria-label={`Posterior Beta(${entry.alpha}, ${entry.beta})`}>
-        <path d={`${path.join(" ")} L${W},${H} L0,${H} Z`} fill="rgba(91,141,239,0.25)" />
-        <path d={path.join(" ")} fill="none" stroke="#5b8def" strokeWidth="2" />
-        <line x1={mean * W} x2={mean * W} y1={0} y2={H} stroke="#9aa3b2" strokeDasharray="3 3" />
+        <path d={`${path.join(" ")} L${W},${H} L0,${H} Z`} fill="rgba(248,140,212,0.22)" />
+        <path d={path.join(" ")} fill="none" stroke="#f88cd4" strokeWidth="2" />
+        <line x1={mean * W} x2={mean * W} y1={0} y2={H} stroke="#a9a3c4" strokeDasharray="3 3" />
       </svg>
       <p className="muted small">Promedio: {Math.round(mean * 100)}%</p>
     </div>

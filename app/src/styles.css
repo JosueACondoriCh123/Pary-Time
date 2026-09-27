@@ -1,22 +1,30 @@
 :root {
-  --bg: #101318;
-  --surface: #181c23;
-  --surface-2: #20252e;
-  --line: #2b313c;
-  --text: #e8ebf0;
-  --muted: #9aa3b2;
-  --accent: #5b8def;
-  --accent-ink: #0b1220;
-  --ok: #3fb68b;
-  --warn: #e6a23c;
-  --danger: #e5484d;
-  --radius: 12px;
-  --cat-work: #3fb68b;
-  --cat-distraction: #e5484d;
-  --cat-other: #5b8def;
-  --cat-idle: #454d5c;
-  --cat-paused: #8b6cf0;
-  font-family: "Segoe UI Variable Text", "Segoe UI", system-ui, sans-serif;
+  /* Glassmorphism: índigo profundo, dos luces (violeta y rosa) detrás y paneles de vidrio encima. */
+  --bg: #0d0628;
+  --bg-deep: rgba(13, 6, 40, 0.55);
+  --surface: rgba(238, 237, 242, 0.06);
+  --surface-2: rgba(238, 237, 242, 0.1);
+  --line: rgba(238, 237, 242, 0.16);
+  --text: #eeedf2;
+  --muted: #aaa4c6;
+  --accent: #f88cd4;
+  --accent-2: #5c31ff;
+  --accent-ink: #1a0b2e;
+  --ok: #4fd8a8;
+  --warn: #ffc46b;
+  --danger: #ff6b8a;
+  --radius: 20px;
+  --glass: linear-gradient(144deg, rgba(238, 237, 242, 0.16), rgba(238, 237, 242, 0.03) 55%);
+  --glass-border: 1px solid rgba(238, 237, 242, 0.18);
+  --glass-blur: blur(20px) saturate(140%);
+  --glass-shadow: 0 10px 40px rgba(4, 1, 18, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  --font-display: "Fahkwang", "DM Sans", sans-serif;
+  --cat-work: #4fd8a8;
+  --cat-distraction: #ff6b8a;
+  --cat-other: #8f7bff;
+  --cat-idle: #4a4468;
+  --cat-paused: #c79bff;
+  font-family: "DM Sans", "Segoe UI", system-ui, sans-serif;
   font-size: 16px;
   line-height: 1.5;
   color: var(--text);
@@ -908,3 +916,355 @@ code.hash.short {
 .app-min { text-align: right; color: var(--muted); }
 .sites { list-style: none; padding: 0; margin: 0 0 8px; }
 .sites li { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--line); }
+
+/* ================================================================ Glassmorphism
+   Capa final: pisa los estilos base con vidrio esmerilado sobre dos luces de color. */
+
+body {
+  background:
+    radial-gradient(circle at 12% 8%, rgba(92, 49, 255, 0.55), rgba(92, 49, 255, 0) 42%),
+    radial-gradient(circle at 88% 92%, rgba(248, 140, 212, 0.38), rgba(248, 140, 212, 0) 45%),
+    radial-gradient(circle at 70% 30%, rgba(92, 49, 255, 0.18), rgba(92, 49, 255, 0) 40%),
+    var(--bg);
+  background-attachment: fixed;
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3,
+.brand,
+.hero .big-text,
+.verdict.big,
+.overlay-text,
+.kpi-value {
+  font-family: var(--font-display);
+  letter-spacing: -0.03em;
+}
+
+h1 {
+  font-size: 2.1rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+h2 {
+  font-weight: 700;
+}
+
+h3 {
+  font-weight: 600;
+}
+
+/* Etiquetas en mayúsculas espaciadas, como las del sitio de referencia. */
+.step-tag,
+.overlay-caption,
+.kpi-label,
+.tag,
+.badge,
+.seed-badge,
+.fixtures-banner,
+.synthetic-banner {
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  font-weight: 700;
+}
+
+.tag,
+.badge {
+  font-size: 0.7rem;
+  padding: 0.1rem 0.6rem;
+}
+
+/* ---------- paneles de vidrio */
+
+.card,
+.banner,
+.kpi,
+.overlay-card {
+  background: var(--glass);
+  border: var(--glass-border);
+  border-radius: var(--radius);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: var(--glass-blur);
+}
+
+.card {
+  padding: 1.2rem 1.4rem;
+}
+
+.kpi {
+  border-top: var(--glass-border);
+}
+
+.banner.warn {
+  border-color: rgba(255, 196, 107, 0.55);
+}
+
+.banner.error {
+  border-color: rgba(255, 107, 138, 0.6);
+}
+
+.proposal-steps,
+.prereg,
+.seed-proof {
+  background: rgba(238, 237, 242, 0.05);
+  border-radius: 14px;
+  backdrop-filter: blur(10px);
+}
+
+pre,
+code.hash {
+  background: var(--bg-deep);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+/* ---------- navegación */
+
+.shell {
+  background: none;
+}
+
+.nav {
+  background: linear-gradient(180deg, rgba(238, 237, 242, 0.08), rgba(238, 237, 242, 0.02));
+  border-right: var(--glass-border);
+  backdrop-filter: var(--glass-blur);
+}
+
+.brand {
+  font-size: 1.3rem;
+}
+
+.brand span {
+  background: linear-gradient(90deg, var(--accent-2), var(--accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.nav-item {
+  border-radius: 999px;
+  font-weight: 500;
+}
+
+.nav-item.on {
+  background: var(--glass);
+  border: var(--glass-border);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+/* ---------- controles */
+
+button {
+  border-radius: 999px;
+  background: rgba(238, 237, 242, 0.07);
+  border: var(--glass-border);
+  backdrop-filter: blur(8px);
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+button:hover:not(:disabled) {
+  background: rgba(238, 237, 242, 0.14);
+  border-color: rgba(238, 237, 242, 0.32);
+}
+
+button.primary {
+  background: linear-gradient(135deg, var(--accent-2), var(--accent));
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #fff;
+  font-weight: 700;
+  box-shadow: 0 6px 24px rgba(92, 49, 255, 0.35);
+}
+
+button.primary:hover:not(:disabled) {
+  background: linear-gradient(135deg, #6d45ff, #ffa3de);
+  border-color: rgba(255, 255, 255, 0.4);
+  box-shadow: 0 8px 30px rgba(248, 140, 212, 0.4);
+  transform: translateY(-1px);
+}
+
+button.danger {
+  background: rgba(255, 107, 138, 0.08);
+  border-color: rgba(255, 107, 138, 0.6);
+  color: #ff9fb3;
+}
+
+button.ghost {
+  background: transparent;
+  border-color: transparent;
+  backdrop-filter: none;
+}
+
+button.ghost:hover:not(:disabled) {
+  background: rgba(238, 237, 242, 0.08);
+}
+
+button.big {
+  border-radius: 999px;
+  padding: 0.95rem 2rem;
+}
+
+.add {
+  border-style: dashed;
+  background: transparent;
+}
+
+.chip.on {
+  background: linear-gradient(135deg, var(--accent-2), var(--accent));
+  border-color: rgba(255, 255, 255, 0.25);
+  color: #fff;
+}
+
+input,
+select,
+textarea {
+  background: var(--bg-deep);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: rgba(248, 140, 212, 0.6);
+}
+
+select option {
+  background: #1a1040;
+}
+
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* ---------- barras y datos */
+
+.bar,
+.app-bar {
+  background: rgba(238, 237, 242, 0.08);
+}
+
+.bar > span {
+  background: linear-gradient(90deg, var(--accent-2), var(--accent));
+}
+
+.bar > span.treat {
+  background: linear-gradient(90deg, #2bb88a, var(--ok));
+}
+
+.hero .arm-big,
+.arm {
+  color: var(--accent);
+}
+
+.disclaimer {
+  border-left: 3px solid rgba(248, 140, 212, 0.5);
+}
+
+.proposal-steps {
+  border-left: 4px solid var(--accent-2);
+}
+
+.proposal-steps.chosen {
+  box-shadow: 0 0 0 1px rgba(79, 216, 168, 0.35), 0 0 24px rgba(79, 216, 168, 0.12);
+}
+
+/* ---------- overlay: no hay nada detrás que desenfocar, así que el vidrio va más opaco */
+
+.overlay-card {
+  background:
+    linear-gradient(144deg, rgba(238, 237, 242, 0.18), rgba(238, 237, 242, 0.02) 55%),
+    rgba(20, 10, 52, 0.86);
+  border: 1px solid rgba(248, 140, 212, 0.45);
+}
+
+.overlay-text {
+  font-weight: 700;
+}
+
+/* ---------- avisos fijos */
+
+.fixtures-banner,
+.synthetic-banner {
+  backdrop-filter: blur(12px);
+  font-size: 0.75rem;
+}
+
+.synthetic-banner {
+  background: linear-gradient(90deg, rgba(92, 49, 255, 0.85), rgba(248, 140, 212, 0.85));
+}
+
+/* Fahkwang es ancha: el nombre y las cifras grandes no deben partirse. */
+.brand {
+  font-size: 1.12rem;
+  white-space: nowrap;
+}
+
+.kpi-value {
+  font-family: inherit;
+  font-weight: 700;
+  font-size: 22px;
+  letter-spacing: -0.01em;
+  line-height: 1.25;
+}
+
+.nav-item:not(.on) {
+  background: transparent;
+  border-color: transparent;
+  backdrop-filter: none;
+}
+
+.nav-item:not(.on):hover:not(:disabled) {
+  background: rgba(238, 237, 242, 0.07);
+}
+
+/* Páginas largas: el fondo y la barra lateral acompañan todo el alto (también en capturas de página completa). */
+body {
+  background:
+    radial-gradient(900px 700px at 0 0, rgba(92, 49, 255, 0.55), rgba(92, 49, 255, 0) 70%),
+    radial-gradient(700px 600px at 100% 45%, rgba(92, 49, 255, 0.16), rgba(92, 49, 255, 0) 70%),
+    radial-gradient(900px 800px at 100% 100%, rgba(248, 140, 212, 0.34), rgba(248, 140, 212, 0) 70%),
+    var(--bg);
+  background-attachment: scroll;
+}
+
+.shell {
+  background: linear-gradient(
+    to right,
+    rgba(238, 237, 242, 0.05) 199px,
+    rgba(238, 237, 242, 0.18) 199px,
+    rgba(238, 237, 242, 0.18) 200px,
+    transparent 200px
+  );
+}
+
+.nav {
+  background: transparent;
+  border-right: none;
+  backdrop-filter: none;
+}
+
+/* Deshabilitado: vidrio apagado en vez de degradado sucio. */
+button.primary:disabled,
+.chip.on:disabled {
+  background: rgba(238, 237, 242, 0.08);
+  border-color: var(--line);
+  color: var(--muted);
+  box-shadow: none;
+  opacity: 1;
+}
+
+/* Aviso de datos de ejemplo: sigue siendo ámbar, pero en vidrio. */
+.fixtures-banner {
+  background:
+    repeating-linear-gradient(135deg, rgba(255, 196, 107, 0.12) 0 14px, rgba(255, 196, 107, 0.04) 14px 28px),
+    rgba(40, 22, 10, 0.72);
+  color: var(--warn);
+  border-bottom: 1px solid rgba(255, 196, 107, 0.35);
+}
