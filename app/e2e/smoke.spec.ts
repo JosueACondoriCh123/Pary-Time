@@ -34,7 +34,7 @@ test("el núcleo arranca y /health responde", async () => {
     .then(() => win.evaluate(() => window.nde1!.connection()));
   expect(conn!.baseUrl).toMatch(/^http:\/\/127\.0\.0\.1:\d+$/);
   const health = await win.evaluate(async (base) => (await fetch(`${base}/health`)).json(), conn!.baseUrl);
-  expect(health).toMatchObject({ ok: true, contracts: "contracts@1" });
+  expect(health).toMatchObject({ ok: true, contracts: expect.stringMatching(/^contracts@1(\.\d+)?$/) });
   // Sin token, cualquier otra ruta da 401.
   const status = await win.evaluate(async (base) => (await fetch(`${base}/settings`)).status, conn!.baseUrl);
   expect(status).toBe(401);

@@ -1,25 +1,19 @@
 // "Experimento": progreso sin efectos parciales, y "Reunir al consejo ahora".
 import { useState } from "react";
-import type { CouncilRun, ExperimentProgress, ProposalRecord } from "../contracts";
+import type { CouncilRun, ExperimentProgress } from "../contracts";
 import { useCore, useLoad } from "../core";
 import { ARM_LABEL, moderatorText } from "../lib/labels";
 import { dateTime } from "../lib/time";
 import { Card, ErrorNote, useAction } from "../ui";
+import { CouncilRunView } from "./Council";
 
 export const ANTI_SPY = "El resultado se muestra al completar el experimento, para que no te engañes espiando.";
-
-const TOOL_LABEL: Record<string, string> = {
-  power: "Potencia",
-  confounders: "Confusores",
-  multiplicity: "Comparaciones múltiples",
-  verifier: "Verificador de citas",
-  constitution: "Constitución",
-};
 
 export function Experiment() {
   const { api } = useCore();
   const current = useLoad((a) => a.currentExperiment(), [], 30_000);
   const runs = useLoad((a) => a.councilRuns(), []);
+  const experiments = useLoad((a) => a.experiments(), []);
   const [fresh, setFresh] = useState<CouncilRun | null>(null);
   const council = useAction();
 
@@ -31,6 +25,7 @@ export function Experiment() {
       setFresh(run);
       current.reload();
       runs.reload();
+      experiments.reload();
     }
   }
 
@@ -61,12 +56,26 @@ export function Experiment() {
           <button type="button" className="primary" disabled={council.busy} onClick={onRun}>
             {council.busy ? "El consejo está deliberando…" : "Reunir al consejo ahora"}
           </button>
-          {council.busy && <span className="muted small">Con los modelos locales puede tardar unos minutos.</span>}
+          {council.busy ? (
+            <span className="muted small">
+              El Scout propone, el verificador revisa cada cifra y el Red Team ataca. Con modelos locales tarda 1–2 min.
+            </span>
+          ) : (
+            <span className="muted small">Propone una hipótesis sobre tus datos y la ataca antes de probarla.</span>
+          )}
         </div>
         <ErrorNote error={council.error} />
       </Card>
 
-      {lastRun && <RunSummary run={lastRun} />}
+      {lastRun && (
+        <CouncilRunView
+          run={lastRun}
+          prereg={
+            experiments.data?.find((e) => e.preregistration.experiment_id === lastRun.chosen_experiment_id)
+              ?.preregistration
+          }
+        />
+      )}
     </div>
   );
 }
@@ -98,57 +107,5 @@ function Progress({ exp }: { exp: ExperimentProgress }) {
       </div>
       <p className="disclaimer">{ANTI_SPY}</p>
     </Card>
-  );
-}
-
-function RunSummary({ run }: { run: CouncilRun }) {
-  const vetoed = run.proposals.filter((p) => p.red_team.verdict === "veto").length;
-  return (
-    <Card>
-      <h2>Última reunión del consejo</h2>
-      <p className="muted small">
-        {dateTime(run.ran_ms)} · {run.n_blocks_in_snapshot} bloques en el resumen ·{" "}
-        {run.llm_used ? `modelos: ${Object.values(run.models ?? {}).join(" y ")}` : "sin modelos (respaldo del Allocator)"}
-      </p>
-      {run.fallback_reason && <p className="muted small">Motivo del respaldo: {run.fallback_reason}</p>}
-      <p>
-        {run.proposals.length} {run.proposals.length === 1 ? "propuesta" : "propuestas"}, {vetoed}{" "}
-        {vetoed === 1 ? "vetada" : "vetadas"}.{" "}
-        {run.chosen_experiment_id ? (
-          <strong>Eligió un experimento nuevo y lo preregistró.</strong>
-        ) : (
-          <span className="muted">No eligió ninguno.</span>
-        )}
-      </p>
-      {run.proposals.map((p, i) => (
-        <Proposal key={i} p={p} />
-      ))}
-    </Card>
-  );
-}
-
-function Proposal({ p }: { p: ProposalRecord }) {
-  const h = p.hypothesis;
-  const veto = p.red_team.verdict === "veto";
-  return (
-    <div className="proposal">
-      <p>
-        <strong>{ARM_LABEL[h.intervention]}</strong> {moderatorText(h.moderator)} ·{" "}
-        <span className="muted">
-          espera {Math.round((1 - h.expected_ratio) * 100)}% menos de latencia
-          {p.source === "allocator_fallback" ? " · propuesta del Allocator" : ""}
-        </span>
-      </p>
-      <p className="muted small">{h.rationale}</p>
-      <p className={veto ? "fail" : "pass"}>{veto ? "Vetada por el Red Team" : "Pasó el Red Team"}</p>
-      <ul className="tools">
-        {p.red_team.tools.map((t) => (
-          <li key={t.name} className={t.passed ? "" : "fail"}>
-            {t.passed ? "✓" : "✗"} {TOOL_LABEL[t.name] ?? t.name}: <span className="muted">{t.detail}</span>
-          </li>
-        ))}
-      </ul>
-      {p.red_team.premortem && <p className="muted small">Pre-mortem: {p.red_team.premortem}</p>}
-    </div>
   );
 }

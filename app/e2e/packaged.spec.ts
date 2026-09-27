@@ -36,7 +36,7 @@ test("empaquetada: arranca el núcleo congelado y responde", async () => {
   await expect.poll(() => win.evaluate(() => window.nde1!.connection()), { timeout: 45_000 }).not.toBeNull();
   const conn = (await win.evaluate(() => window.nde1!.connection()))!;
   const health = await win.evaluate(async (base) => (await fetch(`${base}/health`)).json(), conn.baseUrl);
-  expect(health).toMatchObject({ ok: true, contracts: "contracts@1" });
+  expect(health).toMatchObject({ ok: true, contracts: expect.stringMatching(/^contracts@1(\.\d+)?$/) });
   // Con token: una ruta real de A (sensor) y la verificación del journal.
   const today = await win.evaluate(
     async ({ base, token }) => (await fetch(`${base}/activity/today`, { headers: { "X-NDE1-Token": token } })).status,

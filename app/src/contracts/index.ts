@@ -489,6 +489,10 @@ export interface FirstStep {
  */
 export interface Health {
   contracts: string;
+  /**
+   * `sintetico` si data_dir tiene el marcador DATA_LABEL (demo): la app muestra la franja
+   */
+  data_label?: "real" | "sintetico";
   journal_seq: number;
   ok: boolean;
   version: string;

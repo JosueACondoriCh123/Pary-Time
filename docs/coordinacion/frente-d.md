@@ -130,3 +130,51 @@ Después, según qué quieras probar:
 | `npm run dev:fixtures` | App con los datos de ejemplo |
 | `npm run dist` | Instalador NSIS en `app/release/` (antes, copiá o construí `dist/nde1-core/` en la raíz del repo) |
 | `npm run dist:dir` y después `npx playwright test e2e/packaged.spec.ts` | App empaquetada con el núcleo congelado (se saltea si falta el sidecar) |
+
+## Hackathon (2026-09-27) · `brief-d-hackathon.md`
+
+### Hecho
+- **Franja "DATOS SINTÉTICOS":** fija en todas las vistas cuando `GET /health` → `data_label == "sintetico"`. Se vuelve
+  a leer si el núcleo se reinicia. Es violeta y distinta de "DATOS DE EJEMPLO", que es naranja y solo aparece en
+  desarrollo.
+- **Scripts:**
+  - `npm run demo`: la app sobre `<repo>/demo-data`.
+  - `npm run demo:live`: la app sobre `<repo>/demo-live`.
+  - Ninguno de los dos corre si el data-dir no tiene `DATA_LABEL = sintetico`, así la demo nunca toca los datos
+    reales. Si falta, muestran el comando exacto para generarlo.
+- **Consejo para el jurado** (`src/views/Council.tsx`):
+  - Cada propuesta es una tarjeta: hipótesis en una línea, justificación del Scout (o "Respaldo").
+  - Después vienen el verificador y las 4 herramientas del Red Team, con ✅ o ❌ y su detalle, y el veredicto.
+  - El pre-mortem va aparte, con la etiqueta "sin poder de veto".
+  - El preregistro muestra el test (con nombre humano, incluido `permutation_meanlog_diff_stratified@2`) y el hash
+    de la semilla abreviado, con el tooltip "la semilla se revela al terminar".
+- **Resultados:**
+  - Frase humana: "Con “X” arrancaste en la mitad de tiempo (p = 0.010 < α = 0.024): en vos, funciona."
+  - Barras de medianas.
+  - Caja "¿Se tocó el sorteo?" en 3 pasos: hash preregistrado, semilla revelada y sha256 recalculado en la compu,
+    con "✅ El sorteo no se tocó" en grande.
+- **`npm run shots`:**
+  - Genera 5 PNG en `docs/hackathon/img/` con el orden `planificador`, `hoy`, `reporte`, `consejo` y `resultados`.
+  - Trabaja sobre una copia descartable de `demo-data`.
+  - Variables `NDE1_SHOTS_DATA` y `NDE1_SHOTS_OUT` para elegir datos y salida.
+- **Tests:** 52 de Vitest (con la frase del resultado y la elección de la propuesta) y 4 e2e, que ahora aceptan
+  `contracts@1.x`.
+
+### Probado con `core.simulate` (WIP de `main`, sin commitear)
+Generé `demo-data` en una carpeta temporal (`--weeks 5 --seed 7`) y saqué capturas con el núcleo de `main`. Todo se ve
+bien. Hay tres avisos para el Frente 0:
+
+1. **El consejo del `demo-data` corrió con respaldo.** Dice "Scout no disponible: sin cassette 9c0092a8b9ab". Para el
+   guion, el paso "el verificador atrapa una cifra inventada" necesita la cassette de Qwen para ese snapshot
+   (`NDE1_LLM_MODE=record`). Si no, la vista muestra 4 respaldos sin vetos.
+2. **Contrato en movimiento.** Con el código commiteado, `Preregistration.test = permutation_meanlog_diff_stratified@2`
+   da 500 en `/experiments`, `/council/runs`, `/ledger` y `/report`. Cuando se commitee, regenero los tipos con
+   `npm run contracts`.
+3. **Privacidad de `demo-data`.** Mientras la app corre sobre un data-dir de demo, el sensor de A graba las ventanas
+   reales de Josué en su `activity.sqlite`. **No publiquen `demo-data/*.sqlite` después de abrir la app.** Una opción
+   es no arrancar el sensor cuando `data_label == sintetico`, o que `check_private.py` lo cubra.
+
+### Falta
+- Capturas finales sobre el `demo-data` definitivo, y el GIF del overlay y de la re-minimización con `demo-live`
+  (necesita `tools/demo_live.py` de B).
+- Ensayo del guion dos veces, con las fricciones anotadas acá.

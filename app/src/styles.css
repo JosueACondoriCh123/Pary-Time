@@ -637,3 +637,207 @@ label.check input {
   width: 1.1rem;
   height: 1.1rem;
 }
+
+/* ---------- consejo y resultados para la demo */
+
+code {
+  font-family: ui-monospace, "Cascadia Code", Consolas, monospace;
+  font-size: 0.85em;
+}
+
+code.hash {
+  display: block;
+  word-break: break-all;
+  background: var(--bg);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 0.35rem 0.55rem;
+  margin-top: 0.2rem;
+  color: #c9d4ea;
+}
+
+h3 {
+  font-size: 1.05rem;
+  margin: 0 0 0.4rem;
+}
+
+.council-summary {
+  display: flex;
+  gap: 1.25rem;
+  margin: 0.75rem 0;
+  font-size: 1.05rem;
+}
+
+.proposals {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.proposal-steps {
+  border: 1px solid var(--line);
+  border-left: 4px solid var(--accent);
+  border-radius: 10px;
+  padding: 0.75rem 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  background: var(--surface-2);
+}
+
+.proposal-steps.vetoed {
+  border-left-color: var(--danger);
+}
+
+.proposal-steps.chosen {
+  border-left-color: var(--ok);
+  box-shadow: 0 0 0 1px rgba(63, 182, 139, 0.35);
+}
+
+.step {
+  display: grid;
+  grid-template-columns: 7.5rem 1fr;
+  gap: 0.75rem;
+  align-items: baseline;
+}
+
+.step-tag {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.hyp {
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+.tool {
+  margin: 0;
+  font-size: 0.92rem;
+}
+
+.verdict-line {
+  font-weight: 700;
+  margin: 0;
+}
+
+.prereg {
+  margin-top: 1rem;
+  border: 1px solid rgba(63, 182, 139, 0.45);
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+  background: rgba(63, 182, 139, 0.06);
+}
+
+.prereg .kv {
+  margin-top: 0.6rem;
+}
+
+.verdict.big {
+  font-size: 1.6rem;
+  margin: 0.4rem 0 0.8rem;
+}
+
+.pline {
+  font-size: 1.05rem;
+  margin: 0.8rem 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.medians {
+  grid-template-columns: 11rem 1fr 5.5rem;
+}
+
+.bar.big {
+  height: 1.1rem;
+}
+
+.bar > span.treat {
+  background: var(--ok);
+}
+
+.seed-proof {
+  margin-top: 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  padding: 0.9rem 1rem;
+}
+
+.seed-proof.ok {
+  border-color: rgba(63, 182, 139, 0.6);
+  background: rgba(63, 182, 139, 0.06);
+}
+
+.seed-proof.bad {
+  border-color: var(--danger);
+  background: rgba(229, 72, 77, 0.07);
+}
+
+.seed-proof ol {
+  margin: 0;
+  padding-left: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.seed-verdict {
+  margin-top: 0.8rem;
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.seed-proof.ok .seed-verdict {
+  color: var(--ok);
+}
+
+.seed-proof.bad .seed-verdict {
+  color: #ff8a8d;
+}
+
+.synthetic-banner {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  text-align: center;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  background: repeating-linear-gradient(135deg, #8b5cf6, #8b5cf6 14px, #7c4ddf 14px, #7c4ddf 28px);
+  color: #fff;
+  padding: 0.2rem;
+  font-size: 0.85rem;
+}
+
+.synthetic-banner span {
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.synthetic-banner ~ .nav,
+.synthetic-banner ~ .content {
+  padding-top: 2.2rem;
+}
+
+code.hash.short {
+  display: inline-block;
+}
+
+.effect {
+  font-size: 1.15rem;
+  margin: 0 0 0.8rem;
+}
+
+.seed-proof .seed-verdict {
+  font-size: 1.3rem;
+}
+
+.premortem .tag {
+  margin-left: 0.3rem;
+}

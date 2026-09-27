@@ -1,6 +1,6 @@
 import { useEffect, useState, type ReactNode } from "react";
 import type { NavTarget } from "./bridge";
-import { FIXTURES, useCore } from "./core";
+import { FIXTURES, useCore, useLoad } from "./core";
 import { Experiment } from "./views/Experiment";
 import { Planner } from "./views/Planner";
 import { ReportView } from "./views/ReportView";
@@ -36,10 +36,19 @@ export function App() {
   const [view, setView] = useState<NavTarget>(defaultView);
 
   useEffect(() => window.nde1?.onNavigate(setView), []);
+  const synthetic = useDataLabel() === "sintetico";
 
   return (
     <div className="shell">
-      {FIXTURES && <div className="fixtures-banner">DATOS DE EJEMPLO</div>}
+      {FIXTURES ? (
+        <div className="fixtures-banner">DATOS DE EJEMPLO</div>
+      ) : (
+        synthetic && (
+          <div className="synthetic-banner" role="status">
+            DATOS SINTÉTICOS <span>· generados por el código real con reloj acelerado; no son de una persona</span>
+          </div>
+        )
+      )}
       <nav className="nav" aria-label="Secciones">
         <div className="brand">
           Consejo <span>N-de-1</span>
@@ -62,6 +71,13 @@ export function App() {
       </main>
     </div>
   );
+}
+
+/** `real` o `sintetico`, según el marcador DATA_LABEL del data-dir. Se vuelve a leer si el núcleo se reinicia. */
+function useDataLabel(): string | undefined {
+  const { sidecar } = useCore();
+  const base = sidecar.phase === "ready" ? sidecar.baseUrl : null;
+  return useLoad((a) => a.health(), [base]).data?.data_label;
 }
 
 function SidecarBanner() {
