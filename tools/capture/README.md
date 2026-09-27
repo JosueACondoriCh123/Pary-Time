@@ -1,5 +1,117 @@
 # Captura local del Frente A
 
+## Fase 6: comprobar la resolución registrada antes de la entrega
+
+Cerrá normalmente la aplicación y usá la carpeta de datos reales, en esta misma
+computadora. No subas el SQLite o journal a un runner de CI.
+
+```powershell
+..\.venv\Scripts\python.exe tools/capture/release_check.py --data-dir ../data --soak-status build/phase5-realtime-20260927/status.json
+```
+
+`../data` es un ejemplo. El chequeo reutiliza el preflight de medición, exige un
+marcador explícito `DATA_LABEL=real`, al menos una resolución registrada y un
+reporte sintético de soak **realtime** terminado con 48 h transcurridas. Una
+corrida acelerada, activa, interrumpida, fallida, corta o con cifras inconsistentes
+no satisface el requisito. No crea ni repara carpetas, datos o resoluciones.
+
+Sobre el journal verificado comprueba, en cada resolución y hasta ese punto:
+preregistro previo sin duplicados, compromiso de la semilla revelada, secuencia
+consecutiva de índices, asignaciones conforme al sorteo normativo, conteos de
+outcomes/censura/device-off/abortos, N mínimo por brazo, alpha y orden temporal.
+Los abortos mantienen sus outcomes por intención de tratar. Los conteos admiten
+que un brazo supere N mientras el otro lo alcanza. `supported` y `not_supported`
+reciben el mismo tratamiento: no se busca un resultado favorable. Una resolución
+anticipada con N incompleto queda pendiente para este hito, incluso si el journal
+registra correctamente el veredicto `insufficient`.
+
+La salida contiene solo conteos, booleanos y códigos de problema. No publica
+títulos, procesos, rutas, IDs de experimentos, semillas, efectos ni p-valores.
+Exit 0 significa `a_checks_passed=true`; 1, requisitos pendientes o inconsistentes;
+2, error de ejecución. Se rechaza SQLite con WAL y se detectan cambios de tamaño
+o fecha de los archivos durante la lectura. Cerrá la app: no es una instantánea
+transaccional entre varios archivos y no puede garantizarla frente a un escritor.
+
+Límites: una etiqueta no prueba la procedencia real, y un JSON de soak no es una
+atestación independiente. No se reconstruyen estadísticas de C, no se reevalúan
+outcomes contra trazas ya purgadas, no se revela ninguna semilla aún oculta y no se
+escribe al journal. El Frente C produce la primera resolución real; esta herramienta
+solo comprueba sus referencias y coherencia de medición. Tampoco sustituye la
+validación del instalador, seguridad global, firma o autorización de publicación.
+
+CI y empaquetado de A: ver `scripts/README.md` y `scripts/ci_a.py`.
+
+## Fase 5: estabilidad con datos sintéticos
+
+`soak.py` ejercita `Sampler._ingest`, compresión, retención y SQLite reales con
+observaciones sintéticas a 1 Hz lógico. No inicia `WindowsReader`, no lee ventanas
+y no escribe al journal. Cada ejecución exige una carpeta **nueva** y la marca
+`DATA_LABEL=sintetico`. Usar `build/` mantiene los resultados fuera de Git.
+
+```powershell
+# Volumen de 48 h; corre a la velocidad que permiten SQLite y el disco.
+..\.venv\Scripts\python.exe tools/capture/soak.py --out build/soak-accelerated --hours 48
+
+# 48 horas transcurridas, con una muestra por segundo y la misma carga sintética.
+..\.venv\Scripts\python.exe tools/capture/soak.py --out build/soak-realtime --mode realtime --hours 48
+```
+
+No cambiar las opciones de durabilidad de SQLite para acelerar la prueba. La corrida
+acelerada puede tardar decenas de minutos: hace las mismas escrituras por muestra.
+Un smoke usa `--seconds 5`. El escenario alterna trabajo, distracción, inactividad,
+bloqueo y pausa cada 30 s; introduce huecos de 10 s por hora, saltos del reloj civil
+y retrocesos, y reabre la base y el compresor cada 6 h sin vaciar el estado en memoria.
+Estas reaperturas prueban recuperación de estado persistido, no simulan un corte eléctrico.
+La retención se fija en un día para ejercitar purgas durante las 48 h; al arrancar
+también se inserta y purga un registro sintético vencido.
+
+`status.json` se reemplaza atómicamente y contiene estado, PID, tiempo lógico,
+tiempo transcurrido, conteos, integridad y problemas. `metrics.jsonl` agrega una
+medición por minuto real en modo realtime, o por hora lógica en modo acelerado.
+Se comprueban duración positiva, ausencia de solapamientos, retención y estados
+permitidos, además de `PRAGMA quick_check`. No se exportan títulos, procesos,
+rutas, tokens ni mensajes de excepciones. El SQLite contiene solo las etiquetas
+sintéticas fijas del escenario.
+La comprobación de retención usa el último corte aplicado por `maintain` al
+arrancar, cambiar de día o cambiar ajustes; no presupone una purga cada segundo.
+
+Se miden heap de Python con `tracemalloc` y handles del propio proceso en Windows
+mediante [GetProcessHandleCount](https://learn.microsoft.com/en-us/windows/win32/api/processthreadsapi/nf-processthreadsapi-getprocesshandlecount).
+Un aumento superior a 16 MiB de heap o 64 handles respecto de la primera medición
+reportada produce fallo; son umbrales de regresión para esta carga acotada. No son
+una medición de todo el RSS ni una prueba de ausencia de cualquier fuga nativa.
+El reporte conserva hallazgos intermedios aunque una medición posterior se recupere.
+Los saltos del planificador real se cuentan sin rellenar muestras perdidas; más
+de 1% de ticks perdidos o un hueco mayor de 5 s invalida la corrida.
+
+Consultar el avance y detener una corrida, incluso lanzada con ventana oculta:
+
+```powershell
+Get-Content build/soak-realtime/status.json
+New-Item -ItemType File -Path build/soak-realtime/stop.request
+```
+
+La detención se revisa cada segundo y deja `status=interrupted`, cierra SQLite y
+no marca aprobación. `Ctrl+C` tiene el mismo efecto en primer plano. Un cierre
+forzado del proceso puede dejar `running` como último estado: comprobar también
+el PID y la fecha de actualización; ese archivo por sí solo no acredita que siga vivo.
+Una ejecución no se reanuda; repetir requiere otra carpeta. No se crea un servicio
+ni una tarea de inicio de Windows.
+
+Exit 0 exige `checks_passed=true`; 1 indica fallo de la corrida, 2 error de preparación
+y 130 interrupción. `wall_48h_completed` solo puede ser verdadero en modo realtime
+tras al menos 172.800 s transcurridos y no reemplaza `checks_passed`.
+**48 h lógicas aceleradas no son un soak de 48 h reales.** Esta herramienta tampoco
+valida 48 h de Win32, Electron, NSIS o intervenciones: esas pruebas corresponden a
+una integración posterior. Las pruebas breves existentes de Win32 y del sidecar
+se informan por separado.
+
+Los avisos del sensor se limitan a uno por 60 s de reloj monotónico. Incluyen el
+número de errores desde el último aviso y la clase del último error, nunca su
+mensaje ni traceback. El primer error se informa enseguida; si después cesan los
+fallos puede quedar un conteo pendiente sin otro aviso. La señal `sensor_running`
+sigue dependiendo de la antigüedad de la última muestra válida, no del log.
+
 ## Demo de hackathon: datos sintéticos
 
 `tools.capture.synth.synth_day` implementa `core.interfaces.SynthDay` sin leer el sensor,

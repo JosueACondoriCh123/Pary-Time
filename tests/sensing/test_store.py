@@ -86,3 +86,20 @@ def test_concurrent_reader_and_writer_use_real_sqlite(tmp_path):
         assert len(store.spans(P, P + 100000)) == 100
     finally:
         store.close()
+
+
+def test_initialization_failure_releases_file_and_can_recover(tmp_path):
+    path = tmp_path / "activity.sqlite"
+    path.write_bytes(b"invalid SQLite synthetic canary")
+    store = SpanStore(path)
+    try:
+        for _ in range(20):
+            with pytest.raises(sqlite3.DatabaseError):
+                store.latest_end_ms()
+            assert store._db is None
+        # Windows refuses unlink while sqlite connections retain the file handle.
+        path.unlink()
+        store.write(span(0, 1))
+        assert store.latest_end_ms() == P + 1000
+    finally:
+        store.close()

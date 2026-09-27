@@ -83,3 +83,25 @@ def test_day_summary_clips_at_local_midnight(service):
         update={"start_ms": int(midnight - 60000), "end_ms": int(midnight + 60000)})
     service.activity.write(row)
     assert service.summary(int(midnight + 60000)).minutes_by_category["distraction"] == 1
+
+
+def test_composed_app_authenticates_every_sensing_route_before_read_or_write(tmp_path):
+    from core.app import TOKEN_HEADER, create_app
+    app = create_app(tmp_path, "auth-test")
+    client = TestClient(app)  # Deliberately no lifespan: no native capture.
+    requests = [("GET", "/activity/today"), ("POST", "/activity/pause?minutes=5"),
+                ("POST", "/activity/resume"),
+                ("GET", "/outcomes?from_date=2026-09-27&to_date=2026-09-27")]
+    try:
+        for method, url in requests:
+            for headers in ({}, {TOKEN_HEADER: "wrong"}):
+                assert client.request(method, url, headers=headers).status_code == 401
+        assert not (tmp_path / "activity.sqlite").exists()
+        response = client.get("/activity/today", headers={TOKEN_HEADER: "auth-test"})
+        assert response.status_code == 200
+        assert "title" not in response.text
+        assert "process" not in response.text
+        assert list(app.state.ctx.journal.events()) == []
+    finally:
+        client.close()
+        app.state.ctx.activity.close()

@@ -102,6 +102,35 @@ def test_shutdown_after_suspend_does_not_fill_the_suspend():
     assert rows == [span(0, 2)]
 
 
+def test_repeated_errors_are_counted_and_rate_limited_without_private_text(tmp_path, caplog):
+    store = SpanStore(tmp_path / "activity.sqlite")
+    sampler = Sampler(store, Settings)
+    for second in range(121):
+        sampler._report_error(OSError("private-caption-canary"), float(second))
+    messages = [record.getMessage() for record in caplog.records]
+    assert messages == ["Activity samples skipped: 1 (last error: OSError)",
+                        "Activity samples skipped: 60 (last error: OSError)",
+                        "Activity samples skipped: 60 (last error: OSError)"]
+    assert all(record.exc_info is None for record in caplog.records)
+    assert "private-caption-canary" not in caplog.text
+    assert not (tmp_path / "activity.sqlite").exists()
+
+
+def test_success_between_errors_does_not_reset_log_limit(tmp_path, caplog):
+    store = SpanStore(tmp_path / "activity.sqlite")
+    sampler = Sampler(store, Settings)
+    try:
+        for second in range(120):
+            if second % 2:
+                sampler._ingest(sample(second))
+            else:
+                sampler._report_error(ValueError("private-caption-canary"), second)
+        assert len(caplog.records) == 2
+        assert "skipped: 30" in caplog.records[1].getMessage()
+    finally:
+        store.close()
+
+
 def test_idle_is_strictly_greater_than_120_seconds_and_wraps_dword():
     assert not input_is_idle(121000, 1000)
     assert input_is_idle(121001, 1000)

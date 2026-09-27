@@ -2,6 +2,227 @@
 
 > Solo el dueño del frente escribe este archivo. Actualizalo al terminar cada tarea.
 
+## Pantallas secundarias · pedido explícito de Josué (2026-09-27)
+
+- Por el nuevo pedido se amplió el trabajo de A a `app/`: **Inicio, Mi perfil,
+  login y signup**, estos dos últimos simulados y con entrada de invitado
+  visible antes de los campos. Implementación en `32408a9`; integración de
+  `main@c913de2` mediante `dc93689`. La copia principal mantiene sus cambios
+  visuales sin commit; no fueron copiados ni sobrescritos desde A.
+- Inicio pasa a ser la pantalla inicial y ofrece accesos al planificador, Hoy,
+  experimento y resultados. La navegación conserva los destinos de la bandeja
+  y **Mi tiempo**, integrado durante este trabajo. Ninguna sección exige cuenta.
+- Mi perfil edita nombre opcional e intención. Solo estos dos valores se
+  guardan en `localStorage` al pulsar Guardar perfil. Se controla almacenamiento
+  inválido/no disponible. La intención no modifica reglas ni estadísticas.
+- Login/registro validan datos de ejemplo y abren una sesión **de demo en memoria**.
+  No hay backend de autenticación, petición de acceso, cuenta real, almacenamiento
+  de credenciales ni separación de datos por usuario. Recargar/cerrar vuelve al
+  modo invitado. Salir de la demo conserva los bloques de esta instalación.
+- Estilos propios en `app/src/secondary.css`, usando las variables del tema,
+  sin nuevas dependencias. Campos etiquetados, controles nativos, foco al cambiar
+  de pantalla, navegación al principio del contenido y adaptación móvil.
+  La revisión visual detectó y corrigió una barra lateral fija que bloqueaba
+  los clics en móvil; la regresión comprueba también su altura.
+- Verificación tras integrar Mi tiempo: **56 tests unitarios y 9 tests de
+  navegador aprobados**; TypeScript, ESLint y build de renderer/Electron correctos.
+  Los tests recorren todas las secciones como invitado, ambos formularios vacíos,
+  persistencia/corrupción del perfil, salida y recarga de sesión, ausencia de
+  credenciales en solicitudes/storage y las cuatro pantallas a **1280, 390 y
+  320 px** sin desbordamiento horizontal. Capturas revisadas en
+  `app/test-results/secondary/` (ignoradas por Git). Estos tests usan Edge y los
+  ejemplos existentes de contratos; no inician sensor ni Electron.
+- La allowlist admite únicamente el correo inventado del dominio reservado
+  `example.com` usado por la UI y su test, con valor y rutas exactos; la excepción
+  y su motivo quedan documentados. No se admitieron direcciones personales.
+  Scanner sobre la copia final: 287 archivos, cero errores y los 16 avisos
+  documentales/de imágenes existentes; no es una auditoría del contenido visual.
+- Vista previa local de esta entrega: `http://127.0.0.1:5210/`, con franja
+  **DATOS DE EJEMPLO**. Metadatos/logs del proceso: `build/secondary-preview/`.
+  Guía de uso, comprobación e integración: `app/SECONDARY-SCREENS.md`.
+  Para 0/D: conservar el tema glass y sus fuentes al integrar la rama de A;
+  no hacen falta contratos nuevos para estas pantallas.
+
+## Fase 6 · comprobación local, CI y candidato de A (2026-09-27)
+- Continuación solicitada por Josué. Integrada la base `main@4f5beb8` mediante
+  `33af5a8`, incluidas las correcciones de C y las excepciones de privacidad
+  aprobadas por el Frente 0. El soak realtime de F5 sigue activo; no se reinició
+  ni se reemplazó por la corrida acelerada.
+- `tools/capture/release_check.py`: comprobación local de solo lectura para A.
+  Reutiliza el preflight, exige etiqueta explícita real, resolución registrada
+  con N completo y reporte realtime aprobado de 48 h. Comprueba compromiso,
+  asignaciones, índices, conteos y coherencia con el preregistro, sin recalcular
+  estadísticas de C ni revelar datos en la salida. No genera la resolución.
+  Los casos de prueba son inventados, aunque uno use la etiqueta `real` para
+  probar esa condición; no constituyen el primer experimento real de Josué.
+- `scripts/ci_a.py`: comando ejecutable para CI/local, desde un commit limpio.
+  Verifica contratos, privacidad, todos los tests de A y un smoke sintético;
+  opcionalmente reconstruye y prueba el EXE, crea ZIP completo, manifiesto de
+  archivos con SHA-256 y checksum del ZIP. Relee el ZIP y verifica cada archivo.
+  Falla ante chequeos rechazados, cambio de fuentes o archivos privados/enlaces
+  en el bundle. Logs y bases de prueba quedan ignorados; no se publican.
+- La opción `--history` audita las referencias Git disponibles. Dependencias
+  mantienen los rangos existentes; se registra Python/PyInstaller y el commit,
+  sin prometer reproducibilidad del binario byte por byte entre instalaciones.
+- **Integración pendiente de 0:** `scripts/ci-frente-a.yml` está lista para copiar
+  a `.github/workflows/frente-a.yml`. A entrega la plantilla en su carpeta y no
+  edita la infraestructura global fuera de su reparto. Usa Ubuntu/Windows y
+  Python 3.11; sube exclusivamente recibo, manifiesto, checksum y ZIP exitosos.
+  No hay remoto Git configurado en esta copia; no se ejecutó GitHub Actions.
+- **C/D/0:** producir la primera resolución real, integrar y validar el instalador
+  NSIS y decidir tag/firma/publicación. Un CI de A verde conserva
+  `release_approved=false`; los datos reales y la comprobación de 48 h son locales.
+- Datos revisados: faltan `journal.jsonl` y `activity.sqlite` bajo `../data`;
+  tampoco se encontró journal en las dos ubicaciones habituales de Electron
+  revisadas en F4, ni está configurado `NDE1_DATA_DIR`. Se solicitó la ubicación
+  si existe otra carpeta real. No se recorrió el perfil del usuario.
+- Uso y límites: `scripts/README.md` y `tools/capture/README.md`.
+
+### Evidencia y pendientes de la entrega F6
+- Implementación: `e928e268ddf16340db08baf2c7e29143596a04c6`. La ejecución local
+  de `scripts/ci_a.py --out build/phase6-candidate-20260927 --build-sidecar --history`
+  terminó con exit 0 desde ese commit limpio: contratos, privacidad, tests de A,
+  smoke sintético, compilación nueva y smoke del EXE aprobados. Recibo:
+  `build/phase6-candidate-20260927/ci-report.json`, con `checks_passed=true` y
+  **`release_approved=false`**. Python 3.11.9; PyInstaller 6.22.3; Windows x64.
+- Tests de A: **182 passed, 1 skipped** (63.42 s); el skip corresponde al EXE
+  opt-in, probado por separado sobre el binario recién compilado. Las **39 pruebas
+  nuevas** también pasaron juntas. La plantilla YAML fue parseada y comprobada
+  localmente; esto no equivale a ejecutar GitHub Actions ni su job de Linux.
+- Scanner de privacidad, incluido historial: **265 archivos, cero errores y
+  36 avisos**. Las excepciones proceden de la base aprobada por 0; A no amplió
+  la allowlist. Los avisos documentales/históricos y las cinco imágenes siguen
+  requiriendo revisión manual antes de publicación; el scanner no hace OCR.
+- Candidato para D: `build/phase6-candidate-20260927/nde1-core-windows-x64.zip`.
+  Contiene el bundle completo de **140 archivos**, más su manifiesto; tamaño
+  **32.715.016 bytes**. SHA-256 del ZIP:
+  `3246c313661a444ab53c6ad0f06ef20bfbb6ca065e45e6065414158fdc6f98fb`.
+  En la misma carpeta están `bundle-manifest.json` y `SHA256SUMS.txt`.
+  El bundle sin comprimir está en `dist/nde1-core/` dentro de esa salida:
+  consumir la carpeta completa, incluido `_internal/`. Se verificaron CRC y
+  hashes de todos los archivos del ZIP. Artefactos locales ignorados por Git;
+  no hay tag, firma, push ni publicación. Recompilar si cambia la base integrada.
+- Suite integrada: **333 passed, 2 skipped, 1 failed** (221.05 s), registrada en
+  `build/phase6-full-suite.log`. Falló B:
+  `tests/runtime/test_b2_windows.py::test_delay_distractions_minimizes_only_our_window_and_restores_it`,
+  porque esperaba una ventana minimizada y obtuvo dos. La repetición aislada
+  pasó (1 test, 5.19 s), pero **no elimina el defecto de aislamiento observado**.
+  La regla productiva de WhatsApp también selecciona una ventana ajena al Tk del
+  fixture, y la aserción fallida evita llegar a la restauración del test.
+- Se reparó únicamente el efecto de esa prueba: su registro SQLite se leyó sin
+  modificarlo y se verificaron HWND, PID y estado minimizado antes de restaurar.
+  De dos ventanas registradas, el Tk ya estaba cerrado y se restauró la restante;
+  ninguna quedó minimizada y no se leyeron títulos. Recibo agregado:
+  `build/phase6-runtime-window-cleanup.json`. **Para B/0:** limitar el fixture
+  Win32 a los PID de sus propias ventanas y garantizar restauración con
+  `try/finally`, incluso ante aserciones fallidas. A no modificó código de B.
+- Comprobación local de release: `build/phase6-local-check.json` rechaza la
+  carpeta real incompleta por ausencia de SQLite/journal, línea base, etiqueta
+  explícita y resolución; las 48 h también siguen pendientes. La demo sintética
+  pasó la coherencia de una resolución con 44 asignaciones verificadas, pero
+  **no pasó el requisito de datos reales** (`build/phase6-demo-check.json`).
+- Soak F5 al registrar esta evidencia: `status=running`, PID 57732, unos
+  **68 minutos**, 4.069 muestras, diez ticks sin observación previstos, un tick
+  perdido por el planificador y cero problemas reportados; integridad correcta,
+  crecimiento de handles cero. Sigue usando muestras sintéticas, sin captura
+  nativa. `wall_48h_completed=false` y `checks_passed=false`: no se declara
+  aprobado hasta finalizar y revisar el reporte completo.
+- **F6 global pendiente:** datos y primera resolución reales; finalización del
+  soak de 48 h; corrección/verificación del aislamiento de B; activación de CI
+  por 0 y sus ejecuciones remotas; instalación/desinstalación NSIS por D;
+  revisión final de privacidad y decisión de firma/tag/publicación por 0.
+
+## Fase 5 · estabilidad, sidecar y logs (2026-09-27)
+- Continuación solicitada por Josué; eligió **muestras sintéticas** para el soak.
+  Se integró `main@6905b88` en `frente-a` mediante `0012efa`. El instalador NSIS
+  sigue siendo responsabilidad de D; A entrega el sidecar y evidencia del sensor.
+- `tools/capture/soak.py` ejecuta muestras sintéticas sobre el compresor, Sampler y
+  SQLite reales, con durabilidad normal de producción. Comprueba integridad,
+  solapamientos, retención, estados permitidos y crecimiento de heap/handles.
+  Ejercita huecos, saltos y retrocesos de reloj y reaperturas cada seis horas.
+  No inicia Win32, no escribe al journal, no toca datos de la aplicación y no
+  representa actividad real de Josué. Uso, límites y parada: `tools/capture/README.md`.
+- Refuerzos productivos: avisos de muestreo limitados a uno por minuto con conteo
+  y clase del error; mensajes y tracebacks privados siguen excluidos. Si SQLite
+  falla durante inicialización, su conexión se cierra antes de propagar el error,
+  permitiendo reintentar sin acumular handles. Sin cambios en `outcome@1` o contratos.
+- **Soak real de 48 h iniciado**, con ventana oculta: 2026-09-27 13:43:53 Bolivia
+  (17:43:53 UTC). Fin previsto: 2026-09-29 13:43:53 Bolivia, si el equipo permanece
+  activo. PID de trabajo inicial **57732** (el launcher fue 60500).
+  Estado local: `build/phase5-realtime-20260927/status.json`;
+  métricas: `build/phase5-realtime-20260927/metrics.jsonl`.
+  Sigue **pendiente** hasta observar `status=completed`, `checks_passed=true` y
+  `wall_48h_completed=true`. El estado inicial fue verificado junto con el proceso vivo.
+  Para detener: crear `build/phase5-realtime-20260927/stop.request`.
+- Carga acelerada de 48 h lógicas: `build/phase5-accelerated-20260927/status.json`.
+  **Completada y aprobada**, exit 0: 172.800 segundos lógicos, **172.320 muestras**,
+  480 ticks sin observación previstos y siete reaperturas. Duración real **1660.672 s**
+  (27 min 41 s), fin 2026-09-27 18:03:40 UTC. Integridad correcta; cero tramos
+  inválidos, solapados, anteriores al último corte de retención o con estados ajenos
+  al escenario. 49 reportes: aumento máximo de heap 203.478 bytes, de handles **0**;
+  SQLite/WAL/SHM alcanzaron 4.492.792 bytes y quedaron en 368.640 bytes al cerrar.
+  El SQLite final contiene 3.576 tramos. No equivale a 48 h transcurridas:
+  `checks_passed=true`, **`wall_48h_completed=false`**.
+  Una suspensión o cierre forzado no se convierte en aprobación ni se rellena con
+  observaciones inventadas. Los directorios de ensayo y binarios están ignorados.
+- Última comprobación de la corrida realtime al cerrar esta entrega: proceso vivo,
+  1.200 muestras, unos 20 minutos transcurridos, cero ticks perdidos, cero problemas
+  reportados y stderr vacío. Sigue pendiente; no se instaló monitor ni tarea de inicio.
+  Consultar el estado vivo antes de declarar F5 aprobada; una fecha prevista no es evidencia.
+- Sidecar reconstruido desde un workpath nuevo `build/phase5-sidecar-20260927`:
+  consumir **TODO `dist/nde1-core/`**, incluido `_internal/`. Smoke sobre el EXE:
+  **1 passed** (25.03 s), con HTTP real, rutas de A rechazando solicitudes sin token,
+  pausa persistida y reinicio. También se inspeccionó el bytecode del EXE: contiene
+  `_report_error` y el cierre de la conexión ante fallo de inicialización.
+  SHA-256 del EXE: `ff89cf0bc41aa82617ed5502a8614ff65ba2155910ed0257109b74370eb14fe4`.
+  Manifiesto local de fuentes/EXE: `build/phase5-artifacts.json`.
+  Recompilar al integrar cambios posteriores de 0/B/C; esta evidencia corresponde
+  exactamente a la base indicada más los cambios de A.
+- Validación: **143 passed, 1 skipped** en `tests/sensing` (58.92 s; el skip es el
+  EXE opt-in, que pasó por separado). Exportación de contratos correcta. La suite
+  general dio **283 passed, 2 skipped, 1 failed** (256.96 s), sin omitir el fallo:
+  `tests/council/test_council_lifecycle.py::test_full_lifecycle_resolves_at_n_and_reveals_the_committed_seed`
+  falló con `KeyError` al buscar una resolución ausente. No se alteró C desde A.
+  Para C: el test suministra exactamente `2*n` outcomes; la asignación por bloques
+  de cuatro no garantiza n por brazo cuando n es impar. Revisar los conteos y el
+  criterio de término del fixture antes de asumir una resolución inmediata.
+- Ensayo Win32 acotado, sin leer ventanas: 5.000 consultas del propio proceso y
+  5.000 de un PID inválido, **201 handles antes y después**. Evidencia local:
+  `build/phase5-native-handles.json`. No sustituye un soak nativo prolongado.
+- Scanner con los archivos finales preparados y `--history`: **256 archivos,
+  7 errores y 34 avisos**, exit 1; sin hallazgos nuevos en los cambios de F5 de A.
+  El email de `app/package-lock.json:4158` aparece en la copia actual y dos commits;
+  quedan dos emails en el historial de `scripts/check_private_allow.txt` (`4f5beb8`)
+  y rutas de usuario históricas en `tests/runtime/test_soak.py:11` (`20637ab`,
+  `455cba3`). No se imprimen los valores ni se amplía la allowlist para ocultarlos.
+  El scanner lee todas las referencias Git, también entregas de otros frentes
+  aún no integradas en A. Los avisos incluyen rutas documentales y cinco imágenes
+  cuya información visual no fue auditada por el scanner. Revisión pendiente de 0.
+  La comprobación adicional de la copia actual, sin historial, dio **256 archivos,
+  1 error y 15 avisos**: el único error es el email del lockfile ya indicado.
+
+### Revisión de seguridad del ámbito de A
+- Revisión manual de `core/sensing`, herramientas de captura y frontera HTTP del
+  sidecar. No se ejecutó el comando `/security-review`, que no está disponible
+  en esta sesión; no se presenta esto como una auditoría completa de la aplicación.
+- Corregidos: crecimiento de stderr ante errores sostenidos/intermitentes y
+  conexiones SQLite sin cierre explícito tras una inicialización fallida.
+  Regresiones verificadas con errores que contienen un canario privado, SQLite
+  inválido real y recuperación posterior; sin mocks de disco ni del sistema operativo.
+- Las cuatro rutas de A requieren autenticación en la aplicación compuesta y en
+  el EXE. Las solicitudes sin token o con token incorrecto se rechazan antes de
+  leer/escribir el almacén. Resúmenes y reportes no exportan títulos ni procesos.
+  SQL parametrizado; títulos locales acotados; pausa omite lectura de ventanas;
+  eliminación por retención mantiene `secure_delete` y checkpoint del WAL.
+- Límites: este soak mide Python/SQLite; el smoke Win32 y el EXE son breves.
+  Faltan soak del escritorio completo e instalación/desinstalación NSIS por D.
+  No se certifica cifrado local, borrado forense ni ausencia absoluta de fugas.
+- Para 0/D, antes de compartir logs generales: `core/__main__.py` imprime el token
+  temporal en stderr si falta `NDE1_TOKEN`; Electron sí lo suministra. Los errores
+  generales de arranque/HTTP también pueden incluir rutas en traceback. A no
+  cambió la composición ni el protocolo de inicio congelados; definir y probar
+  la política de redacción/exportación de logs en esos componentes.
+
 ## Fase 4 · primer experimento real (2026-09-27)
 - Continuación solicitada por Josué. Se interpreta como **F4 del plan posterior a la
   hackathon** (primer experimento real y `withdraw`), manteniendo A en sensor/medición.

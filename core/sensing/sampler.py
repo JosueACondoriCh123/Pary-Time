@@ -23,6 +23,7 @@ LOG = logging.getLogger(__name__)
 SAMPLE_MS = 1000
 MAX_GAP_S = 5
 CLOCK_DRIFT_MS = 1000
+ERROR_LOG_INTERVAL_S = 60
 
 
 @dataclass(frozen=True)
@@ -170,6 +171,8 @@ class Sampler:
         self._retention_mono = 0.0
         self._retention_days: int | None = None
         self._last_ok_mono: float | None = None
+        self._last_error_log_mono: float | None = None
+        self._unreported_errors = 0
 
     @property
     def running(self) -> bool:
@@ -275,12 +278,26 @@ class Sampler:
             try:
                 self.sample_once()
             except Exception as exc:
-                LOG.warning("Activity sample skipped (%s)", type(exc).__name__)
+                self._report_error(exc, time.monotonic())
             next_tick += 1
             now = time.monotonic()
             if next_tick <= now:
                 next_tick = now + 1
             self._stop.wait(next_tick - now)
+
+    def _report_error(self, exc: Exception, monotonic_s: float) -> None:
+        """Bound repeated failures without logging exception text or tracebacks.
+
+        Count every failed tick, including intermittent failures. A successful tick
+        does not reset the limit, so an alternating failure cannot flood stderr.
+        """
+        self._unreported_errors += 1
+        if (self._last_error_log_mono is None
+                or monotonic_s - self._last_error_log_mono >= ERROR_LOG_INTERVAL_S):
+            LOG.warning("Activity samples skipped: %d (last error: %s)",
+                        self._unreported_errors, type(exc).__name__)
+            self._unreported_errors = 0
+            self._last_error_log_mono = monotonic_s
 
     def stop(self) -> None:
         self._stop.set()

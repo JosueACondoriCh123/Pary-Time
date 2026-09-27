@@ -14,7 +14,7 @@ export default tseslint.config(
     rules: reactHooks.configs.recommended.rules,
   },
   {
-    files: ["electron/**/*.ts", "scripts/**/*.mjs", "*.config.{ts,js}", "e2e/**/*.ts", "tests/**/*.ts"],
+    files: ["electron/**/*.ts", "scripts/**/*.mjs", "*.config.{ts,js}", "e2e/**/*.ts", "ui-tests/**/*.ts", "tests/**/*.ts"],
     languageOptions: { globals: globals.node },
   },
   { rules: { "@typescript-eslint/no-unused-vars": ["error", { argsIgnorePattern: "^_", varsIgnorePattern: "^_" }] } },
