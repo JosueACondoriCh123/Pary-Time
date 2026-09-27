@@ -37,6 +37,60 @@
   si existe otra carpeta real. No se recorrió el perfil del usuario.
 - Uso y límites: `scripts/README.md` y `tools/capture/README.md`.
 
+### Evidencia y pendientes de la entrega F6
+- Implementación: `e928e268ddf16340db08baf2c7e29143596a04c6`. La ejecución local
+  de `scripts/ci_a.py --out build/phase6-candidate-20260927 --build-sidecar --history`
+  terminó con exit 0 desde ese commit limpio: contratos, privacidad, tests de A,
+  smoke sintético, compilación nueva y smoke del EXE aprobados. Recibo:
+  `build/phase6-candidate-20260927/ci-report.json`, con `checks_passed=true` y
+  **`release_approved=false`**. Python 3.11.9; PyInstaller 6.22.3; Windows x64.
+- Tests de A: **182 passed, 1 skipped** (63.42 s); el skip corresponde al EXE
+  opt-in, probado por separado sobre el binario recién compilado. Las **39 pruebas
+  nuevas** también pasaron juntas. La plantilla YAML fue parseada y comprobada
+  localmente; esto no equivale a ejecutar GitHub Actions ni su job de Linux.
+- Scanner de privacidad, incluido historial: **265 archivos, cero errores y
+  36 avisos**. Las excepciones proceden de la base aprobada por 0; A no amplió
+  la allowlist. Los avisos documentales/históricos y las cinco imágenes siguen
+  requiriendo revisión manual antes de publicación; el scanner no hace OCR.
+- Candidato para D: `build/phase6-candidate-20260927/nde1-core-windows-x64.zip`.
+  Contiene el bundle completo de **140 archivos**, más su manifiesto; tamaño
+  **32.715.016 bytes**. SHA-256 del ZIP:
+  `3246c313661a444ab53c6ad0f06ef20bfbb6ca065e45e6065414158fdc6f98fb`.
+  En la misma carpeta están `bundle-manifest.json` y `SHA256SUMS.txt`.
+  El bundle sin comprimir está en `dist/nde1-core/` dentro de esa salida:
+  consumir la carpeta completa, incluido `_internal/`. Se verificaron CRC y
+  hashes de todos los archivos del ZIP. Artefactos locales ignorados por Git;
+  no hay tag, firma, push ni publicación. Recompilar si cambia la base integrada.
+- Suite integrada: **333 passed, 2 skipped, 1 failed** (221.05 s), registrada en
+  `build/phase6-full-suite.log`. Falló B:
+  `tests/runtime/test_b2_windows.py::test_delay_distractions_minimizes_only_our_window_and_restores_it`,
+  porque esperaba una ventana minimizada y obtuvo dos. La repetición aislada
+  pasó (1 test, 5.19 s), pero **no elimina el defecto de aislamiento observado**.
+  La regla productiva de WhatsApp también selecciona una ventana ajena al Tk del
+  fixture, y la aserción fallida evita llegar a la restauración del test.
+- Se reparó únicamente el efecto de esa prueba: su registro SQLite se leyó sin
+  modificarlo y se verificaron HWND, PID y estado minimizado antes de restaurar.
+  De dos ventanas registradas, el Tk ya estaba cerrado y se restauró la restante;
+  ninguna quedó minimizada y no se leyeron títulos. Recibo agregado:
+  `build/phase6-runtime-window-cleanup.json`. **Para B/0:** limitar el fixture
+  Win32 a los PID de sus propias ventanas y garantizar restauración con
+  `try/finally`, incluso ante aserciones fallidas. A no modificó código de B.
+- Comprobación local de release: `build/phase6-local-check.json` rechaza la
+  carpeta real incompleta por ausencia de SQLite/journal, línea base, etiqueta
+  explícita y resolución; las 48 h también siguen pendientes. La demo sintética
+  pasó la coherencia de una resolución con 44 asignaciones verificadas, pero
+  **no pasó el requisito de datos reales** (`build/phase6-demo-check.json`).
+- Soak F5 al registrar esta evidencia: `status=running`, PID 57732, unos
+  **68 minutos**, 4.069 muestras, diez ticks sin observación previstos, un tick
+  perdido por el planificador y cero problemas reportados; integridad correcta,
+  crecimiento de handles cero. Sigue usando muestras sintéticas, sin captura
+  nativa. `wall_48h_completed=false` y `checks_passed=false`: no se declara
+  aprobado hasta finalizar y revisar el reporte completo.
+- **F6 global pendiente:** datos y primera resolución reales; finalización del
+  soak de 48 h; corrección/verificación del aislamiento de B; activación de CI
+  por 0 y sus ejecuciones remotas; instalación/desinstalación NSIS por D;
+  revisión final de privacidad y decisión de firma/tag/publicación por 0.
+
 ## Fase 5 · estabilidad, sidecar y logs (2026-09-27)
 - Continuación solicitada por Josué; eligió **muestras sintéticas** para el soak.
   Se integró `main@6905b88` en `frente-a` mediante `0012efa`. El instalador NSIS
