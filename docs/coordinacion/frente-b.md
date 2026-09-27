@@ -3,9 +3,12 @@
 > Solo el dueño del frente escribe este archivo. Actualizalo al terminar cada tarea.
 
 ## Estado
-- Fase actual: 3 del brief (caída real), 2026-09-27. El plan de después de la hackathon llama "F4" al retiro de experimentos; eso no tiene evento ni ruta en el contrato, así que no lo inventé.
+- Fase actual: 5 (soak y logs), 2026-09-27. El instalador NSIS queda en el Frente D (`packaging/electron-builder.yml`).
 
 ## Hecho
+- Soak acelerado de 48 h en `tests/runtime/test_soak.py`: el scheduler recorre dos días de bloques con reloj manual. En cada tick hay como mucho una intervención sin revertir, al final no queda ninguna, el journal verifica, y ni la etiqueta ni el primer paso aparecen en el journal ni en el log.
+- `core/runtime/privacy_log.py`: al arrancar el runtime escribe `runtime.log` rotativo (1 MB × 3). Las rutas de Windows o de `/Users` salen como `[ruta]`.
+- El hilo del scheduler se detiene en `stop()`.
 - `tools/demo_live.py` acepta `--label` y `--first-step` (solo con `primer_paso`). El brazo sigue forzado, sin `permuted_arm`, y el texto no entra al journal.
 - Caída real: un test lanza el núcleo, minimiza una ventana Tk propia, lo mata con `TerminateProcess` y lo relanza. El journal queda con `intervention` `reason: recovery` y `n_windows >= 1`. No toca ventanas de la persona.
 - Un hueco de ticks (suspensión) no vuelve a aplicar la intervención. Al cruzar la medianoche sigue habiendo una sola intervención activa: el bloque anterior se revierte con `block_start` y el nuevo arranca.
@@ -29,6 +32,6 @@
 ```powershell
 ..\.venv\Scripts\python -m pytest tests/runtime -q
 ..\.venv\Scripts\python tools/demo_live.py --data-dir demo-live --in 2m --arm retrasar_distracciones --label "Tesis cap. 3"
-..\.venv\Scripts\python -m pytest tests/runtime/test_b2_windows.py -q
+..\.venv\Scripts\python -m pytest tests/runtime/test_soak.py tests/runtime/test_b2_windows.py -q
 ```
 Después, la app con `NDE1_DATA_DIR` en ese `demo-live`. El overlay aparece enseguida; a los 2 min se minimizan WhatsApp (ventana abierta) y YouTube en Chrome o Edge. "Salida de emergencia" los restaura.
