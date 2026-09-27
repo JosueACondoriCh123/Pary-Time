@@ -73,13 +73,19 @@ def power_tool(h: Hypothesis, snapshot: Snapshot, view: JournalView, alpha: floa
     cens = min(sum(r["censored"] for r in rows) / len(rows), MAX_CENSORED_FRACTION)
     per_week = eligible_blocks_per_week(view, h.moderator)
     f = feasibility(sigma, h.expected_ratio, alpha, per_week, max_weeks=math.inf, efficiency=1.0)
-    n = math.ceil(f.n_per_arm / (1 - cens))
-    weeks = 2 * n / per_week if per_week else math.inf
+    n_claim = math.ceil(f.n_per_arm / (1 - cens))
+    weeks = 2 * n_claim / per_week if per_week else math.inf
     ok = weeks <= MAX_WEEKS
-    detail = (f"N={n} por brazo (σ_log={sigma:.2f}, censurados {cens:.0%}, ratio {h.expected_ratio:.2f}, "
-              f"α={alpha:.4f}); {per_week:.1f} bloques elegibles/semana → {weeks:.1f} semanas"
-              + ("" if ok else f" > tope de {MAX_WEEKS:g}"))
-    return ToolVerdict(name="power", passed=ok, detail=detail[:400]), Plan(n, alpha, weeks)   # plan aunque vete: la exploración lo usa
+    # El efecto que promete el modelo decide si la hipótesis ES TESTEABLE, pero no el tamaño: con el efecto del
+    # Scout (optimista), en la simulación salió N=6 y un efecto verdadero de ×0.5 no llegó a p < α. Si es viable, se
+    # usa todo el presupuesto de semanas (misma regla que Night Council: el tamaño no sale de la confianza del modelo).
+    n_budget = math.floor(MAX_WEEKS * per_week / 2)
+    n = max(n_claim, n_budget) if ok else n_claim
+    weeks_plan = 2 * n / per_week if per_week else math.inf
+    detail = (f"N={n} por brazo (mínimo para el efecto propuesto: {n_claim}; σ_log={sigma:.2f}, censurados {cens:.0%}, "
+              f"ratio {h.expected_ratio:.2f}, α={alpha:.4f}); {per_week:.1f} bloques elegibles/semana → "
+              f"{weeks:.1f} semanas" + ("" if ok else f" > tope de {MAX_WEEKS:g}"))
+    return ToolVerdict(name="power", passed=ok, detail=detail[:400]), Plan(n, alpha, weeks_plan)   # plan aunque vete: la exploración lo usa
 
 
 def fallback_ratio(snapshot: Snapshot, view: JournalView, alpha: float) -> float | None:

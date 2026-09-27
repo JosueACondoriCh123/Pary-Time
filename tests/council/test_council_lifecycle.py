@@ -89,7 +89,8 @@ def test_no_effect_is_not_supported(council, baseline):
     c, exps = council
     c.run()
     n = exps.active().n_per_arm
-    simulate_runtime(baseline, exps, 2 * n, treat_latency=lambda k: 900.0 + 7 * k, control_latency=lambda k: 905.0 + 7 * k)
+    same = lambda k: 900.0 + 37 * (k % 11)                   # nulo de verdad: la condición no cambia nada
+    simulate_runtime(baseline, exps, 2 * n, treat_latency=same, control_latency=same)
     r = list(JournalView.load(baseline).resolutions.values())[0]
     assert r.verdict == "not_supported" and r.p_value > r.alpha
 
