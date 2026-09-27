@@ -19,7 +19,9 @@
     "lint": "eslint .",
     "test": "vitest run",
     "test:e2e": "npm run build && playwright test",
-    "dist": "npm run build && electron-builder --config ../packaging/electron-builder.yml --win nsis"
+    "dist": "npm run build && npm run icon && electron-builder --config ../packaging/electron-builder.yml --win nsis",
+    "icon": "node scripts/make-icon.mjs",
+    "dist:dir": "npm run build && npm run icon && electron-builder --config ../packaging/electron-builder.yml --win --dir"
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",

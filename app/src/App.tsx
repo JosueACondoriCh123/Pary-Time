@@ -1,7 +1,12 @@
 import { useEffect, useState, type ReactNode } from "react";
 import type { NavTarget } from "./bridge";
 import { FIXTURES, useCore } from "./core";
+import { Experiment } from "./views/Experiment";
 import { Planner } from "./views/Planner";
+import { ReportView } from "./views/ReportView";
+import { Results } from "./views/Results";
+import { SettingsView } from "./views/SettingsView";
+import { Today } from "./views/Today";
 
 const NAV: { id: NavTarget; label: string }[] = [
   { id: "today", label: "Hoy" },
@@ -12,8 +17,13 @@ const NAV: { id: NavTarget; label: string }[] = [
   { id: "settings", label: "Ajustes" },
 ];
 
-const VIEWS: Partial<Record<NavTarget, () => ReactNode>> = {
+const VIEWS: Record<NavTarget, () => ReactNode> = {
+  today: () => <Today />,
   planner: () => <Planner />,
+  experiment: () => <Experiment />,
+  results: () => <Results />,
+  report: () => <ReportView />,
+  settings: () => <SettingsView />,
 };
 
 /** A la noche se abre en el planificador; de día, en "Hoy". */
@@ -27,7 +37,6 @@ export function App() {
 
   useEffect(() => window.nde1?.onNavigate(setView), []);
 
-  const render = VIEWS[view];
   return (
     <div className="shell">
       {FIXTURES && <div className="fixtures-banner">DATOS DE EJEMPLO</div>}
@@ -49,7 +58,7 @@ export function App() {
       </nav>
       <main className="content">
         <SidecarBanner />
-        {render ? render() : <p className="muted">Todavía no disponible en esta versión.</p>}
+        {VIEWS[view]()}
       </main>
     </div>
   );

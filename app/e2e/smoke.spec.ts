@@ -1,4 +1,5 @@
 // Smoke: la app empaquetada (dist/) lanza el núcleo real (.venv\Scripts\python -m core) y dibuja el planificador.
+import { execFileSync } from "node:child_process";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -51,6 +52,28 @@ test("el renderer está aislado y el token no queda guardado", async () => {
   expect(leaks.process).toBe("undefined");
   expect(leaks.storage).not.toContain(conn!.token);
   expect(leaks.url).not.toContain(conn!.token);
+});
+
+test("si el núcleo muere, Electron lo relanza", async () => {
+  const before = (await win.evaluate(() => window.nde1!.connection()))!;
+  const port = new URL(before.baseUrl).port;
+  // PID del proceso que escucha en ese puerto, y TerminateProcess como en una caída real.
+  const netstat = execFileSync("netstat", ["-ano", "-p", "TCP"], { encoding: "utf8" });
+  const line = netstat.split(/\r?\n/).find((l) => l.includes(`127.0.0.1:${port} `) && /LISTENING/.test(l));
+  expect(line, `nadie escucha en ${port}`).toBeTruthy();
+  const pid = line!.trim().split(/\s+/).at(-1)!;
+  execFileSync("taskkill", ["/PID", pid, "/F"]);
+
+  await expect
+    .poll(async () => (await win.evaluate(() => window.nde1!.connection()))?.baseUrl ?? null, { timeout: 30_000 })
+    .not.toBe(before.baseUrl);
+  const after = await expect
+    .poll(() => win.evaluate(() => window.nde1!.connection()), { timeout: 30_000 })
+    .not.toBeNull()
+    .then(() => win.evaluate(() => window.nde1!.connection()));
+  const health = await win.evaluate(async (base) => (await fetch(`${base}/health`)).json(), after!.baseUrl);
+  expect(health.ok).toBe(true);
+  expect(after!.token).toBe(before.token); // mismo token de sesión
 });
 
 test("dibuja el planificador", async () => {
