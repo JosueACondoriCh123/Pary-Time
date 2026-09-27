@@ -144,41 +144,57 @@ function showMain(to?: NavTarget) {
   if (to) mainWin.webContents.send("nde1:navigate", to);
 }
 
+/** Preferencias efectivas. NDE1_LANG fuerza el idioma (tests, capturas y GIF en español). */
+function currentPrefs(): Prefs {
+  const prefs = loadPrefs(prefsPath);
+  const forced = process.env.NDE1_LANG;
+  return forced === "en" || forced === "es" ? { ...prefs, language: forced } : prefs;
+}
+
+/** Texto de la bandeja y los avisos en el idioma elegido en la app. */
+const tr = (en: string, es: string) => (currentPrefs().language === "es" ? es : en);
+
 function notify(title: string, content: string) {
   tray?.displayBalloon({ title, content, iconType: "info" });
 }
 
 function statusMessage(status: number, okText: string): string {
   if (status >= 200 && status < 300) return okText;
-  if (status === 501) return "Todavía no disponible en esta versión.";
-  if (status === 409) return "No se puede ahora: el estado cambió.";
-  if (status === 0) return "El núcleo no está listo todavía.";
-  return `El núcleo respondió ${status}.`;
+  if (status === 501) return tr("Not available in this version yet.", "Todavía no disponible en esta versión.");
+  if (status === 409) return tr("Can't do that now: the state changed.", "No se puede ahora: el estado cambió.");
+  if (status === 0) return tr("The core isn't ready yet.", "El núcleo no está listo todavía.");
+  return tr(`The core answered ${status}.`, `El núcleo respondió ${status}.`);
 }
 
 function createTray() {
   tray = new Tray(trayIcon(32));
   tray.setToolTip("Pary Time");
+  buildTrayMenu();
+  tray.on("click", () => showMain());
+}
+
+function buildTrayMenu() {
+  if (!tray) return;
   const pause = async (minutes: number) => {
     const status = await callCore("POST", `/activity/pause?minutes=${minutes}`);
-    notify("Sensor", statusMessage(status, `Sensor en pausa ${minutes} min.`));
+    notify(tr("Sensor", "Sensor"), statusMessage(status, tr(`Sensor paused for ${minutes} min.`, `Sensor en pausa ${minutes} min.`)));
   };
   const emergency = async () => {
     const status = await callCore("POST", "/runtime/emergency_release");
-    notify("Salida de emergencia", statusMessage(status, "Listo: restauré todas las ventanas."));
+    notify(tr("Emergency exit", "Salida de emergencia"), statusMessage(status, tr("Done: every window is back.", "Listo: restauré todas las ventanas.")));
   };
   tray.setContextMenu(
     Menu.buildFromTemplate([
-      { label: "Abrir", click: () => showMain() },
-      { label: "Planificar mañana", click: () => showMain("planner") },
-      { label: "Distracciones", click: () => showMain("distractions") },
+      { label: tr("Open", "Abrir"), click: () => showMain() },
+      { label: tr("Plan tomorrow", "Planificar mañana"), click: () => showMain("planner") },
+      { label: tr("Distractions", "Distracciones"), click: () => showMain("distractions") },
       { type: "separator" },
-      { label: "Pausar sensor 30 min", click: () => void pause(30) },
-      { label: "Pausar sensor 60 min", click: () => void pause(60) },
-      { label: "Salida de emergencia", click: () => void emergency() },
+      { label: tr("Pause sensor 30 min", "Pausar sensor 30 min"), click: () => void pause(30) },
+      { label: tr("Pause sensor 60 min", "Pausar sensor 60 min"), click: () => void pause(60) },
+      { label: tr("Emergency exit", "Salida de emergencia"), click: () => void emergency() },
       { type: "separator" },
       {
-        label: "Salir",
+        label: tr("Quit", "Salir"),
         click: () => {
           quitting = true;
           app.quit();
@@ -186,7 +202,6 @@ function createTray() {
       },
     ]),
   );
-  tray.on("click", () => showMain());
 }
 
 function applyLoginItem(prefs: Prefs) {
@@ -205,7 +220,7 @@ function registerIpc() {
   ipcMain.handle("nde1:connection", () => connection());
   ipcMain.handle("nde1:retry", () => sidecar.retry());
   ipcMain.handle("nde1:pick-file", async () => {
-    const opts = { properties: ["openFile" as const], title: "Elegí el archivo de trabajo" };
+    const opts = { properties: ["openFile" as const], title: tr("Choose the work file", "Elegí el archivo de trabajo") };
     const r = mainWin ? await dialog.showOpenDialog(mainWin, opts) : await dialog.showOpenDialog(opts);
     return r.canceled ? null : (r.filePaths[0] ?? null);
   });
@@ -216,12 +231,13 @@ function registerIpc() {
     writeFileSync(r.filePath, arg.content, "utf8");
     return true;
   });
-  ipcMain.handle("nde1:prefs", () => loadPrefs(prefsPath));
+  ipcMain.handle("nde1:prefs", () => currentPrefs());
   ipcMain.handle("nde1:set-prefs", (_e, patch: Partial<Prefs>) => {
     const next = { ...loadPrefs(prefsPath), ...patch };
     savePrefs(prefsPath, next);
     applyLoginItem(next);
-    return next;
+    if (patch.language) buildTrayMenu();
+    return currentPrefs();
   });
   ipcMain.on("nde1:overlay-visible", (e, visible: boolean) => {
     if (!overlayWin || overlayWin.isDestroyed() || e.sender !== overlayWin.webContents) return;

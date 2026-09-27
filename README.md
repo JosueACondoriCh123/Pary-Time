@@ -1,51 +1,62 @@
-# Consejo N-de-1
+# Pary Time
 
-**Tu compu hace ciencia sobre cómo arrancás a trabajar.** Para personas con TDAH, donde el consejo genérico falla,
-porque lo que le sirve a otro no te dice nada sobre vos.
+**Un paso pequeño. Un ritmo más tuyo.** Pary Time es la app de escritorio (Windows) para probar, en tu propia compu, qué te ayuda a **empezar** a trabajar. El motor sigue siendo un experimento N-de-1: una sola persona, aleatorizado, con el veredicto sellado en un journal.
 
-Declarás tus bloques de trabajo. Un consejo de agentes **locales** hace el resto:
-1. **Scout** (`qwen3.5:4b`) lee tu línea base y propone una hipótesis falsable: "abrir el documento solo a la hora
-   del bloque reduce tu latencia de arranque a la mitad".
-2. **Verificador:** rechaza cualquier cifra que no esté en tus datos, atada a su unidad y a su tema.
-3. **Red Team** (`granite4.2:8b`, otra familia de modelo) la ataca con **estadística determinista con poder de
-   veto**: potencia, confusores, comparaciones múltiples y constitución. El modelo escribe un pre-mortem, **sin
-   veto**.
-4. **Preregistro:** hipótesis, test, N, α y el **hash de la semilla** quedan sellados en un journal con cadena de
-   hashes **antes** del primer sorteo.
-5. **La compu ejecuta el experimento:** cada bloque se sortea (bloques permutados de 4) y, si le toca, se aplica la
-   intervención. Puede ser abrir el trabajo solo, mostrar tu primer paso mínimo, **minimizar WhatsApp y YouTube**
-   hasta que arranques, o una cuenta regresiva visible.
-6. **Resolución:** al llegar al N preregistrado, un test de permutación estratificado da el veredicto, y la semilla
-   se revela para que cualquiera verifique que el sorteo no se tocó.
+Podés entrar como **invitado**. El formulario de acceso es una sesión de demo en esta máquina: no hay servidor de cuentas y la contraseña no se guarda. El perfil (nombre e intención) vive en el navegador local de la app.
 
 > Ajustes de flujo de trabajo medidos sobre una sola persona. **No es tratamiento ni consejo médico.**
 
-**Todo es local:** el sensor de ventanas, los modelos (Ollama), la estadística y los datos. Los títulos de ventana
-nunca salen de un SQLite local y se borran a los 14 días. El journal no guarda títulos ni textos, así que el reporte
-se puede compartir con un profesional.
+Versión de la app: **0.2.0**. Contratos del núcleo: `contracts@1.2`.
+
+## La app
+
+| Sección | Para qué |
+|---|---|
+| **Inicio** | El día de hoy, cuántos bloques hay y tres pasos: preparar, probar, mirar resultados cuando alcancen. |
+| **Hoy** | Los bloques del día, el arranque y lo que está pasando ahora. |
+| **Mi tiempo** | Historial de uso clasificado (hoy, 7 o 14 días): trabajo, distracción, otras apps, foco más largo y cambios por hora. Gráficos de agregados. **Sin títulos de ventana.** |
+| **Distracciones** | Sitios y programas que cuentan como distracción, al estilo de una extensión de bloqueo. Se guardan en los ajustes. Pausar uno lo saca de la lista del sensor y lo deja visible en esta pantalla. |
+| **Planificar** | Bloques de trabajo: horario, tarea, primer paso y con qué ventana se considera que arrancaste. |
+| **Experimento** | La hipótesis en curso, el preregistro y el hash de la semilla. Sin el efecto antes de tiempo. |
+| **Resultados** | Veredicto, medianas, p contra α, semilla revelada y ledger. |
+| **Reporte** | Exportable para compartir. Sin títulos ni textos tuyos. |
+| **Ajustes** | Listas, retención de los datos crudos y modelos de Ollama. |
+| **Mi perfil** | Nombre e intención, solo en este equipo. |
+
+También: franja **DATOS SINTÉTICOS** cuando el directorio de datos es de demo, **modo proyector** (`Ctrl+Shift+P`) para una pantalla grande, overlay de cuenta regresiva o primer paso, bandeja e **salida de emergencia**.
+
+## Cómo funciona el experimento
+
+Declarás bloques. Un consejo de agentes **locales** hace el resto:
+
+1. **Scout** (`qwen3.5:4b`) lee tu línea base y propone una hipótesis falsable.
+2. **Verificador:** rechaza cifras que no estén en tus datos, atadas a su unidad y a su tema.
+3. **Red Team** (`granite4.2:8b`, otra familia) la ataca con estadística determinista y **poder de veto** (potencia, confusores, comparaciones múltiples, constitución). El pre-mortem no veta.
+4. **Preregistro:** hipótesis, test, N, α y el **hash de la semilla** quedan en un journal con cadena de hashes **antes** del primer sorteo.
+5. **La compu ejecuta:** cada bloque se sortea (bloques permutados de 4). Si le toca, abre el trabajo, muestra tu primer paso, **minimiza WhatsApp y YouTube** hasta que arranques, o pone una cuenta regresiva. Siempre podés decir «hoy no» o usar la salida de emergencia.
+6. **Resolución:** al llegar al N, un test de permutación estratificado da el veredicto y **revela la semilla**, para comprobar que el sorteo no se tocó.
+
+La primera semana es **línea base**: solo se mide. Sin Ollama, el consejo usa un respaldo determinista.
+
+**Todo es local:** sensor de ventanas, modelos, estadística y datos. Los títulos crudos viven en un SQLite de esta compu y se borran a los 14 días. El journal no los guarda, así que el reporte se puede compartir.
 
 | El consejo delibera | El sorteo se verifica |
 |---|---|
 | ![Consejo](docs/hackathon/img/consejo.png) | ![Resultados](docs/hackathon/img/resultados.png) |
 
-*Capturas sobre datos SINTÉTICOS (`npm run shots`). A la izquierda, el Scout propone 3 hipótesis, las 5
-herramientas del Red Team las revisan y se preregistra la elegida (N = 21 aunque el modelo prometa un efecto que
-pediría menos). A la derecha, la semilla revelada coincide con el hash publicado antes del primer sorteo.*
+*Capturas de la demo sintética (`npm run shots`), anteriores al nombre Pary Time en la barra. El contenido que muestran —preregistro y semilla— sigue siendo el de Resultados y Experimento.*
 
 ## Qué lo hace distinto
-Búsqueda del 2026-09-26, sin pretensión de exhaustividad:
-- Existen plataformas N-de-1 (QuantifyMe, MIT 2018; StudyU), pero son de celular, de salud y con hipótesis escritas
-  a mano.
-- Existen dashboards de tiempo en la compu (ActivityWatch, quantifiedme), pero **observan, no experimentan**.
-- Existen agentes con motor de reglas y auditoría (triage de SOC), pero en otro dominio.
 
-No encontramos nada que combine **hipótesis propuestas por agentes, un Red Team estadístico con veto, aleatorización
-ejecutada por la propia compu y preregistro con cadena de hashes** sobre el flujo de trabajo de una persona.
+Búsqueda del 2026-09-26, sin pretensión de exhaustividad:
+
+- Hay plataformas N-de-1 (QuantifyMe, MIT 2018; StudyU), de celular y de salud, con hipótesis escritas a mano.
+- Hay dashboards de tiempo en la compu (ActivityWatch). **Observan. Pary Time también experimenta.**
+- No encontramos otra herramienta que junte hipótesis de agentes locales, un Red Team estadístico con veto, aleatorización hecha por la propia compu y preregistro con cadena de hashes, sobre cómo arranca a trabajar una persona.
 
 ## Resultado del simulador (datos sintéticos)
-Un experimento real tarda semanas. `python -m core.simulate` corre **el código real** con reloj acelerado: 5 semanas
-de bloques con tramos de actividad sintéticos y un **efecto verdadero conocido** (con la intervención se arranca en la
-mitad de tiempo).
+
+Un experimento real tarda semanas. `python -m core.simulate` corre **el código real** con reloj acelerado: 5 semanas, tramos sintéticos y un efecto verdadero conocido (con la intervención se arranca en la mitad de tiempo).
 
 **Corrida de la demo** (`--seed 11 --llm cache`, consejo real con Qwen y Granite):
 
@@ -53,96 +64,77 @@ mitad de tiempo).
 |---|---|
 | Línea base | 1 semana de bloques de control |
 | Consejo | el Scout propone `primer_paso` (ratio 0.45), pasa el verificador y el Red Team, y se preregistra |
-| Preregistro | N = 21 por brazo (todo el presupuesto de 3 semanas), α = 0.024 (alpha-investing), hash de la semilla |
+| Preregistro | N = 21 por brazo, α = 0.024 (alpha-investing), hash de la semilla |
 | Resolución | latencia mediana **13.8 → 11.0 min**, ratio dentro de franja **0.68**, **p = 0.021 < α = 0.024**: apoyado |
-| Segunda reunión | 3 hipótesis nuevas del Scout; se elige `cuenta_regresiva` y queda en curso |
+| Segunda reunión | se elige `cuenta_regresiva` y queda en curso |
 | Journal | 268 eventos, `verify` ok; cada asignación coincide con la semilla revelada |
 
-**Estudio de potencia** (`--llm off`, semillas 1 a 10, el mismo código):
+**Estudio de potencia** (`--llm off`, el mismo código):
 
 | Efecto verdadero | Apoyado |
 |---|---|
-| ×0.5 (con la intervención, la mitad de tiempo) | **8 de 10** (se diseñó para 80%) |
-| ×1.0 (sin efecto) | **0 de 5** (ningún falso descubrimiento) |
+| ×0.5 (la mitad de tiempo) | **8 de 10** (diseñado para 80%) |
+| ×1.0 (sin efecto) | **0 de 5** |
 
-Las semillas 1 y 7 son los 2 de 10 que fallan con efecto real: la latencia baja, pero el test preregistrado con
-su α no alcanza y el veredicto dice "no apoyado". Es la potencia prometida, no un error: el sistema no se autoengaña
-para darte una buena noticia.
+Esas dos semillas que no llegan a p < α, con un efecto real, son la potencia prometida: el sistema no se inventa una buena noticia.
 
-**El simulador encontró tres errores nuestros**, antes de que le pasen a una persona real:
-1. **Medianas agrupadas:** el primer test comparaba medianas de todos los bloques juntos. Con mañanas lentas y tardes
-   rápidas la latencia es bimodal, y la mediana caía en el hueco entre los dos grupos: un ×0.5 verdadero se medía
-   como 0.88 (p = 0.27).
-2. **Desbalance por franja:** los bloques alternan mañana y tarde, y el sorteo en bloques de 4 puede cargar el
-   tratamiento de mañanas lentas. La media agrupada mezclaba franja con efecto (ratio 0.92 con un ×0.5 real). El test
-   actual (`permutation_meanlog_diff_stratified@2`) permuta **dentro de cada franja** y promedia las diferencias
-   **dentro de franja**, con pesos tipo Mantel-Haenszel.
-3. **Sorteo no reproducible:** la semilla del consejo salía de `secrets`, que es correcto en uso real pero hacía
-   irreproducible la simulación. Ahora es inyectable, y en la simulación está sembrada.
-
-## Corrida real del consejo (Ollama local, RTX 4050 6 GB)
-- Qwen propuso 3 hipótesis en 37 s y Granite escribió el pre-mortem en 39 s. Las respuestas quedaron grabadas en
-  `data/cassettes/` y se reproducen en los tests.
-- **Sin restricción:** el Scout pidió efectos realistas (−30%), y el Red Team las vetó por potencia (12–18 semanas).
-  Ahora el Scout recibe el **efecto mínimo detectable** como restricción.
-- **El verificador atrapó a Qwen inventando:** "50% de bloques censurados" (era 4%) y "47% de censura en lectura"
-  (era 0%). La cifra a veces existía, pero como porcentaje de otra cosa: por eso cada cifra se ata a su unidad y
-  a su tema.
-- **Otro error nuestro:** el Red Team dimensionaba N con el efecto que prometía el Scout. Con un 0.45 optimista salió
-  N = 6 y un efecto real no llegó a p < α. Ahora el efecto propuesto solo decide si la hipótesis es testeable, y N usa
-  todo el presupuesto de semanas: el tamaño no sale de la confianza del modelo.
+El simulador corrigió tres errores antes de usarlos con una persona: medianas que mezclaban mañanas y tardes, un desbalance por franja (el test ahora permuta **dentro** de cada franja) y un sorteo de simulación que no se podía repetir porque la semilla salía de `secrets`. En uso real la semilla sigue siendo aleatoria; en la simulación es inyectable.
 
 ## Probarlo
-Requisitos: Windows 10/11, Python 3.11, Node 20 o superior, [Ollama](https://ollama.com) (opcional; sin él, el
-consejo usa un respaldo determinista).
+
+Windows 10/11, Python 3.11, Node 20 o superior. [Ollama](https://ollama.com) es opcional.
 
 ```powershell
 python -m venv .venv
 .venv\Scripts\python -m pip install -e ".[dev]"
-ollama pull qwen3.5:4b; ollama pull granite4.2:8b          # opcional
+ollama pull qwen3.5:4b; ollama pull granite4.2:8b
 
-# 5 semanas simuladas (DATOS SINTÉTICOS) y la app encima. Con Ollama, el consejo es real (--llm cache);
-# sin Ollama usá --llm off (respaldo determinista, otros resultados)
+# 5 semanas simuladas y la app encima
 .venv\Scripts\python -m core.simulate --out demo-data --weeks 5 --seed 11 --llm cache
-cd app; npm install; npm run demo
+cd app
+npm install
+npm run demo
 
-# demo en vivo: un bloque que empieza en 2 minutos con WhatsApp/YouTube minimizados
-.venv\Scripts\python tools/demo_live.py --data-dir demo-live --in 2m --arm retrasar_distracciones
-cd app; npm run demo:live
+# bloque en vivo, en 2 minutos, con la distracción minimizada
+cd ..
+.venv\Scripts\python tools/demo_live.py --data-dir demo-live --in 2m --arm retrasar_distracciones --label "Tesis cap. 3"
+cd app
+npm run demo:live
 
-# tests
-.venv\Scripts\python -m pytest -q
+# tu compu, datos reales (la primera semana solo mide)
+npm run dev
 ```
 
-Para usarlo con datos reales: `cd app; npm run dev`. Planificá tus bloques y confirmá el día. La primera semana es
-línea base: solo se mide.
+Tests: `.venv\Scripts\python -m pytest -q` desde la raíz, y `npm test` dentro de `app`.
+
+Al renombrar la app a Pary Time, los datos siguen en `%APPDATA%\Consejo N-de-1`. Cambiar el nombre no borra la línea base.
 
 ## Arquitectura
+
 ```
 Electron (app/) ──HTTP 127.0.0.1 + token──▶ núcleo Python (core/)
-                                            ├─ sensing   sensor Win32 → SQLite local · outcome@1 · categorize
-                                            ├─ runtime   bloques · sorteo sellado · scheduler · intervenciones · overlay
-                                            ├─ council   snapshot → Scout → verificador → Red Team → Allocator → preregistro
-                                            ├─ stats     permutación estratificada · potencia · alpha-investing · ledger Beta
-                                            ├─ simulate  ciclo completo acelerado (demo y prueba)
-                                            └─ journal   cadena de hashes, fuente de verdad compartida
+                                            ├─ sensing    sensor Win32 → SQLite · Mi tiempo · categorize
+                                            ├─ runtime    bloques · sorteo · scheduler · intervenciones · overlay
+                                            ├─ council    Scout → verificador → Red Team → preregistro → resolución
+                                            ├─ stats      permutación estratificada · potencia · alpha-investing
+                                            ├─ simulate   ciclo acelerado para la demo
+                                            └─ journal    cadena de hashes
 ```
+
 Detalle: [diseño](docs/superpowers/specs/2026-09-26-consejo-n-de-1-design.md) ·
-[reglas de la métrica](docs/outcome-rules.md) · [eventos del journal](docs/journal-events.md) ·
+[métrica](docs/outcome-rules.md) · [journal](docs/journal-events.md) ·
 [contratos](contracts/README.md).
 
-## Límites, con honestidad
-- **Una sola persona:** el resultado no generaliza, y ese es justamente el punto.
-- **Sin ciego:** la persona ve la intervención.
-- **Poca potencia:** con 2 bloques por día, en 3 semanas solo se detectan efectos grandes (reducir la latencia a la
-  mitad, más o menos).
-- **Verificador léxico:** ata cifras a unidad y tema, pero no entiende todas las afirmaciones.
+## Límites
+
+- **Una sola persona.** El resultado no se generaliza. Ese es el punto.
+- **Sin ciego.** Ves la intervención.
+- **Poca potencia.** Con pocos bloques por día, en tres semanas solo se ven efectos grandes.
+- **El acceso no es una cuenta.** Invitado o demo local. No hay login contra un servidor.
+- **Mi tiempo no guarda títulos.** Muestra apps y sitios ya clasificados.
 - **Solo Windows.**
-- **Sin validar en uso real prolongado:** el primer experimento real todavía no terminó. Los resultados de arriba
-  son del simulador.
+- **El primer experimento real todavía no terminó.** Las tablas de arriba son del simulador, marcadas como sintéticas.
 
 ## Cómo se construyó
-Proyecto empezado el **2026-09-26** (ver el historial de git). Lo construyeron 4 agentes en paralelo, cada uno en su
-worktree y con contratos congelados: dos sesiones de Claude Code y dos agentes externos. La coordinación está en
-[`docs/coordinacion/`](docs/coordinacion/README.md). El journal, el lock de proceso y el cliente LLM vienen de Night
-Council, del mismo autor.
+
+El proyecto empezó el **2026-09-26**. El núcleo, el journal y el cliente de Ollama vienen de Night Council, del mismo autor. La coordinación de los frentes está en [`docs/coordinacion/`](docs/coordinacion/README.md).

@@ -1,8 +1,8 @@
-// Preferencias de la app que no son del núcleo (por ahora, solo arrancar con Windows).
+// Preferencias de la app que no son del núcleo: arrancar con Windows e idioma.
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import type { Prefs } from "../src/bridge";
 
-const DEFAULTS: Prefs = { openAtLogin: true };
+const DEFAULTS: Prefs = { openAtLogin: true, language: "en" };
 
 export function loadPrefs(path: string): Prefs {
   if (!existsSync(path)) return { ...DEFAULTS };

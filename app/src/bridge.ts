@@ -14,6 +14,8 @@ export interface Connection {
 
 export interface Prefs {
   openAtLogin: boolean;
+  /** Idioma de la UI y de la bandeja. */
+  language: "en" | "es";
 }
 
 export type NavTarget = "planner" | "today" | "history" | "distractions" | "experiment" | "results" | "report" | "settings";
