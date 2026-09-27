@@ -14,5 +14,9 @@ data/*.lock*
 data/runtime/
 tests/fixtures/traces/*.raw.jsonl
 
+# Demos de la hackathon: sqlite y journal locales, nunca al repo
+/demo-live/
+/demo-data/
+
 # Worktrees de los frentes externos (viven acá adentro; tienen su propia rama)
 /n-de-1-frente-*/

@@ -40,6 +40,14 @@ WINDOW_MS = OUTCOME_RULES.censor_s * 1000
 PENDING = (BlockStatus.confirmed, BlockStatus.running)
 
 
+def _synthetic(data_dir) -> bool:
+    """True solo si el directorio está marcado como demo. Los datos reales no tienen este archivo."""
+    try:
+        return (data_dir / "DATA_LABEL").read_text(encoding="utf-8").strip() == "sintetico"
+    except OSError:
+        return False
+
+
 class BlockRepo(Protocol):
     """Lo mínimo que B2 necesita del store de bloques de B1."""
 
@@ -282,7 +290,7 @@ class Scheduler:
                 if work_streak_s(spans, b, self.ctx.settings(), self.ctx.categorize, now) >= WORK_STREAK_TO_HIDE_S:
                     self.state.set_overlay_done(b.block_id)
                     hidden = True
-            return overlay_for(b, arm, now, hidden=hidden)
+            return overlay_for(b, arm, now, hidden=hidden, demo_countdown=_synthetic(self.ctx.data_dir))
 
     def status(self, now: int | None = None) -> RuntimeStatus:
         now = self.now_ms() if now is None else now

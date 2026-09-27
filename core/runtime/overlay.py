@@ -35,12 +35,14 @@ def _mmss(ms: int) -> str:
     return f"{s // 60}:{s % 60:02d}"
 
 
-def overlay_for(block: Block, arm: Arm, now_ms: int, *, hidden: bool) -> OverlayState:
+def overlay_for(block: Block, arm: Arm, now_ms: int, *, hidden: bool,
+                demo_countdown: bool = False) -> OverlayState:
     P = block.planned_start_ms
-    if hidden or block.aborted or arm not in (Arm.cuenta_regresiva, Arm.primer_paso):
+    countdown = arm == Arm.cuenta_regresiva or (demo_countdown and arm == Arm.retrasar_distracciones)
+    if hidden or block.aborted or not (countdown or arm == Arm.primer_paso):
         return HIDDEN
     base = dict(block_id=block.block_id, task_label=block.task_label, planned_start_ms=P)
-    if arm == Arm.cuenta_regresiva:
+    if countdown:
         if now_ms < P - COUNTDOWN_LEAD_MS:
             return HIDDEN
         text = (f"{block.task_label} · arrancás en {_mmss(P - now_ms)}" if now_ms < P
